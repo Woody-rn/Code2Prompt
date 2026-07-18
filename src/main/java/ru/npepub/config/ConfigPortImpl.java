@@ -2,6 +2,7 @@ package ru.npepub.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.model.AppConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +15,7 @@ import java.util.Properties;
  * File-based implementation of {@link ConfigPort}.
  * Stores configuration in ~/.code2prompt/config/app.properties.
  */
-public class ConfigPortImpl implements ConfigPort {
+class ConfigPortImpl implements ConfigPort {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigPortImpl.class);
 
