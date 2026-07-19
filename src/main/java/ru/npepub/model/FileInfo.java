@@ -1,10 +1,14 @@
 package ru.npepub.model;
 
+import ru.npepub.di.C2PComponent;
+
 import java.nio.file.Path;
 
 /**
  * Represents a scanned file with its relative path and content.
  */
+
+@C2PComponent
 public record FileInfo(
         Path relativePath,
         String content,
