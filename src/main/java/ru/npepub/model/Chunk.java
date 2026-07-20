@@ -10,7 +10,6 @@ import java.util.List;
  * Atomic unit for writing to a single output txt file.
  */
 
-@C2PComponent
 public record Chunk(
         int index,
         List<FileInfo> files,

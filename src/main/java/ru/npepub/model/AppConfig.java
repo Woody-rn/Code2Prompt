@@ -8,7 +8,6 @@ import java.nio.file.Path;
  * Application configuration values.
  */
 
-@C2PComponent
 public record AppConfig(
         String modelName,
         int maxSymbols,

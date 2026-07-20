@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.*;
@@ -55,11 +56,19 @@ public class ContainerDI {
         log.info("Scanning package: {}", basePackage);
 
         try {
-            URL packageUrl = getPackageUrl(basePackage);
+            String path = basePackage.replace('.', '/');
+            Enumeration<URL> resources = ContainerDI.class.getClassLoader().getResources(path);
+            List<Class<?>> componentClasses = new ArrayList<>();
 
-            File directory = new File(packageUrl.toURI());
+            while (resources.hasMoreElements()) {
+                URL packageUrl = resources.nextElement();
+                log.debug("Found package at: {}", packageUrl);
 
-            List<Class<?>> componentClasses = findComponentClasses(directory, basePackage);
+                if ("file".equals(packageUrl.getProtocol())) {
+                    File directory = new File(packageUrl.toURI());
+                    componentClasses.addAll(findComponentClasses(directory, basePackage));
+                }
+            }
 
             for (Class<?> clazz : componentClasses) {
                 register(clazz);
@@ -69,15 +78,6 @@ public class ContainerDI {
         } catch (Exception e) {
             throw new RuntimeException("Component scan failed", e);
         }
-    }
-
-    private URL getPackageUrl(String basePackage) {
-        String path = basePackage.replace('.', '/');
-        URL packageUrl = Thread.currentThread().getContextClassLoader().getResource(path);
-        if (packageUrl == null) {
-            throw new RuntimeException("Package not found: " + basePackage);
-        }
-        return packageUrl;
     }
 
     private List<Class<?>> findComponentClasses(File directory, String basePackage) {
@@ -108,7 +108,9 @@ public class ContainerDI {
 
     private void register(Class<?> clazz) {
         try {
-            Object instance = clazz.getDeclaredConstructor().newInstance();
+            Constructor<?> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Object instance = constructor.newInstance();
 
             for (Class<?> iface : clazz.getInterfaces()) {
                 beans.put(iface, instance);
