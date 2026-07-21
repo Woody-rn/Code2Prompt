@@ -31,15 +31,22 @@ class FileAggregatorImpl implements FileAggregator {
 
         for (FileInfo file : files) {
             int headerSize = estimateHeaderSize(file);
+            int totalFileSize = file.size() + headerSize;
 
-            if (currentSize + file.size() + headerSize > symbolLimit && !currentFiles.isEmpty()) {
+            if (totalFileSize > symbolLimit) {
+                log.warn("File '{}' ({} symbols) exceeds the symbol limit ({}). " +
+                                "It will be placed in a separate chunk.",
+                        file.relativePath(), totalFileSize, symbolLimit);
+            }
+
+            if (currentSize + totalFileSize > symbolLimit && !currentFiles.isEmpty()) {
                 chunks.add(new Chunk(chunkIndex++, List.copyOf(currentFiles), currentSize));
                 currentFiles.clear();
                 currentSize = 0;
             }
 
             currentFiles.add(file);
-            currentSize += file.size() + headerSize;
+            currentSize += totalFileSize;
         }
 
         if (!currentFiles.isEmpty()) {
