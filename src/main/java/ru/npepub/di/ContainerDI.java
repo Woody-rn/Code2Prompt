@@ -80,6 +80,43 @@ public class ContainerDI {
         }
     }
 
+    /**
+     * Creates an instance of the given type and injects its @C2PInject fields.
+     * For classes not managed as beans (e.g., JavaFX controllers).
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T createAndInject(Class<T> type) {
+        try {
+            T existing = (T) beans.get(type);
+            if (existing != null) {
+                return existing;
+            }
+
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            T instance = constructor.newInstance();
+
+            for (Field field : type.getDeclaredFields()) {
+                if (field.isAnnotationPresent(C2PInject.class)) {
+                    Object dependency = beans.get(field.getType());
+                    if (dependency == null) {
+                        throw new IllegalStateException(
+                                "No bean found for injection: " + field.getType().getName() +
+                                        " in " + type.getName()
+                        );
+                    }
+                    field.setAccessible(true);
+                    field.set(instance, dependency);
+                    log.debug("Injected: {} -> {}", dependency.getClass().getSimpleName(), field.getName());
+                }
+            }
+
+            return instance;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create and inject: " + type.getName(), e);
+        }
+    }
+
     private List<Class<?>> findComponentClasses(File directory, String basePackage) {
         List<Class<?>> classes = new ArrayList<>();
         File[] files = directory.listFiles();

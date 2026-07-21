@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<DialogPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="ru.npepub.ui.SettingsController"
+            prefWidth="450" prefHeight="350">
+
+    <content>
+        <VBox spacing="15" style="-fx-padding: 15;">
+
+            <!-- Модель -->
+            <VBox spacing="5">
+                <Label text="Модель AI:" style="-fx-font-weight: bold;"/>
+                <ComboBox fx:id="modelCombo" prefWidth="Infinity"/>
+            </VBox>
+
+            <!-- Лимит -->
+            <VBox spacing="5">
+                <Label text="Лимит символов:" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="maxSymbolsField"/>
+            </VBox>
+
+            <!-- Запас -->
+            <VBox spacing="5">
+                <Label text="Запас безопасности (%):" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="safetyMarginField"/>
+            </VBox>
+
+            <!-- Папка вывода -->
+            <VBox spacing="5">
+                <Label text="Папка вывода по умолчанию:" style="-fx-font-weight: bold;"/>
+                <HBox spacing="10">
+                    <TextField fx:id="defaultOutputPathField" HBox.hgrow="ALWAYS"/>
+                    <Button text="Обзор" onAction="#onBrowseOutput"/>
+                </HBox>
+            </VBox>
+
+            <!-- Логирование -->
+            <VBox spacing="5">
+                <Label text="Уровень логирования:" style="-fx-font-weight: bold;"/>
+                <ComboBox fx:id="logLevelCombo" prefWidth="Infinity"/>
+            </VBox>
+
+        </VBox>
+    </content>
+
+    <buttonTypes>
+        <ButtonType text="Сохранить" buttonData="OK_DONE"/>
+        <ButtonType text="Отмена" buttonData="CANCEL_CLOSE"/>
+    </buttonTypes>
+
+</DialogPane>
