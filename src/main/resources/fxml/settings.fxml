@@ -2,8 +2,6 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
-
 <DialogPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ru.npepub.ui.SettingsController"
             prefWidth="450" prefHeight="350">
@@ -19,7 +17,7 @@
 
             <!-- Лимит -->
             <VBox spacing="5">
-                <Label text="Лимит символов:" style="-fx-font-weight: bold;"/>
+                <Label text="Лимит символов модели:" style="-fx-font-weight: bold;"/>
                 <TextField fx:id="maxSymbolsField"/>
             </VBox>
 
@@ -44,12 +42,15 @@
                 <ComboBox fx:id="logLevelCombo" prefWidth="Infinity"/>
             </VBox>
 
+            <!-- Режим отладки -->
+            <VBox spacing="5">
+                <CheckBox fx:id="debugModeCheckBox" text="Режим отладки (окно с логами)"/>
+            </VBox>
+
         </VBox>
     </content>
 
-    <buttonTypes>
-        <ButtonType text="Сохранить" buttonData="OK_DONE"/>
-        <ButtonType text="Отмена" buttonData="CANCEL_CLOSE"/>
-    </buttonTypes>
+    <ButtonType text="Сохранить" buttonData="OK_DONE"/>
+    <ButtonType text="Отмена" buttonData="CANCEL_CLOSE"/>
 
 </DialogPane>

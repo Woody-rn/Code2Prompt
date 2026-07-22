@@ -1,47 +1,70 @@
 package ru.npepub.ui;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.npepub.config.ConfigPort;
 import ru.npepub.di.C2PInject;
 import ru.npepub.model.AppConfig;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * Controller for the settings dialog.
  */
 public class SettingsController {
 
-    private static final Logger log = LoggerFactory.getLogger(SettingsController.class);
+    @FXML
+    private ComboBox<String> modelCombo;
+    @FXML
+    private TextField maxSymbolsField;
+    @FXML
+    private TextField safetyMarginField;
+    @FXML
+    private TextField defaultOutputPathField;
+    @FXML
+    private ComboBox<String> logLevelCombo;
+    @FXML
+    private CheckBox debugModeCheckBox;
 
-    @FXML private ComboBox<String> modelCombo;
-    @FXML private TextField maxSymbolsField;
-    @FXML private TextField safetyMarginField;
-    @FXML private TextField defaultOutputPathField;
-    @FXML private ComboBox<String> logLevelCombo;
-
+    @SuppressWarnings("unused")
     @C2PInject
     private ConfigPort configPort;
 
     private AppConfig config;
 
+    private static final Map<String, Integer> MODEL_LIMITS = Map.of(
+            "DeepSeek V3", 100_000,
+            "GPT-4o", 128_000,
+            "GPT-4 Turbo", 128_000,
+            "Claude 3.5 Sonnet", 200_000,
+            "Gemini 1.5 Pro", 1_000_000
+    );
+
     @FXML
     public void initialize() {
         config = configPort.load();
 
-        modelCombo.getItems().addAll("DeepSeek V3", "GPT-4o", "GPT-4 Turbo", "Claude 3.5 Sonnet", "Gemini 1.5 Pro");
+        modelCombo.getItems().addAll(MODEL_LIMITS.keySet());
         modelCombo.setValue(config.modelName());
+
+        modelCombo.setOnAction(e -> {
+            String selected = modelCombo.getValue();
+            Integer limit = MODEL_LIMITS.get(selected);
+            if (limit != null) {
+                maxSymbolsField.setText(String.valueOf(limit));
+            }
+        });
 
         maxSymbolsField.setText(String.valueOf(config.maxSymbols()));
         safetyMarginField.setText(String.valueOf((int) (config.safetyMargin() * 100)));
-
         defaultOutputPathField.setText(config.outputPath().toString());
+
+        debugModeCheckBox.setSelected(config.debugMode());
 
         logLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
         logLevelCombo.setValue(config.logLevel().name());
@@ -71,7 +94,8 @@ public class SettingsController {
                 Double.parseDouble(safetyMarginField.getText()) / 100.0,
                 Path.of(defaultOutputPathField.getText()),
                 AppConfig.LogLevel.valueOf(logLevelCombo.getValue()),
-                config.errorLogEnabled()
+                config.errorLogEnabled(),
+                debugModeCheckBox.isSelected()
         );
     }
 }

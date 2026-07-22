@@ -2,50 +2,42 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.npepub.ui.MainController"
       spacing="10" prefWidth="600" prefHeight="450"
       style="-fx-padding: 15;">
 
-    <!-- Заголовок -->
     <Label text="Code2Prompt" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
 
-    <!-- Выбор папки-источника -->
     <HBox spacing="10" alignment="CENTER_LEFT">
         <Label text="Папка-источник:" prefWidth="120"/>
         <TextField fx:id="sourcePathField" HBox.hgrow="ALWAYS" promptText="Выберите папку с проектом"/>
         <Button text="Обзор" onAction="#onBrowseSource"/>
     </HBox>
 
-    <!-- Выбор папки вывода -->
     <HBox spacing="10" alignment="CENTER_LEFT">
         <Label text="Папка вывода:" prefWidth="120"/>
         <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="Выберите папку для txt-файлов"/>
         <Button text="Обзор" onAction="#onBrowseOutput"/>
     </HBox>
 
-    <!-- Лимит и модель -->
     <HBox spacing="10" alignment="CENTER_LEFT">
         <Label text="Лимит символов:" prefWidth="120"/>
         <TextField fx:id="limitField" prefWidth="100" text="95000"/>
-        <Label fx:id="modelLabel" text="DeepSeek V3"/>
-        <Button text="⚙" onAction="#onOpenSettings"/>
+        <Button text="Настройки" onAction="#onOpenSettings"/>
+        <Button text="📁 Логи" onAction="#onOpenLogs"/>
     </HBox>
 
-    <!-- Кнопка Старт -->
-    <Button text="СТАРТ" onAction="#onStart" style="-fx-font-size: 14; -fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+    <Button text="СТАРТ" onAction="#onStart"
+            style="-fx-font-size: 14; -fx-background-color: #4CAF50; -fx-text-fill: white;"/>
 
-    <!-- Прогресс -->
     <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
 
-    <!-- Результаты -->
     <Label text="Результаты:" style="-fx-font-weight: bold;"/>
     <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true">
         <VBox fx:id="resultsBox" spacing="5"/>
     </ScrollPane>
 
-    <!-- Статус -->
     <Label fx:id="statusLabel" text="Готово" style="-fx-text-fill: gray;"/>
 
 </VBox>

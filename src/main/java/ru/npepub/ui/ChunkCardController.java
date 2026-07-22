@@ -3,6 +3,8 @@ package ru.npepub.ui;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
@@ -14,13 +16,22 @@ import java.nio.file.Path;
  */
 public class ChunkCardController {
 
-    @FXML private Label fileNameLabel;
-    @FXML private Label sizeLabel;
-    @FXML private Button copyButton;
-    @FXML private Label copiedLabel;
+    private static final Logger log = LoggerFactory.getLogger(ChunkCardController.class);
+
+    @FXML
+    private Label fileNameLabel;
+    @FXML
+    private Label sizeLabel;
+    @FXML
+    @SuppressWarnings("unused")
+    private Button copyButton;
+    @FXML
+    @SuppressWarnings("unused")
+    private Button openButton;
+    @FXML
+    private Label copiedLabel;
 
     private Path filePath;
-    private boolean copied = false;
 
     /**
      * Sets the file info for this card.
@@ -39,24 +50,24 @@ public class ChunkCardController {
                     .getSystemClipboard()
                     .setContents(new StringSelection(content), null);
 
-            copied = true;
-            copyButton.setVisible(false);
             copiedLabel.setVisible(true);
         } catch (Exception e) {
-            // ignore
+            log.error("Failed to copy", e);
         }
-    }
-
-    /**
-     * @return true if content was already copied
-     */
-    public boolean isCopied() {
-        return copied;
     }
 
     private String formatSize(long bytes) {
         if (bytes < 1024) return bytes + " б";
         if (bytes < 1024 * 1024) return String.format("%.1f КБ", bytes / 1024.0);
         return String.format("%.1f МБ", bytes / (1024.0 * 1024));
+    }
+
+    @FXML
+    private void onOpen() {
+        try {
+            java.awt.Desktop.getDesktop().open(filePath.toFile());
+        } catch (Exception e) {
+            log.error("Failed to open file", e);
+        }
     }
 }

@@ -1,7 +1,5 @@
 package ru.npepub.model;
 
-import ru.npepub.di.C2PComponent;
-
 import java.nio.file.Path;
 
 /**
@@ -14,7 +12,8 @@ public record AppConfig(
         double safetyMargin,
         Path outputPath,
         LogLevel logLevel,
-        boolean errorLogEnabled
+        boolean errorLogEnabled,
+        boolean debugMode
 ) {
     public enum LogLevel {
         DEBUG, INFO, WARN, OFF
@@ -44,7 +43,8 @@ public record AppConfig(
                 DEFAULT_SAFETY_MARGIN,
                 DEFAULT_OUTPUT_PATH,
                 LogLevel.INFO,
-                true
+                true,
+                false
         );
     }
 }

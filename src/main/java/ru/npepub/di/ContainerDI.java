@@ -41,6 +41,7 @@ public class ContainerDI {
     public ContainerDI() {
         scanAndRegister("ru.npepub");
         injectDependencies();
+        beans.put(ContainerDI.class, this);
     }
 
     @SuppressWarnings("unchecked")

@@ -50,7 +50,8 @@ class ConfigPortImpl implements ConfigPort {
                     Path.of(props.getProperty("output.path",
                             AppConfig.DEFAULT_OUTPUT_PATH.toString())),
                     AppConfig.LogLevel.valueOf(props.getProperty("log.level", "INFO")),
-                    Boolean.parseBoolean(props.getProperty("log.error.enabled", "true"))
+                    Boolean.parseBoolean(props.getProperty("log.error.enabled", "true")),
+                    Boolean.parseBoolean(props.getProperty("debug.mode", "false"))
             );
         } catch (IOException | NumberFormatException e) {
             log.warn("Failed to load config, using defaults", e);
@@ -83,6 +84,7 @@ class ConfigPortImpl implements ConfigPort {
         props.setProperty("output.path", config.outputPath().toString());
         props.setProperty("log.level", config.logLevel().name());
         props.setProperty("log.error.enabled", String.valueOf(config.errorLogEnabled()));
+        props.setProperty("debug.mode", String.valueOf(config.debugMode()));
         return props;
     }
 }
