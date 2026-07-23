@@ -2,7 +2,7 @@ package ru.npepub.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.di.C2PComponent;
+import ru.npepub.di.api.C2PComponent;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.service.FileAggregator;

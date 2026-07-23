@@ -1,4 +1,4 @@
-package ru.npepub.di;
+package ru.npepub.di.api;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

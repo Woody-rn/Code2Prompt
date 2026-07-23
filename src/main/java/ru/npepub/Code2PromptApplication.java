@@ -32,7 +32,7 @@ public class Code2PromptApplication extends Application {
         log.info("Starting Code2Prompt");
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
-        loader.setControllerFactory(container::createAndInject);
+        loader.setControllerFactory(container::createController);
 
         Parent root = loader.load();
         primaryStage.setTitle("Code2Prompt - npepub.ru");

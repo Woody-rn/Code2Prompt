@@ -2,7 +2,7 @@ package ru.npepub.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.di.C2PComponent;
+import ru.npepub.di.api.C2PComponent;
 import ru.npepub.model.FileInfo;
 import ru.npepub.service.FileScanner;
 
@@ -32,6 +32,7 @@ class FileScannerImpl implements FileScanner {
         try (Stream<Path> stream = Files.walk(rootDir)) {
             stream.filter(Files::isRegularFile)
                     .forEach(filePath -> addFileInfo(rootDir, filePath, files));
+
         } catch (IOException e) {
             log.error("Failed to scan directory: {}", rootDir, e);
             throw new RuntimeException("Directory scan failed: " + rootDir, e);

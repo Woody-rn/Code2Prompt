@@ -1,6 +1,6 @@
 package ru.npepub.service.impl;
 
-import ru.npepub.di.C2PComponent;
+import ru.npepub.di.api.C2PComponent;
 import ru.npepub.service.PathResolver;
 
 import java.nio.file.Path;

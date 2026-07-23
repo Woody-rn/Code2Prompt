@@ -6,7 +6,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import ru.npepub.config.ConfigPort;
-import ru.npepub.di.C2PInject;
+import ru.npepub.di.api.C2PInject;
 import ru.npepub.model.AppConfig;
 
 import java.io.File;

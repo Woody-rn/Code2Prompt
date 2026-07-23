@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.config.ConfigPort;
-import ru.npepub.di.C2PInject;
+import ru.npepub.di.api.C2PInject;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.model.AppConfig;
 import ru.npepub.service.FileAggregator;
@@ -80,7 +80,7 @@ public class MainController {
     private void onOpenSettings() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
-            loader.setControllerFactory(container::createAndInject);
+            loader.setControllerFactory(container::createController);
             DialogPane pane = loader.load();
             SettingsController ctrl = loader.getController();
 

@@ -1,7 +1,5 @@
 package ru.npepub.model;
 
-import ru.npepub.di.C2PComponent;
-
 import java.util.Collections;
 import java.util.List;
 

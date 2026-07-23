@@ -4,7 +4,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import ru.npepub.di.C2PComponent;
+import ru.npepub.di.api.C2PComponent;
 
 /**
  * Manages a separate window that displays real-time logs.

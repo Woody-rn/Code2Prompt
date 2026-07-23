@@ -1,6 +1,6 @@
 package ru.npepub.service.impl;
 
-import ru.npepub.di.C2PComponent;
+import ru.npepub.di.api.C2PComponent;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.service.ChunkFormatter;
