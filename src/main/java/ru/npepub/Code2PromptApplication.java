@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.ContainerDI;
 
+import java.util.Objects;
+
 public class Code2PromptApplication extends Application {
 
     private static final Logger log = LoggerFactory.getLogger(Code2PromptApplication.class);
@@ -35,6 +37,8 @@ public class Code2PromptApplication extends Application {
         Parent root = loader.load();
         primaryStage.setTitle("Code2Prompt - npepub.ru");
         primaryStage.setScene(new Scene(root));
+        primaryStage.getIcons().add(new javafx.scene.image.Image(
+                Objects.requireNonNull(getClass().getResourceAsStream("/icon.png"))));
         primaryStage.show();
 
         log.info("Application started");
