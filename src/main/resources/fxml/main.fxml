@@ -28,8 +28,10 @@
         <Button text="📁 Логи" onAction="#onOpenLogs"/>
     </HBox>
 
-    <Button text="СТАРТ" onAction="#onStart"
+    <Button fx:id="startButton" text="СТАРТ" onAction="#onStart"
             style="-fx-font-size: 14; -fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+    <Button fx:id="stopButton" text="СТОП" onAction="#onStop" visible="false"
+            style="-fx-font-size: 14; -fx-background-color: #f44336; -fx-text-fill: white;"/>
 
     <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
 

@@ -11,6 +11,7 @@ import ru.npepub.service.OutputWriter;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
@@ -30,6 +31,7 @@ public class ScanTask {
     private final Consumer<String> onStatus;
     private final Consumer<Path> onFileWritten;
     private final Runnable onComplete;
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
     public ScanTask(FileScanner scanner, FileAggregator aggregator, OutputWriter writer,
                     String sourcePath, String outputPath, int limit,
@@ -51,12 +53,24 @@ public class ScanTask {
     public void start() {
         new Thread(() -> {
             try {
+                if (cancelled.get()) return;
+
                 status("Сканирование...");
                 List<FileInfo> files = scanner.scan(Path.of(sourcePath));
                 log.info("Found {} files", files.size());
 
+                if (cancelled.get()) {
+                    finish("Отменено");
+                    return;
+                }
+
                 status("Разбивка на части...");
                 List<Chunk> chunks = aggregator.aggregate(files, limit);
+
+                if (cancelled.get()) {
+                    finish("Отменено");
+                    return;
+                }
 
                 status("Запись файлов...");
                 List<Path> writtenFiles = writer.write(chunks, Path.of(outputPath));
@@ -78,5 +92,19 @@ public class ScanTask {
 
     private void status(String text) {
         Platform.runLater(() -> onStatus.accept(text));
+    }
+
+    /**
+     * Requests cancellation of this task.
+     */
+    public void cancel() {
+        cancelled.set(true);
+    }
+
+    private void finish(String message) {
+        Platform.runLater(() -> {
+            onComplete.run();
+            status(message);
+        });
     }
 }

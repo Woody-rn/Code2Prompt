@@ -40,6 +40,8 @@ public class MainController {
     @FXML private ProgressBar progressBar;
     @FXML private VBox resultsBox;
     @FXML private Label statusLabel;
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
 
     @C2PInject private FileScanner fileScanner;
     @C2PInject private FileAggregator fileAggregator;
@@ -49,6 +51,7 @@ public class MainController {
     @C2PInject private LogWindowPort logWindowManager;
 
     private AppConfig config;
+    private ScanTask currentTask;
 
     @FXML
     public void initialize() {
@@ -119,15 +122,35 @@ public class MainController {
         startScanTask(source, output, limit);
     }
 
+    @FXML
+    private void onStop() {
+        if (currentTask != null) {
+            currentTask.cancel();
+            setStatus("Отмена...");
+        }
+    }
+
     private void startScanTask(String source, String output, int limit) {
+        toggleButtons(true);
+
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
 
-        new ScanTask(fileScanner, fileAggregator, outputWriter, source, output, limit,
+        currentTask = new ScanTask(fileScanner, fileAggregator, outputWriter, source, output, limit,
                 this::setStatus,
                 this::addResultCard,
-                () -> progressBar.setVisible(false)
-        ).start();
+                () -> {
+                    progressBar.setVisible(false);
+                    toggleButtons(false);
+                    currentTask = null;
+                }
+        );
+        currentTask.start();
+    }
+
+    private void toggleButtons(boolean running) {
+        startButton.setVisible(!running);
+        stopButton.setVisible(running);
     }
 
     private Optional<String> validateInputs(String source, String output, String limitText) {
