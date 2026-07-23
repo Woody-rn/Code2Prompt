@@ -26,4 +26,9 @@ public interface LogWindowPort {
      * @return true if the log window is currently visible
      */
     boolean isShowing();
+
+    /**
+     * Sets a callback to be invoked when the log window is closed by the user.
+     */
+    void setOnClosed(Runnable onClosed);
 }

@@ -14,6 +14,7 @@ class LogWindowManager implements LogWindowPort {
 
     private Stage logStage;
     private LogViewPort logView;
+    private Runnable onClosed;
 
     @Override
     public void show(Stage mainStage) {
@@ -30,6 +31,15 @@ class LogWindowManager implements LogWindowPort {
         logStage.setTitle("Логи Code2Prompt");
         logStage.setScene(new Scene(new StackPane(logTextArea), 600, 450));
 
+        logStage.setOnCloseRequest(event -> {
+            logView.detach();
+            logStage = null;
+            logView = null;
+            if (onClosed != null) {
+                onClosed.run();
+            }
+        });
+
         bindToMainStage(mainStage);
         logStage.show();
     }
@@ -37,10 +47,7 @@ class LogWindowManager implements LogWindowPort {
     @Override
     public void hide() {
         if (logStage != null) {
-            logView.detach();
             logStage.close();
-            logStage = null;
-            logView = null;
         }
     }
 
@@ -56,6 +63,11 @@ class LogWindowManager implements LogWindowPort {
     @Override
     public boolean isShowing() {
         return logStage != null;
+    }
+
+    @Override
+    public void setOnClosed(Runnable onClosed) {
+        this.onClosed = onClosed;
     }
 
     private void bindToMainStage(Stage mainStage) {

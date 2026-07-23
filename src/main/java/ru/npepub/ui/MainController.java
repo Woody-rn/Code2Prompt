@@ -56,6 +56,9 @@ public class MainController {
         limitField.setText(String.valueOf(config.effectiveLimit()));
         outputPathField.setText(config.outputPath().toString());
 
+        logWindowManager.setOnClosed(this::disableDebugMode);
+
+
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
         }
@@ -189,5 +192,13 @@ public class MainController {
 
     private Stage getMainStage() {
         return (Stage) sourcePathField.getScene().getWindow();
+    }
+
+    private void disableDebugMode() {
+        config = new AppConfig(
+                config.modelName(), config.maxSymbols(), config.safetyMargin(),
+                config.outputPath(), config.logLevel(), config.errorLogEnabled(), false
+        );
+        configPort.save(config);
     }
 }
