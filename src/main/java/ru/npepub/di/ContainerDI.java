@@ -34,19 +34,16 @@ public class ContainerDI {
     private static final Logger log = LoggerFactory.getLogger(ContainerDI.class);
 
     private final BeanRegistry registry;
-    private final BeanFactoryC2P beanFactoryC2P;
-    private final DependencyInjector injector;
     private final BeanFactoryJavaFX beanFactoryJavaFX;
-    private final ClassPathScanner scanner;
 
     public ContainerDI() {
         log.info("Initializing DI container");
 
         this.registry = new BeanRegistry();
-        this.beanFactoryC2P = new BeanFactoryC2P(registry);
-        this.injector = new DependencyInjector(registry);
+        BeanFactoryC2P beanFactoryC2P = new BeanFactoryC2P(registry);
+        DependencyInjector injector = new DependencyInjector(registry);
         this.beanFactoryJavaFX = new BeanFactoryJavaFX(registry, injector);
-        this.scanner = new ClassPathScanner();
+        ClassPathScanner scanner = new ClassPathScanner();
 
         List<Class<?>> classes = scanner.scan("ru.npepub");
         for (Class<?> clazz : classes) {

@@ -1,8 +1,7 @@
-package ru.npepub.config.impl;
+package ru.npepub.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.model.AppConfig;
 
@@ -41,18 +40,7 @@ class ConfigPortImpl implements ConfigPort {
             Properties props = new Properties();
             props.load(in);
 
-            return new AppConfig(
-                    props.getProperty("model.name", AppConfig.DEFAULT_MODEL),
-                    Integer.parseInt(props.getProperty("model.maxSymbols",
-                            String.valueOf(AppConfig.DEFAULT_MAX_SYMBOLS))),
-                    Double.parseDouble(props.getProperty("model.safetyMargin",
-                            String.valueOf(AppConfig.DEFAULT_SAFETY_MARGIN))),
-                    Path.of(props.getProperty("output.path",
-                            AppConfig.DEFAULT_OUTPUT_PATH.toString())),
-                    AppConfig.LogLevel.valueOf(props.getProperty("log.level", "INFO")),
-                    Boolean.parseBoolean(props.getProperty("log.error.enabled", "true")),
-                    Boolean.parseBoolean(props.getProperty("debug.mode", "false"))
-            );
+            return toAppConfig(props);
         } catch (IOException | NumberFormatException e) {
             log.warn("Failed to load config, using defaults", e);
             return AppConfig.defaults();
@@ -76,7 +64,7 @@ class ConfigPortImpl implements ConfigPort {
         }
     }
 
-    private static Properties getProperties(AppConfig config) {
+    private Properties getProperties(AppConfig config) {
         Properties props = new Properties();
         props.setProperty("model.name", config.modelName());
         props.setProperty("model.maxSymbols", String.valueOf(config.maxSymbols()));
@@ -86,5 +74,20 @@ class ConfigPortImpl implements ConfigPort {
         props.setProperty("log.error.enabled", String.valueOf(config.errorLogEnabled()));
         props.setProperty("debug.mode", String.valueOf(config.debugMode()));
         return props;
+    }
+
+    private AppConfig toAppConfig(Properties props) {
+        return new AppConfig(
+                props.getProperty("model.name", AppConfig.DEFAULT_MODEL),
+                Integer.parseInt(props.getProperty("model.maxSymbols",
+                        String.valueOf(AppConfig.DEFAULT_MAX_SYMBOLS))),
+                Double.parseDouble(props.getProperty("model.safetyMargin",
+                        String.valueOf(AppConfig.DEFAULT_SAFETY_MARGIN))),
+                Path.of(props.getProperty("output.path",
+                        AppConfig.DEFAULT_OUTPUT_PATH.toString())),
+                AppConfig.LogLevel.valueOf(props.getProperty("log.level", "INFO")),
+                Boolean.parseBoolean(props.getProperty("log.error.enabled", "true")),
+                Boolean.parseBoolean(props.getProperty("debug.mode", "false"))
+        );
     }
 }
