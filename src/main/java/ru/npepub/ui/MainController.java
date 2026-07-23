@@ -152,7 +152,11 @@ public class MainController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/chunk-card.fxml"));
             Node card = loader.load();
-            loader.<ChunkCardController>getController().setFile(file, Files.size(file));
+
+            ChunkCardController controller = loader.getController();
+            String content = Files.readString(file);
+            controller.setFile(file, content.length());
+
             resultsBox.getChildren().add(card);
         } catch (IOException e) {
             log.error("Failed to load chunk card", e);

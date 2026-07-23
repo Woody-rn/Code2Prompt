@@ -56,10 +56,8 @@ public class ChunkCardController {
         }
     }
 
-    private String formatSize(long bytes) {
-        if (bytes < 1024) return bytes + " б";
-        if (bytes < 1024 * 1024) return String.format("%.1f КБ", bytes / 1024.0);
-        return String.format("%.1f МБ", bytes / (1024.0 * 1024));
+    private String formatSize(long symbols) {
+        return String.format("%,d симв.", symbols);
     }
 
     @FXML
