@@ -36,15 +36,12 @@
                 </HBox>
             </VBox>
 
-            <!-- Логирование -->
+            <!-- Разработчик -->
             <VBox spacing="5">
-                <Label text="Уровень логирования:" style="-fx-font-weight: bold;"/>
-                <ComboBox fx:id="logLevelCombo" prefWidth="Infinity"/>
-            </VBox>
-
-            <!-- Режим отладки -->
-            <VBox spacing="5">
+                <Label text="Разработчик" style="-fx-font-weight: bold;"/>
                 <CheckBox fx:id="debugModeCheckBox" text="Режим отладки (окно с логами)"/>
+                <Label text="Уровень логов:"/>
+                <ComboBox fx:id="devLogLevelCombo" prefWidth="Infinity"/>
             </VBox>
 
         </VBox>

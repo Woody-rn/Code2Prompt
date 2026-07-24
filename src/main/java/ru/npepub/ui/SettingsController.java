@@ -27,7 +27,7 @@ public class SettingsController {
     @FXML
     private TextField defaultOutputPathField;
     @FXML
-    private ComboBox<String> logLevelCombo;
+    private ComboBox<String> devLogLevelCombo;
     @FXML
     private CheckBox debugModeCheckBox;
 
@@ -66,8 +66,8 @@ public class SettingsController {
 
         debugModeCheckBox.setSelected(config.debugMode());
 
-        logLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
-        logLevelCombo.setValue(config.logLevel().name());
+        devLogLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
+        devLogLevelCombo.setValue(config.logLevel().name());
     }
 
     @FXML
@@ -93,7 +93,7 @@ public class SettingsController {
                 Integer.parseInt(maxSymbolsField.getText()),
                 Double.parseDouble(safetyMarginField.getText()) / 100.0,
                 Path.of(defaultOutputPathField.getText()),
-                AppConfig.LogLevel.valueOf(logLevelCombo.getValue()),
+                AppConfig.LogLevel.valueOf(devLogLevelCombo.getValue()),
                 config.errorLogEnabled(),
                 debugModeCheckBox.isSelected()
         );

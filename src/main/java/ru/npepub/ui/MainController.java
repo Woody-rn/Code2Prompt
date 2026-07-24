@@ -55,6 +55,7 @@ public class MainController {
         limitField.setText(String.valueOf(config.effectiveLimit()));
         outputPathField.setText(config.outputPath().toString());
         logWindowManager.setOnClosed(this::disableDebugMode);
+        applyLogLevel();
 
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
@@ -90,6 +91,7 @@ public class MainController {
                 AppConfig updated = ctrl.getUpdatedConfig();
                 configPort.save(updated);
                 config = updated;
+                applyLogLevel();
                 limitField.setText(String.valueOf(config.effectiveLimit()));
                 outputPathField.setText(config.outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
@@ -196,5 +198,11 @@ public class MainController {
                 config.outputPath(), config.logLevel(), config.errorLogEnabled(), false
         );
         configPort.save(config);
+    }
+
+    private void applyLogLevel() {
+        ch.qos.logback.classic.Logger root =
+                (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+        root.setLevel(ch.qos.logback.classic.Level.toLevel(config.logLevel().name()));
     }
 }
