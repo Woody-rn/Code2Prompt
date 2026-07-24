@@ -26,15 +26,12 @@ repositories {
 }
 
 dependencies {
-    // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    // Логирование
     implementation 'org.slf4j:slf4j-api:2.0.9'
     implementation 'ch.qos.logback:logback-classic:1.4.14'
 
-    // Тесты
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
     testImplementation 'org.assertj:assertj-core:3.25.3'
 
@@ -71,14 +68,18 @@ tasks.register('jpackage', Exec) {
             '--name', 'Code2Prompt',
             '--main-jar', jarFile.name,
             '--main-class', 'ru.npepub.Code2PromptApplication',
-            '--type', 'exe',
+            '--type', 'app-image',
+            '--runtime-image', "${System.getProperty('java.home')}",
             '--icon', '../src/main/resources/icon.ico',
             '--app-version', version,
             '--vendor', 'Nikitin Ruslan',
-            '--copyright', 'Copyright (c) 2025 npepub.ru',
-            '--win-console',
-            '--win-dir-chooser',
-            '--win-menu',
-            '--win-shortcut'
+            '--copyright', 'Copyright (c) 2025 npepub.ru'
     ]
+}
+
+tasks.register('zipApp', Zip) {
+    dependsOn 'jpackage'
+    from layout.buildDirectory.dir("dist/Code2Prompt")
+    archiveFileName = "Code2Prompt-${version}-portable.zip"
+    destinationDirectory = layout.buildDirectory.dir("dist")
 }

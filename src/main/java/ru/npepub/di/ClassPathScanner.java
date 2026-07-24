@@ -5,10 +5,14 @@ import org.slf4j.LoggerFactory;
 import ru.npepub.di.api.C2PComponent;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Scans the classpath for classes annotated with @C2PComponent.
@@ -27,15 +31,47 @@ class ClassPathScanner {
             while (resources.hasMoreElements()) {
                 URL packageUrl = resources.nextElement();
                 log.debug("Found package at: {}", packageUrl);
+
                 if ("file".equals(packageUrl.getProtocol())) {
                     File directory = new File(packageUrl.toURI());
                     componentClasses.addAll(scanDirectory(directory, basePackage));
+                } else if ("jar".equals(packageUrl.getProtocol())) {
+                    componentClasses.addAll(scanJar(packageUrl, basePackage));
                 }
             }
             return componentClasses;
         } catch (Exception e) {
             throw new RuntimeException("Component scan failed", e);
         }
+    }
+
+    private List<Class<?>> scanJar(URL jarUrl, String basePackage) {
+        List<Class<?>> classes = new ArrayList<>();
+        try {
+            JarURLConnection connection = (JarURLConnection) jarUrl.openConnection();
+            try (JarFile jarFile = connection.getJarFile()) {
+                String prefix = basePackage.replace('.', '/') + "/";
+                Enumeration<JarEntry> entries = jarFile.entries();
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement();
+                    String name = entry.getName();
+                    if (name.startsWith(prefix) && name.endsWith(".class")) {
+                        String className = name.replace('/', '.').replace(".class", "");
+                        try {
+                            Class<?> clazz = Class.forName(className);
+                            if (clazz.isAnnotationPresent(C2PComponent.class)) {
+                                classes.add(clazz);
+                            }
+                        } catch (ClassNotFoundException e) {
+                            log.warn("Failed to load class: {}", className, e);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Failed to scan JAR: {}", jarUrl, e);
+        }
+        return classes;
     }
 
     private List<Class<?>> scanDirectory(File directory, String basePackage) {
