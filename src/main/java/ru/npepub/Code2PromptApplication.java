@@ -1,6 +1,7 @@
 package ru.npepub;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -40,7 +41,10 @@ public class Code2PromptApplication extends Application {
         primaryStage.getIcons().add(new javafx.scene.image.Image(
                 Objects.requireNonNull(getClass().getResourceAsStream("/icon.png"))));
         primaryStage.show();
-
+        primaryStage.setOnCloseRequest(event -> {
+            log.info("Application closing...");
+            Platform.exit();
+        });
         log.info("Application started");
     }
 }
