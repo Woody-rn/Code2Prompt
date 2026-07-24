@@ -21,6 +21,9 @@ class ListFieldInjector implements FieldInjector {
         this.registry = registry;
     }
 
+    /**
+     * Injects all beans of the field's generic type, excluding the target bean itself.
+     */
     @Override
     public void inject(Object bean, Field field) {
         ParameterizedType genericType = (ParameterizedType) field.getGenericType();
@@ -28,6 +31,7 @@ class ListFieldInjector implements FieldInjector {
 
         List<Object> list = registry.getAllInstances().stream()
                 .filter(b -> elementType.isAssignableFrom(b.getClass()))
+                .filter(b -> b != bean)
                 .distinct()
                 .collect(Collectors.toList());
 

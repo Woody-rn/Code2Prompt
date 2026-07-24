@@ -23,6 +23,8 @@ import java.util.List;
  *   <li>Classpath scanning only — may fail with custom classloaders or JPMS modules.</li>
  *   <li>Multiple implementations of the same interface are allowed.
  *       Use {@code @C2PPrimary} to mark the default, or inject as {@code List<T>}.</li>
+ *   <li>When injecting {@code List<T>}, the target bean itself is excluded
+ *       to prevent self-injection and infinite recursion.</li>
  *   <li>No lifecycle callbacks.</li>
  *   <li>No AOP, proxies, transactions.</li>
  *   <li>No circular dependency detection.</li>
