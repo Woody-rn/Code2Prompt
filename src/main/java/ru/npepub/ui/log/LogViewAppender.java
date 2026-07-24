@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
-class LogAppender extends AppenderBase<ILoggingEvent> implements LogViewPort {
+class LogViewAppender extends AppenderBase<ILoggingEvent> implements LogView {
 
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
@@ -20,7 +20,7 @@ class LogAppender extends AppenderBase<ILoggingEvent> implements LogViewPort {
     private TextArea textArea;
     private Logger rootLogger;
 
-    public LogAppender(TextArea textArea) {
+    public LogViewAppender(TextArea textArea) {
         this.textArea = textArea;
     }
 

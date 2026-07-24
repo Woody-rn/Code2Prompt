@@ -3,7 +3,7 @@ package ru.npepub.ui.log;
 /**
  * Port for displaying log messages in the UI.
  */
-public interface LogViewPort {
+public interface LogView {
 
     /**
      * Start capturing logs and displaying them in the view.

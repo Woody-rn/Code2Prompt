@@ -13,7 +13,7 @@ import ru.npepub.di.api.C2PComponent;
 class LogWindowManager implements LogWindowPort {
 
     private Stage logStage;
-    private LogViewPort logView;
+    private LogView logView;
     private Runnable onClosed;
 
     @Override
@@ -24,7 +24,7 @@ class LogWindowManager implements LogWindowPort {
         logTextArea.setEditable(false);
         logTextArea.setStyle("-fx-font-family: 'Consolas'; -fx-font-size: 11;");
 
-        logView = new LogAppender(logTextArea);
+        logView = new LogViewAppender(logTextArea);
         logView.attach();
 
         logStage = new Stage();
