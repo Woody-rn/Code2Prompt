@@ -3,7 +3,6 @@ package ru.npepub.ui;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
@@ -14,11 +13,9 @@ import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.model.AppConfig;
-import ru.npepub.service.FileAggregator;
-import ru.npepub.service.FileScanner;
-import ru.npepub.service.OutputWriter;
+import ru.npepub.pipeline.PrepareContextPipeline;
 import ru.npepub.ui.log.LogWindowPort;
-import ru.npepub.ui.task.ScanTask;
+import ru.npepub.ui.task.TaskRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,24 +40,21 @@ public class MainController {
     @FXML private Button startButton;
     @FXML private Button stopButton;
 
-    @C2PInject private FileScanner fileScanner;
-    @C2PInject private FileAggregator fileAggregator;
-    @C2PInject private OutputWriter outputWriter;
     @C2PInject private ConfigPort configPort;
     @C2PInject private ContainerDI container;
     @C2PInject private LogWindowPort logWindowManager;
+    @C2PInject private PrepareContextPipeline pipeline;
 
     private AppConfig config;
-    private ScanTask currentTask;
+    private final TaskRunner taskRunner = new TaskRunner();
+    private final ResultCardFactory resultCardFactory = new ResultCardFactory();
 
     @FXML
     public void initialize() {
         config = configPort.load();
         limitField.setText(String.valueOf(config.effectiveLimit()));
         outputPathField.setText(config.outputPath().toString());
-
         logWindowManager.setOnClosed(this::disableDebugMode);
-
 
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
@@ -124,28 +118,24 @@ public class MainController {
 
     @FXML
     private void onStop() {
-        if (currentTask != null) {
-            currentTask.cancel();
-            setStatus("Отмена...");
-        }
+        taskRunner.cancel();
+        setStatus("Отмена...");
     }
 
     private void startScanTask(String source, String output, int limit) {
         toggleButtons(true);
-
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
 
-        currentTask = new ScanTask(fileScanner, fileAggregator, outputWriter, source, output, limit,
+        taskRunner.run(
+                (onProgress, cancelled) -> pipeline.execute(source, output, limit, onProgress, cancelled),
                 this::setStatus,
-                this::addResultCard,
+                file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
                 () -> {
                     progressBar.setVisible(false);
                     toggleButtons(false);
-                    currentTask = null;
                 }
         );
-        currentTask.start();
     }
 
     private void toggleButtons(boolean running) {
@@ -154,36 +144,15 @@ public class MainController {
     }
 
     private Optional<String> validateInputs(String source, String output, String limitText) {
-        if (source == null || source.isBlank()) {
-            return Optional.of("Укажите папку-источник");
-        }
-        if (output == null || output.isBlank()) {
-            return Optional.of("Укажите папку вывода");
-        }
+        if (source == null || source.isBlank()) return Optional.of("Укажите папку-источник");
+        if (output == null || output.isBlank()) return Optional.of("Укажите папку вывода");
         try {
             int limit = Integer.parseInt(limitText);
-            if (limit <= 0) {
-                return Optional.of("Лимит должен быть положительным числом");
-            }
+            if (limit <= 0) return Optional.of("Лимит должен быть положительным числом");
         } catch (NumberFormatException e) {
             return Optional.of("Некорректный лимит символов");
         }
         return Optional.empty();
-    }
-
-    private void addResultCard(Path file) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/chunk-card.fxml"));
-            Node card = loader.load();
-
-            ChunkCardController controller = loader.getController();
-            String content = Files.readString(file);
-            controller.setFile(file, content.length());
-
-            resultsBox.getChildren().add(card);
-        } catch (IOException e) {
-            log.error("Failed to load chunk card", e);
-        }
     }
 
     private File chooseDirectory(String title, String initialPath) {
