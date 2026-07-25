@@ -144,6 +144,30 @@ public class DashboardController {
         setStatusBar("Отмена...");
     }
 
+    @FXML
+    private void onOpenSourceFolder() {
+        openFolder(sourcePathField.getText());
+    }
+
+    @FXML
+    private void onOpenOutputFolder() {
+        openFolder(outputPathField.getText());
+    }
+
+    private void openFolder(String path) {
+        try {
+            File dir = new File(path);
+            if (dir.exists() && dir.isDirectory()) {
+                java.awt.Desktop.getDesktop().open(dir);
+            } else {
+                setStatusBar("Папка не существует", true);
+            }
+        } catch (IOException e) {
+            log.error("Failed to open folder: {}", path, e);
+            setStatusBar("Не удалось открыть папку", true);
+        }
+    }
+
     private void startScanTask(PrepareRequest request) {
         toggleButtons(true);
         progressBar.setVisible(true);

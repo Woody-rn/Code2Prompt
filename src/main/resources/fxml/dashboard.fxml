@@ -20,12 +20,14 @@
                 <Label text="Папка-источник:" prefWidth="120"/>
                 <TextField fx:id="sourcePathField" HBox.hgrow="ALWAYS" promptText="Выберите папку с проектом"/>
                 <Button text="Обзор" onAction="#onBrowseSource"/>
+                <Button text="📂" onAction="#onOpenSourceFolder"/>
             </HBox>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="Папка вывода:" prefWidth="120"/>
                 <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="Выберите папку для txt-файлов"/>
                 <Button text="Обзор" onAction="#onBrowseOutput"/>
+                <Button text="📂" onAction="#onOpenOutputFolder"/>
             </HBox>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
