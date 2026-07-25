@@ -13,12 +13,14 @@ import ru.npepub.config.ConfigPort;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
+import ru.npepub.dto.ValidationError;
 import ru.npepub.model.AppConfig;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.pipeline.PrepareContextPipeline;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.task.TaskRunner;
+import ru.npepub.util.ProjectPathResolver;
 import ru.npepub.validation.RequestValidator;
 
 import java.io.File;
@@ -125,12 +127,15 @@ public class DashboardController {
 
     @FXML
     private void onStart() {
+        updateOutputPathWithProjectName();
+
         PrepareRequest request = prepareRequest();
 
-        requestValidator.validate(request).ifPresentOrElse(
-                error -> setStatusBar(error.description(), true),
-                () -> startScanTask(request)
-        );
+        requestValidator.validate(request)
+                .ifPresentOrElse(
+                        this::setStatusBar,
+                        () -> startScanTask(request)
+                );
     }
 
     @FXML
@@ -188,6 +193,10 @@ public class DashboardController {
         setStatusBar(text, false);
     }
 
+    private void setStatusBar(ValidationError error) {
+        setStatusBar(error.description(), true);
+    }
+
     private void setStatusBar(String text, boolean isError) {
         javafx.application.Platform.runLater(() -> {
             statusLabel.setText(text);
@@ -232,4 +241,12 @@ public class DashboardController {
                 limitField.getText()
         );
     }
+
+    private void updateOutputPathWithProjectName() {
+        String resolved = ProjectPathResolver.resolve(
+                sourcePathField.getText(), outputPathField.getText()
+        );
+        outputPathField.setText(resolved);
+    }
+
 }
