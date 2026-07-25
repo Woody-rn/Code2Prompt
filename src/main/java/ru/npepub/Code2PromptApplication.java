@@ -32,7 +32,7 @@ public class Code2PromptApplication extends Application {
     public void start(Stage primaryStage) throws Exception {
         log.info("Starting Code2Prompt");
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dashboard.fxml"));
         loader.setControllerFactory(container::createController);
 
         Parent root = loader.load();

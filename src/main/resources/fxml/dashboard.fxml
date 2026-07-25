@@ -3,7 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="ru.npepub.ui.MainController"
+      fx:controller="ru.npepub.ui.DashboardController"
       spacing="10" prefWidth="600" prefHeight="450"
       style="-fx-padding: 15;">
 

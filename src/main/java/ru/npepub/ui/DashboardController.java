@@ -27,9 +27,9 @@ import java.util.Optional;
  * Controller for the main window.
  * Coordinates UI events and delegates work to specialized classes.
  */
-public class MainController {
+public class DashboardController {
 
-    private static final Logger log = LoggerFactory.getLogger(MainController.class);
+    private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
     @FXML private TextField sourcePathField;
     @FXML private TextField outputPathField;
