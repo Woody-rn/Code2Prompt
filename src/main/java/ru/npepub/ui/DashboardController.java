@@ -36,21 +36,35 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML private TextField sourcePathField;
-    @FXML private TextField outputPathField;
-    @FXML private TextField limitField;
-    @FXML private ProgressBar progressBar;
-    @FXML private VBox resultsBox;
-    @FXML private Label statusLabel;
-    @FXML private Button startButton;
-    @FXML private Button stopButton;
-    @FXML private FileTreeController fileTreeController;
+    @FXML
+    private TextField sourcePathField;
+    @FXML
+    private TextField outputPathField;
+    @FXML
+    private TextField limitField;
+    @FXML
+    private ProgressBar progressBar;
+    @FXML
+    private VBox resultsBox;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private FileTreeController fileTreeController;
 
-    @C2PInject private ConfigPort configPort;
-    @C2PInject private ContainerDI container;
-    @C2PInject private LogWindowPort logWindowManager;
-    @C2PInject private PrepareContextPipeline pipeline;
-    @C2PInject private RequestValidator requestValidator;
+    @C2PInject
+    private ConfigPort configPort;
+    @C2PInject
+    private ContainerDI container;
+    @C2PInject
+    private LogWindowPort logWindowManager;
+    @C2PInject
+    private PrepareContextPipeline pipeline;
+    @C2PInject
+    private RequestValidator requestValidator;
 
     private AppConfig config;
     private final TaskRunner taskRunner = new TaskRunner();
@@ -142,7 +156,11 @@ public class DashboardController {
                     if (cancelled.get()) return List.of();
 
                     onProgress.accept("Запись файлов...");
-                    return pipeline.write(request, chunks);
+                    List<Path> result = pipeline.write(request, chunks);
+
+                    Platform.runLater(() -> setStatusBar("Готово. Создано " + result.size() + " файлов."));
+
+                    return result;
                 },
                 this::setStatusBar,
                 file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
