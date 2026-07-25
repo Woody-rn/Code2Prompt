@@ -135,16 +135,12 @@ public class DashboardController {
     }
 
     private void startScanTask(PrepareRequest request) {
-        int limit = Integer.parseInt(request.limitText());
-
         toggleButtons(true);
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
 
         taskRunner.run(
-                (onProgress, cancelled) -> pipeline.execute(
-                        request.sourcePath(), request.outputPath(), limit, onProgress, cancelled
-                ),
+                (onProgress, cancelled) -> pipeline.execute(request, onProgress, cancelled),
                 this::setStatusBar,
                 file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
                 () -> {
