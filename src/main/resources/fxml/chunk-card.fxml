@@ -6,13 +6,13 @@
 <HBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.npepub.ui.ChunkCardController"
       spacing="10" alignment="CENTER_LEFT"
-      style="-fx-border-color: lightgray; -fx-border-radius: 5; -fx-padding: 10; -fx-background-color: #f9f9f9;">
+      styleClass="result-card">
 
     <Label fx:id="fileNameLabel" text="code2prompt_part1.txt" style="-fx-font-weight: bold;"/>
     <Label fx:id="sizeLabel" text="95 234 симв."/>
     <Region HBox.hgrow="ALWAYS"/>
-    <Button fx:id="openButton" text="📂 Открыть" onAction="#onOpen"/>
-    <Button fx:id="copyButton" text="📋 Копировать" onAction="#onCopy"/>
+    <Button fx:id="openButton" text="📂 Открыть" onAction="#onOpen" styleClass="card-button"/>
+    <Button fx:id="copyButton" text="📋 Копировать" onAction="#onCopy" styleClass="card-button"/>
     <Label fx:id="copiedLabel" text="✓ Скопировано" visible="false" style="-fx-text-fill: green;"/>
 
 </HBox>

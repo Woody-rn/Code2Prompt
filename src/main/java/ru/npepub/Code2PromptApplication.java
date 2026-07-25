@@ -37,7 +37,12 @@ public class Code2PromptApplication extends Application {
 
         Parent root = loader.load();
         primaryStage.setTitle("Code2Prompt - npepub.ru");
-        primaryStage.setScene(new Scene(root));
+
+        Scene scene = new Scene(root);
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/style.css")).toExternalForm());
+        primaryStage.setScene(scene);
+
+        primaryStage.setScene(scene);
         primaryStage.getIcons().add(new javafx.scene.image.Image(
                 Objects.requireNonNull(getClass().getResourceAsStream("/icon.png"))));
         primaryStage.show();

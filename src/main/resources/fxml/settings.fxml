@@ -4,10 +4,11 @@
 <?import javafx.scene.layout.*?>
 <DialogPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ru.npepub.ui.SettingsController"
-            prefWidth="450" prefHeight="350">
+            prefWidth="450" prefHeight="350"
+            stylesheets="@../css/style.css">
 
     <content>
-        <VBox spacing="15" style="-fx-padding: 15;">
+        <VBox spacing="15" styleClass="root">
 
             <!-- Модель -->
             <VBox spacing="5">
