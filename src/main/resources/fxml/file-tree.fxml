@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ru.npepub.ui.FileTreeController"
+      VBox.vgrow="ALWAYS">
+
+    <Label text="Файлы проекта" style="-fx-font-weight: bold;"/>
+    <TreeView fx:id="fileTree" VBox.vgrow="ALWAYS" prefWidth="250"/>
+
+</VBox>

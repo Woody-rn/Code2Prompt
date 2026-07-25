@@ -10,12 +10,14 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.config.ConfigPort;
-import ru.npepub.di.api.C2PInject;
 import ru.npepub.di.ContainerDI;
+import ru.npepub.di.api.C2PInject;
+import ru.npepub.dto.PrepareRequest;
 import ru.npepub.model.AppConfig;
 import ru.npepub.pipeline.PrepareContextPipeline;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.task.TaskRunner;
+import ru.npepub.validation.RequestValidator;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,19 +33,33 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML private TextField sourcePathField;
-    @FXML private TextField outputPathField;
-    @FXML private TextField limitField;
-    @FXML private ProgressBar progressBar;
-    @FXML private VBox resultsBox;
-    @FXML private Label statusLabel;
-    @FXML private Button startButton;
-    @FXML private Button stopButton;
+    @FXML
+    private TextField sourcePathField;
+    @FXML
+    private TextField outputPathField;
+    @FXML
+    private TextField limitField;
+    @FXML
+    private ProgressBar progressBar;
+    @FXML
+    private VBox resultsBox;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
 
-    @C2PInject private ConfigPort configPort;
-    @C2PInject private ContainerDI container;
-    @C2PInject private LogWindowPort logWindowManager;
-    @C2PInject private PrepareContextPipeline pipeline;
+    @C2PInject
+    private ConfigPort configPort;
+    @C2PInject
+    private ContainerDI container;
+    @C2PInject
+    private LogWindowPort logWindowManager;
+    @C2PInject
+    private PrepareContextPipeline pipeline;
+    @C2PInject
+    private RequestValidator requestValidator;
 
     private AppConfig config;
     private final TaskRunner taskRunner = new TaskRunner();
@@ -95,7 +111,7 @@ public class DashboardController {
                 limitField.setText(String.valueOf(config.effectiveLimit()));
                 outputPathField.setText(config.outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
-                setStatus("Настройки сохранены");
+                setStatusBar("Настройки сохранены");
             }
         } catch (IOException e) {
             log.error("Failed to open settings", e);
@@ -104,34 +120,32 @@ public class DashboardController {
 
     @FXML
     private void onStart() {
-        String source = sourcePathField.getText();
-        String output = outputPathField.getText();
-        String limitText = limitField.getText();
+        PrepareRequest request = prepareRequest();
 
-        Optional<String> error = validateInputs(source, output, limitText);
-        if (error.isPresent()) {
-            setStatus(error.get(), true);
-            return;
-        }
-
-        int limit = Integer.parseInt(limitText);
-        startScanTask(source, output, limit);
+        requestValidator.validate(request).ifPresentOrElse(
+                error -> setStatusBar(error.description(), true),
+                () -> startScanTask(request)
+        );
     }
 
     @FXML
     private void onStop() {
         taskRunner.cancel();
-        setStatus("Отмена...");
+        setStatusBar("Отмена...");
     }
 
-    private void startScanTask(String source, String output, int limit) {
+    private void startScanTask(PrepareRequest request) {
+        int limit = Integer.parseInt(request.limitText());
+
         toggleButtons(true);
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
 
         taskRunner.run(
-                (onProgress, cancelled) -> pipeline.execute(source, output, limit, onProgress, cancelled),
-                this::setStatus,
+                (onProgress, cancelled) -> pipeline.execute(
+                        request.sourcePath(), request.outputPath(), limit, onProgress, cancelled
+                ),
+                this::setStatusBar,
                 file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
                 () -> {
                     progressBar.setVisible(false);
@@ -145,18 +159,6 @@ public class DashboardController {
         stopButton.setVisible(running);
     }
 
-    private Optional<String> validateInputs(String source, String output, String limitText) {
-        if (source == null || source.isBlank()) return Optional.of("Укажите папку-источник");
-        if (output == null || output.isBlank()) return Optional.of("Укажите папку вывода");
-        try {
-            int limit = Integer.parseInt(limitText);
-            if (limit <= 0) return Optional.of("Лимит должен быть положительным числом");
-        } catch (NumberFormatException e) {
-            return Optional.of("Некорректный лимит символов");
-        }
-        return Optional.empty();
-    }
-
     private File chooseDirectory(String title, String initialPath) {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle(title);
@@ -165,11 +167,11 @@ public class DashboardController {
         return chooser.showDialog(sourcePathField.getScene().getWindow());
     }
 
-    private void setStatus(String text) {
-        setStatus(text, false);
+    private void setStatusBar(String text) {
+        setStatusBar(text, false);
     }
 
-    private void setStatus(String text, boolean isError) {
+    private void setStatusBar(String text, boolean isError) {
         javafx.application.Platform.runLater(() -> {
             statusLabel.setText(text);
             statusLabel.setStyle(isError ? "-fx-text-fill: red;" : "-fx-text-fill: gray;");
@@ -184,7 +186,7 @@ public class DashboardController {
             java.awt.Desktop.getDesktop().open(logDir.toFile());
         } catch (IOException e) {
             log.error("Failed to open logs folder", e);
-            setStatus("Не удалось открыть папку с логами", true);
+            setStatusBar("Не удалось открыть папку с логами", true);
         }
     }
 
@@ -204,5 +206,13 @@ public class DashboardController {
         ch.qos.logback.classic.Logger root =
                 (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         root.setLevel(ch.qos.logback.classic.Level.toLevel(config.logLevel().name()));
+    }
+
+    private PrepareRequest prepareRequest() {
+        return new PrepareRequest(
+                sourcePathField.getText(),
+                outputPathField.getText(),
+                limitField.getText()
+        );
     }
 }
