@@ -14,6 +14,8 @@ import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.model.AppConfig;
+import ru.npepub.model.Chunk;
+import ru.npepub.model.FileInfo;
 import ru.npepub.pipeline.PrepareContextPipeline;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.task.TaskRunner;
@@ -23,43 +25,32 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 /**
- * Controller for the main window.
+ * Main dashboard controller.
  * Coordinates UI events and delegates work to specialized classes.
  */
 public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML
-    private TextField sourcePathField;
-    @FXML
-    private TextField outputPathField;
-    @FXML
-    private TextField limitField;
-    @FXML
-    private ProgressBar progressBar;
-    @FXML
-    private VBox resultsBox;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Button startButton;
-    @FXML
-    private Button stopButton;
+    @FXML private TextField sourcePathField;
+    @FXML private TextField outputPathField;
+    @FXML private TextField limitField;
+    @FXML private ProgressBar progressBar;
+    @FXML private VBox resultsBox;
+    @FXML private Label statusLabel;
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
+    @FXML private FileTreeController fileTreeController;
 
-    @C2PInject
-    private ConfigPort configPort;
-    @C2PInject
-    private ContainerDI container;
-    @C2PInject
-    private LogWindowPort logWindowManager;
-    @C2PInject
-    private PrepareContextPipeline pipeline;
-    @C2PInject
-    private RequestValidator requestValidator;
+    @C2PInject private ConfigPort configPort;
+    @C2PInject private ContainerDI container;
+    @C2PInject private LogWindowPort logWindowManager;
+    @C2PInject private PrepareContextPipeline pipeline;
+    @C2PInject private RequestValidator requestValidator;
 
     private AppConfig config;
     private final TaskRunner taskRunner = new TaskRunner();
@@ -138,9 +129,21 @@ public class DashboardController {
         toggleButtons(true);
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
+        fileTreeController.clear();
 
         taskRunner.run(
-                (onProgress, cancelled) -> pipeline.execute(request, onProgress, cancelled),
+                (onProgress, cancelled) -> {
+                    List<FileInfo> files = pipeline.scan(request);
+                    if (cancelled.get()) return List.of();
+                    Platform.runLater(() -> fileTreeController.populate(files));
+
+                    onProgress.accept("Разбивка на части...");
+                    List<Chunk> chunks = pipeline.aggregate(request, files);
+                    if (cancelled.get()) return List.of();
+
+                    onProgress.accept("Запись файлов...");
+                    return pipeline.write(request, chunks);
+                },
                 this::setStatusBar,
                 file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
                 () -> {

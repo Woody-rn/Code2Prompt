@@ -13,51 +13,48 @@ import ru.npepub.service.OutputWriter;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 /**
  * Pipeline that prepares project files as context for AI models.
- * Orchestrates scan → aggregate → write with progress reporting and cancellation.
+ * Provides three independent steps: scan, aggregate, write.
  */
 @C2PComponent
 public class PrepareContextPipeline {
 
     private static final Logger log = LoggerFactory.getLogger(PrepareContextPipeline.class);
 
-    @C2PInject
-    private FileScanner scanner;
-    @C2PInject
-    private FileAggregator aggregator;
-    @C2PInject
-    private OutputWriter writer;
+    @C2PInject private FileScanner scanner;
+    @C2PInject private FileAggregator aggregator;
+    @C2PInject private OutputWriter writer;
 
     /**
-     * Executes the full pipeline.
-     *
-     * @param request    scan parameters (source, output, limit)
-     * @param onProgress callback for progress messages
-     * @param cancelled  flag to cancel execution between steps
-     * @return list of written file paths, or empty if cancelled
+     * Scans the source directory and returns found files.
      */
-    public List<Path> execute(PrepareRequest request, Consumer<String> onProgress, AtomicBoolean cancelled) {
-        log.info("Starting pipeline: {} → {}", request.sourcePath(), request.outputPath());
-
-        onProgress.accept("Сканирование...");
+    public List<FileInfo> scan(PrepareRequest request) {
+        log.info("Scanning: {}", request.sourcePath());
         List<FileInfo> files = scanner.scan(Path.of(request.sourcePath()));
         log.info("Scanned {} files", files.size());
-        if (cancelled.get()) return List.of();
+        return files;
+    }
 
-        onProgress.accept("Разбивка на части...");
+    /**
+     * Aggregates files into chunks respecting the symbol limit.
+     */
+    public List<Chunk> aggregate(PrepareRequest request, List<FileInfo> files) {
         int limit = Integer.parseInt(request.limitText());
+        log.info("Aggregating {} files with limit {}", files.size(), limit);
         List<Chunk> chunks = aggregator.aggregate(files, limit);
         log.info("Created {} chunks", chunks.size());
-        if (cancelled.get()) return List.of();
+        return chunks;
+    }
 
-        onProgress.accept("Запись файлов...");
+    /**
+     * Writes chunks to txt files in the output directory.
+     */
+    public List<Path> write(PrepareRequest request, List<Chunk> chunks) {
+        log.info("Writing {} chunks to {}", chunks.size(), request.outputPath());
         List<Path> result = writer.write(chunks, Path.of(request.outputPath()));
-        log.info("Pipeline complete. {} files written", result.size());
-
+        log.info("Written {} files", result.size());
         return result;
     }
 }

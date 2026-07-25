@@ -5,49 +5,52 @@
 
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.npepub.ui.DashboardController"
-      spacing="10" prefWidth="900" prefHeight="550"
+      prefWidth="900" prefHeight="550"
       style="-fx-padding: 15;">
 
     <Label text="Code2Prompt" style="-fx-font-size: 20; -fx-font-weight: bold;"/>
 
-    <!-- Поля ввода и кнопки -->
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="Папка-источник:" prefWidth="120"/>
-        <TextField fx:id="sourcePathField" HBox.hgrow="ALWAYS" promptText="Выберите папку с проектом"/>
-        <Button text="Обзор" onAction="#onBrowseSource"/>
-    </HBox>
-
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="Папка вывода:" prefWidth="120"/>
-        <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="Выберите папку для txt-файлов"/>
-        <Button text="Обзор" onAction="#onBrowseOutput"/>
-    </HBox>
-
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="Лимит символов:" prefWidth="120"/>
-        <TextField fx:id="limitField" prefWidth="100" text="95000"/>
-        <Button text="Настройки" onAction="#onOpenSettings"/>
-        <Button text="📁 Логи" onAction="#onOpenLogs"/>
-    </HBox>
-
-    <HBox spacing="10">
-        <Button fx:id="startButton" text="СТАРТ" onAction="#onStart"
-                style="-fx-font-size: 14; -fx-background-color: #4CAF50; -fx-text-fill: white;"/>
-        <Button fx:id="stopButton" text="СТОП" onAction="#onStop" visible="false"
-                style="-fx-font-size: 14; -fx-background-color: #f44336; -fx-text-fill: white;"/>
-    </HBox>
-
-    <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
-
-    <!-- Основная область: дерево слева, результаты справа -->
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3">
-        <fx:include source="file-tree.fxml"/>
-        <VBox spacing="5">
+
+        <!-- Слева: дерево файлов -->
+        <fx:include fx:id="fileTree" source="file-tree.fxml"/>
+
+        <!-- Справа: всё остальное -->
+        <VBox spacing="10">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Папка-источник:" prefWidth="120"/>
+                <TextField fx:id="sourcePathField" HBox.hgrow="ALWAYS" promptText="Выберите папку с проектом"/>
+                <Button text="Обзор" onAction="#onBrowseSource"/>
+            </HBox>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Папка вывода:" prefWidth="120"/>
+                <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="Выберите папку для txt-файлов"/>
+                <Button text="Обзор" onAction="#onBrowseOutput"/>
+            </HBox>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Лимит символов:" prefWidth="120"/>
+                <TextField fx:id="limitField" prefWidth="100" text="95000"/>
+                <Button text="Настройки" onAction="#onOpenSettings"/>
+                <Button text="📁 Логи" onAction="#onOpenLogs"/>
+            </HBox>
+
+            <HBox spacing="10">
+                <Button fx:id="startButton" text="СТАРТ" onAction="#onStart"
+                        style="-fx-font-size: 14; -fx-background-color: #4CAF50; -fx-text-fill: white;"/>
+                <Button fx:id="stopButton" text="СТОП" onAction="#onStop" visible="false"
+                        style="-fx-font-size: 14; -fx-background-color: #f44336; -fx-text-fill: white;"/>
+            </HBox>
+
+            <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
+
             <Label text="Результаты:" style="-fx-font-weight: bold;"/>
             <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true">
                 <VBox fx:id="resultsBox" spacing="5"/>
             </ScrollPane>
         </VBox>
+
     </SplitPane>
 
     <Label fx:id="statusLabel" text="Готово" style="-fx-text-fill: gray;"/>
