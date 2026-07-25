@@ -38,39 +38,27 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML
-    private TextField sourcePathField;
-    @FXML
-    private TextField outputPathField;
-    @FXML
-    private TextField limitField;
-    @FXML
-    private ProgressBar progressBar;
-    @FXML
-    private VBox resultsBox;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Button startButton;
-    @FXML
-    private Button stopButton;
-    @FXML
-    private FileTreeController fileTreeController;
+    @FXML private TextField sourcePathField;
+    @FXML private TextField outputPathField;
+    @FXML private TextField limitField;
+    @FXML private ProgressBar progressBar;
+    @FXML private VBox resultsBox;
+    @FXML private Label statusLabel;
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
+    @FXML private Button refreshButton;
+    @FXML private FileTreeController fileTreeController;
 
-    @C2PInject
-    private ConfigPort configPort;
-    @C2PInject
-    private ContainerDI container;
-    @C2PInject
-    private LogWindowPort logWindowManager;
-    @C2PInject
-    private PrepareContextPipeline pipeline;
-    @C2PInject
-    private RequestValidator requestValidator;
+    @C2PInject private ConfigPort configPort;
+    @C2PInject private ContainerDI container;
+    @C2PInject private LogWindowPort logWindowManager;
+    @C2PInject private PrepareContextPipeline pipeline;
+    @C2PInject private RequestValidator requestValidator;
 
     private AppConfig config;
     private final TaskRunner taskRunner = new TaskRunner();
     private final ResultCardFactory resultCardFactory = new ResultCardFactory();
+    private PrepareRequest lastRequest;
 
     @FXML
     public void initialize() {
@@ -131,17 +119,37 @@ public class DashboardController {
 
         PrepareRequest request = prepareRequest();
 
-        requestValidator.validate(request)
-                .ifPresentOrElse(
-                        this::setStatusBar,
-                        () -> startScanTask(request)
-                );
+        requestValidator.validate(request).ifPresentOrElse(
+                this::setStatusBar,
+                () -> startScanTask(request)
+        );
     }
 
     @FXML
     private void onStop() {
         taskRunner.cancel();
         setStatusBar("Отмена...");
+    }
+
+    @FXML
+    private void onRefresh() {
+        if (lastRequest == null) return;
+
+        try {
+            Path outputDir = Path.of(lastRequest.outputPath());
+            if (Files.exists(outputDir)) {
+                Files.list(outputDir)
+                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
+                        .forEach(f -> {
+                            try { Files.deleteIfExists(f); }
+                            catch (IOException e) { log.warn("Failed to delete: {}", f); }
+                        });
+            }
+        } catch (IOException e) {
+            log.warn("Failed to clean output dir", e);
+        }
+
+        startScanTask(lastRequest);
     }
 
     @FXML
@@ -173,6 +181,7 @@ public class DashboardController {
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
         fileTreeController.clear();
+        refreshButton.setVisible(false);
 
         taskRunner.run(
                 (onProgress, cancelled) -> {
@@ -196,6 +205,8 @@ public class DashboardController {
                 () -> {
                     progressBar.setVisible(false);
                     toggleButtons(false);
+                    refreshButton.setVisible(true);
+                    lastRequest = request;
                 }
         );
     }
@@ -273,5 +284,4 @@ public class DashboardController {
         );
         outputPathField.setText(resolved);
     }
-
 }
