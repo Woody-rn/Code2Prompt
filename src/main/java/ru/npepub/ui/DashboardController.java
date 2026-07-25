@@ -267,8 +267,9 @@ public class DashboardController {
     }
 
     private void updateOutputPathWithProjectName() {
+        String basePath = config.outputPath().toString();
         String resolved = ProjectPathResolver.resolve(
-                sourcePathField.getText(), outputPathField.getText()
+                sourcePathField.getText(), basePath
         );
         outputPathField.setText(resolved);
     }
