@@ -47,12 +47,6 @@
     -fx-font-size: 12px;
 }
 
-.tree-view {
-    -fx-background-color: white;
-    -fx-border-color: #ddd;
-    -fx-border-radius: 4px;
-}
-
 .result-card {
     -fx-border-color: #ddd;
     -fx-border-radius: 4px;
@@ -84,4 +78,22 @@
 
 .refresh-button:hover {
     -fx-background-color: #f1c40f;
+}
+
+.small-button {
+    -fx-padding: 2px 6px;
+    -fx-font-size: 12px;
+    -fx-background-color: transparent;
+    -fx-border-color: #ccc;
+    -fx-border-radius: 3px;
+}
+
+.small-button:hover {
+    -fx-background-color: #eee;
+}
+
+.tree-view {
+    -fx-background-color: white;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 4px;
 }

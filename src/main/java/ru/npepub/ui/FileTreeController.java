@@ -36,6 +36,41 @@ public class FileTreeController {
         fileTree.setRoot(null);
     }
 
+    /**
+     * Expands all folders in the tree.
+     */
+    @FXML
+    private void onExpandAll() {
+        TreeItem<String> root = fileTree.getRoot();
+        if (root != null) {
+            expandAll(root);
+        }
+    }
+
+    private void expandAll(TreeItem<?> item) {
+        if (item == null || item.isLeaf()) return;
+        item.setExpanded(true);
+        for (TreeItem<?> child : item.getChildren()) {
+            expandAll(child);
+        }
+    }
+
+    @FXML
+    private void onCollapseAll() {
+        TreeItem<String> root = fileTree.getRoot();
+        if (root != null) {
+            collapseAll(root);
+        }
+    }
+
+    private void collapseAll(TreeItem<?> item) {
+        if (item == null || item.isLeaf()) return;
+        item.setExpanded(false);
+        for (TreeItem<?> child : item.getChildren()) {
+            collapseAll(child);
+        }
+    }
+
     private void addToTree(TreeItem<String> root, String path) {
         String[] parts = path.replace('\\', '/').split("/");
         TreeItem<String> current = root;

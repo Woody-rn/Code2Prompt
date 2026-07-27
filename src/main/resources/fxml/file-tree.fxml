@@ -7,7 +7,13 @@
       fx:controller="ru.npepub.ui.FileTreeController"
       VBox.vgrow="ALWAYS">
 
-    <Label text="Файлы проекта" style="-fx-font-weight: bold;"/>
+    <HBox spacing="2" alignment="CENTER_LEFT">
+        <Label text="Файлы проекта" style="-fx-font-weight: bold;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="▼" onAction="#onExpandAll" styleClass="small-button"/>
+        <Button text="▲" onAction="#onCollapseAll" styleClass="small-button"/>
+    </HBox>
+
     <TreeView fx:id="fileTree" VBox.vgrow="ALWAYS" prefWidth="250"/>
 
 </VBox>
