@@ -8,6 +8,17 @@
 - Собирает содержимое всех файлов
 - Разбивает на части по лимиту символов модели
 - Копирует содержимое в буфер
+- Запускает HTTP-сервер для браузерного расширения
+- Автоматически отправляет контекст в чат DeepSeek
+
+## Быстрый старт
+
+1. Запусти `Code2Prompt.exe`
+2. Выбери папку с проектом → **Старт**
+3. Нажми **🚀 Запустить сервер**
+4. Установи расширение из папки `extension-chromium/` (chrome://extensions → Загрузить распакованное)
+5. Открой `chat.deepseek.com`
+6. Нажми `Ctrl+Enter` — контекст отправится в чат
 
 ## Требования для сборки
 
@@ -25,9 +36,10 @@
 | `gradle test` | Тесты |
 | `gradle fatJar` | JAR с зависимостями |
 | `gradle jpackage` | EXE (app-image) |
-| `gradle zipApp` | ZIP с EXE |
+| `gradle packageZip` | ZIP с EXE и расширением |
 
 ### Собрать portable-версию
 
 ```bash
-gradle clean fatJar jpackage zipApp
+gradle clean fatJar jpackage packageZip
+```
