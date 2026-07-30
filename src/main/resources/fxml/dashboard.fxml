@@ -2,7 +2,6 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.npepub.ui.DashboardController"
       prefWidth="900" prefHeight="550"
@@ -35,6 +34,8 @@
                 <TextField fx:id="limitField" prefWidth="100" text="95000"/>
                 <Button text="Настройки" onAction="#onOpenSettings" styleClass="settings-button"/>
                 <Button text="📁 Логи" onAction="#onOpenLogs" styleClass="settings-button"/>
+                <Button fx:id="serverButton" text="🚀 Запустить сервер" onAction="#onToggleServer"
+                        styleClass="settings-button"/>
             </HBox>
 
             <HBox spacing="10">

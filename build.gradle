@@ -55,6 +55,11 @@ tasks.register('fatJar', Jar) {
     with jar
 }
 
+tasks.register('copyExtension', Copy) {
+    from 'extension-chromium'
+    into layout.buildDirectory.dir('dist/extension-chromium')
+}
+
 tasks.register('jpackage', Exec) {
     dependsOn 'fatJar'
     workingDir = layout.buildDirectory.asFile.get()
@@ -78,8 +83,11 @@ tasks.register('jpackage', Exec) {
 }
 
 tasks.register('zipApp', Zip) {
-    dependsOn 'jpackage'
+    dependsOn 'jpackage', 'copyExtension'
     from layout.buildDirectory.dir("dist/Code2Prompt")
+    from(layout.buildDirectory.dir("dist/extension-chromium")) {
+        into 'extension-chromium'
+    }
     archiveFileName = "Code2Prompt-${version}-portable.zip"
     destinationDirectory = layout.buildDirectory.dir("dist")
 }

@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Code2Prompt",
+  "version": "1.0",
+  "description": "Добавляет контекст проекта в чат DeepSeek",
+  "permissions": ["activeTab"],
+  "host_permissions": ["https://chat.deepseek.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://chat.deepseek.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

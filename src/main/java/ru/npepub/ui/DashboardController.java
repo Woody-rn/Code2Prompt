@@ -17,6 +17,7 @@ import ru.npepub.dto.ValidationError;
 import ru.npepub.model.AppConfig;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
+import ru.npepub.model.ProjectInfo;
 import ru.npepub.pipeline.PrepareContextPipeline;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.task.TaskRunner;
@@ -29,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Main dashboard controller.
@@ -47,6 +49,7 @@ public class DashboardController {
     @FXML private Button startButton;
     @FXML private Button stopButton;
     @FXML private Button refreshButton;
+    @FXML private Button serverButton;
     @FXML private FileTreeController fileTreeController;
 
     @C2PInject private ConfigPort configPort;
@@ -59,6 +62,8 @@ public class DashboardController {
     private final TaskRunner taskRunner = new TaskRunner();
     private final ResultCardFactory resultCardFactory = new ResultCardFactory();
     private PrepareRequest lastRequest;
+    private final ContextServer contextServer = new ContextServer();
+    private ProjectInfo projectInfo;
 
     @FXML
     public void initialize() {
@@ -71,6 +76,14 @@ public class DashboardController {
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
         }
+
+        // Остановка сервера при закрытии приложения
+        Platform.runLater(() -> {
+            Stage stage = getMainStage();
+            if (stage != null) {
+                stage.setOnCloseRequest(event -> contextServer.stop());
+            }
+        });
     }
 
     @FXML
@@ -115,6 +128,7 @@ public class DashboardController {
 
     @FXML
     private void onStart() {
+        projectInfo = ProjectInfo.from(sourcePathField.getText());
         updateOutputPathWithProjectName();
 
         PrepareRequest request = prepareRequest();
@@ -160,6 +174,32 @@ public class DashboardController {
     @FXML
     private void onOpenOutputFolder() {
         openFolder(outputPathField.getText());
+    }
+
+    @FXML
+    private void onToggleServer() {
+        if (contextServer.isRunning()) {
+            contextServer.stop();
+            serverButton.setText("🚀 Запустить сервер");
+            setStatusBar("Сервер остановлен");
+        } else if (lastRequest != null && projectInfo != null) {
+            try {
+                Path outputDir = Path.of(lastRequest.outputPath());
+                List<Path> files = Files.list(outputDir)
+                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
+                        .sorted()
+                        .collect(Collectors.toList());
+
+                contextServer.start(9090, files, projectInfo);
+                serverButton.setText("⏹ Остановить сервер");
+                setStatusBar("Сервер запущен на порту 9090");
+            } catch (IOException e) {
+                log.error("Failed to start server", e);
+                setStatusBar("Ошибка запуска сервера", true);
+            }
+        } else {
+            setStatusBar("Сначала выполните сканирование", true);
+        }
     }
 
     private void openFolder(String path) {
@@ -278,9 +318,8 @@ public class DashboardController {
     }
 
     private void updateOutputPathWithProjectName() {
-        String basePath = config.outputPath().toString();
-        String resolved = ProjectPathResolver.resolve(
-                sourcePathField.getText(), basePath
+        String resolved = ProjectPathResolver.resolveOutputPath(
+                projectInfo, config.outputPath().toString()
         );
         outputPathField.setText(resolved);
     }
