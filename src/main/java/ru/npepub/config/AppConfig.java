@@ -15,7 +15,8 @@ public record AppConfig(
         boolean errorLogEnabled,
         boolean debugMode,
         List<String> recentProjects,
-        int recentProjectsCount
+        int recentProjectsCount,
+        List<String> excludedDirs
 ) {
     public enum LogLevel {
         DEBUG, INFO, WARN, OFF
@@ -26,6 +27,10 @@ public record AppConfig(
     public static final double DEFAULT_SAFETY_MARGIN = 0.05;
     public static final Path DEFAULT_OUTPUT_PATH = Path.of(
             System.getProperty("user.home"), "ContextPack"
+    );
+    public static final List<String> DEFAULT_EXCLUDED_DIRS = List.of(
+            ".git", ".gradle", ".idea", "build", "target",
+            "node_modules", "__pycache__", ".svn", "out", "dist"
     );
 
     /**
@@ -48,7 +53,8 @@ public record AppConfig(
                 true,
                 false,
                 List.of(),
-                10
+                10,
+                DEFAULT_EXCLUDED_DIRS
         );
     }
 }

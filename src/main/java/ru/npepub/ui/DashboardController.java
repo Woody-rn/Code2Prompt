@@ -260,9 +260,10 @@ public class DashboardController {
 
     private void addRecentProject(String path) {
         if (path == null || path.isBlank()) return;
+
         List<String> projects = new ArrayList<>(config.recentProjects());
         projects.remove(path);
-        projects.addFirst(path);
+        projects.add(0, path);
 
         int max = config.recentProjectsCount();
         if (projects.size() > max) {
@@ -272,7 +273,8 @@ public class DashboardController {
         config = new AppConfig(
                 config.modelName(), config.maxSymbols(), config.safetyMargin(),
                 config.outputPath(), config.logLevel(), config.errorLogEnabled(),
-                config.debugMode(), projects, config.recentProjectsCount()
+                config.debugMode(), projects, config.recentProjectsCount(),
+                config.excludedDirs()
         );
         configPort.save(config);
 
@@ -349,7 +351,8 @@ public class DashboardController {
         config = new AppConfig(
                 config.modelName(), config.maxSymbols(), config.safetyMargin(),
                 config.outputPath(), config.logLevel(), config.errorLogEnabled(), false,
-                config.recentProjects(), config.recentProjectsCount()
+                config.recentProjects(), config.recentProjectsCount(),
+                config.excludedDirs()
         );
         configPort.save(config);
     }

@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <DialogPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ru.npepub.ui.SettingsController"
-            prefWidth="450" prefHeight="350"
+            prefWidth="450"
             stylesheets="@../css/style.css">
 
     <content>
@@ -43,6 +43,16 @@
                 <CheckBox fx:id="debugModeCheckBox" text="Режим отладки (окно с логами)"/>
                 <Label text="Уровень логов:"/>
                 <ComboBox fx:id="devLogLevelCombo" prefWidth="Infinity"/>
+            </VBox>
+
+            <!-- Исключённые папки -->
+            <VBox spacing="5" VBox.vgrow="ALWAYS">
+                <Label text="Исключённые папки (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="excludedDirsList" prefHeight="100" maxWidth="Infinity"/>
+                <HBox spacing="5">
+                    <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="Название папки"/>
+                    <Button text="➕" onAction="#onAddExcludedDir"/>
+                </HBox>
             </VBox>
 
         </VBox>

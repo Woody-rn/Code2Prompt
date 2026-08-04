@@ -1,9 +1,9 @@
 package ru.npepub.ui;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import ru.npepub.config.AppConfig;
 import ru.npepub.config.ConfigPort;
@@ -11,6 +11,7 @@ import ru.npepub.di.api.C2PInject;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,12 +25,15 @@ public class SettingsController {
     @FXML private TextField defaultOutputPathField;
     @FXML private ComboBox<String> devLogLevelCombo;
     @FXML private CheckBox debugModeCheckBox;
+    @FXML private ListView<String> excludedDirsList;
+    @FXML private TextField newExcludedDirField;
 
     @SuppressWarnings("unused")
     @C2PInject
     private ConfigPort configPort;
 
     private AppConfig config;
+    private ObservableList<String> excludedDirs;
 
     private static final Map<String, Integer> MODEL_LIMITS = Map.of(
             "DeepSeek V3", 100_000,
@@ -62,6 +66,20 @@ public class SettingsController {
 
         devLogLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
         devLogLevelCombo.setValue(config.logLevel().name());
+
+        excludedDirs = FXCollections.observableArrayList(
+                config.excludedDirs().stream().sorted().toList()
+        );
+        excludedDirsList.setItems(excludedDirs);
+
+        excludedDirsList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                String selected = excludedDirsList.getSelectionModel().getSelectedItem();
+                if (selected != null) {
+                    excludedDirs.remove(selected);
+                }
+            }
+        });
     }
 
     @FXML
@@ -78,6 +96,15 @@ public class SettingsController {
         }
     }
 
+    @FXML
+    private void onAddExcludedDir() {
+        String dir = newExcludedDirField.getText().trim();
+        if (!dir.isEmpty() && !excludedDirs.contains(dir)) {
+            excludedDirs.add(dir);
+            newExcludedDirField.clear();
+        }
+    }
+
     /**
      * @return updated config from the form values
      */
@@ -91,7 +118,8 @@ public class SettingsController {
                 config.errorLogEnabled(),
                 debugModeCheckBox.isSelected(),
                 config.recentProjects(),
-                config.recentProjectsCount()
+                config.recentProjectsCount(),
+                List.copyOf(excludedDirs)
         );
     }
 }

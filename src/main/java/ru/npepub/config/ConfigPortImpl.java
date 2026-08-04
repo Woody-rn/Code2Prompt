@@ -73,6 +73,7 @@ class ConfigPortImpl implements ConfigPort {
         props.setProperty("debug.mode", String.valueOf(config.debugMode()));
         props.setProperty("recent.projects", String.join(";", config.recentProjects()));
         props.setProperty("recent.projects.count", String.valueOf(config.recentProjectsCount()));
+        props.setProperty("excluded.dirs", String.join(";", config.excludedDirs()));
         return props;
     }
 
@@ -83,6 +84,14 @@ class ConfigPortImpl implements ConfigPort {
                 .toList();
         int recentCount = Integer.parseInt(
                 props.getProperty("recent.projects.count", "10"));
+
+        List<String> excludedDirs = Arrays.stream(
+                        props.getProperty("excluded.dirs", "").split(";"))
+                .filter(s -> !s.isEmpty())
+                .toList();
+        if (excludedDirs.isEmpty()) {
+            excludedDirs = AppConfig.DEFAULT_EXCLUDED_DIRS;
+        }
 
         return new AppConfig(
                 props.getProperty("model.name", AppConfig.DEFAULT_MODEL),
@@ -96,7 +105,8 @@ class ConfigPortImpl implements ConfigPort {
                 Boolean.parseBoolean(props.getProperty("log.error.enabled", "true")),
                 Boolean.parseBoolean(props.getProperty("debug.mode", "false")),
                 recent,
-                recentCount
+                recentCount,
+                excludedDirs
         );
     }
 }
