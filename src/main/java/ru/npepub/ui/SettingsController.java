@@ -5,11 +5,15 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.npepub.config.AppConfig;
 import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PInject;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +22,8 @@ import java.util.Map;
  * Controller for the settings dialog.
  */
 public class SettingsController {
+
+    private static final Logger log = LoggerFactory.getLogger(SettingsController.class);
 
     @FXML private ComboBox<String> modelCombo;
     @FXML private TextField maxSymbolsField;
@@ -102,6 +108,20 @@ public class SettingsController {
         if (!dir.isEmpty() && !excludedDirs.contains(dir)) {
             excludedDirs.add(dir);
             newExcludedDirField.clear();
+        }
+    }
+
+    @FXML
+    private void onClearLogs() {
+        try {
+            Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
+            Path logFile = logDir.resolve("code2prompt.log");
+            Path errorFile = logDir.resolve("errors.log");
+
+            if (Files.exists(logFile)) Files.writeString(logFile, "");
+            if (Files.exists(errorFile)) Files.writeString(errorFile, "");
+        } catch (IOException e) {
+            log.warn("Failed to clear logs", e);
         }
     }
 

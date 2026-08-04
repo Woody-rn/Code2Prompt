@@ -43,6 +43,7 @@
                 <CheckBox fx:id="debugModeCheckBox" text="Режим отладки (окно с логами)"/>
                 <Label text="Уровень логов:"/>
                 <ComboBox fx:id="devLogLevelCombo" prefWidth="Infinity"/>
+                <Button text="🗑 Очистить логи" onAction="#onClearLogs"/>
             </VBox>
 
             <!-- Исключённые папки -->
