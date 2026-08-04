@@ -40,6 +40,8 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
+    // ========== FXML ПОЛЯ ==========
+
     @FXML private TextField sourcePathField;
     @FXML private TextField outputPathField;
     @FXML private TextField limitField;
@@ -52,11 +54,15 @@ public class DashboardController {
     @FXML private Button serverButton;
     @FXML private FileTreeController fileTreeController;
 
+    // ========== ЗАВИСИМОСТИ ==========
+
     @C2PInject private ConfigPort configPort;
     @C2PInject private ContainerDI container;
     @C2PInject private LogWindowPort logWindowManager;
     @C2PInject private PrepareContextPipeline pipeline;
     @C2PInject private RequestValidator requestValidator;
+
+    // ========== СОСТОЯНИЕ ==========
 
     private AppConfig config;
     private final TaskRunner taskRunner = new TaskRunner();
@@ -64,6 +70,8 @@ public class DashboardController {
     private PrepareRequest lastRequest;
     private final ContextServer contextServer = new ContextServer();
     private ProjectInfo projectInfo;
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
 
     @FXML
     public void initialize() {
@@ -77,7 +85,6 @@ public class DashboardController {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
         }
 
-        // Остановка сервера при закрытии приложения
         Platform.runLater(() -> {
             Stage stage = getMainStage();
             if (stage != null) {
@@ -85,6 +92,8 @@ public class DashboardController {
             }
         });
     }
+
+    // ========== НАВИГАЦИЯ ПО ПАПКАМ ==========
 
     @FXML
     private void onBrowseSource() {
@@ -97,6 +106,107 @@ public class DashboardController {
         File dir = chooseDirectory("Выберите папку для сохранения", outputPathField.getText());
         if (dir != null) outputPathField.setText(dir.getAbsolutePath());
     }
+
+    @FXML
+    private void onOpenSourceFolder() {
+        openFolder(sourcePathField.getText());
+    }
+
+    @FXML
+    private void onOpenOutputFolder() {
+        openFolder(outputPathField.getText());
+    }
+
+    // ========== СКАНИРОВАНИЕ ==========
+
+    @FXML
+    private void onStart() {
+        projectInfo = ProjectInfo.from(sourcePathField.getText());
+        updateOutputPathWithProjectName();
+
+        PrepareRequest request = prepareRequest();
+        requestValidator.validate(request).ifPresentOrElse(
+                this::setStatusBar,
+                () -> startScanTask(request)
+        );
+    }
+
+    @FXML
+    private void onStop() {
+        taskRunner.cancel();
+        setStatusBar("Отмена...");
+    }
+
+    @FXML
+    private void onRefresh() {
+        if (lastRequest == null) return;
+        cleanOutputDir(lastRequest.outputPath());
+        startScanTask(lastRequest);
+    }
+
+    private void startScanTask(PrepareRequest request) {
+        toggleButtons(true);
+        progressBar.setVisible(true);
+        resultsBox.getChildren().clear();
+        fileTreeController.clear();
+        refreshButton.setVisible(false);
+
+        taskRunner.run(
+                (onProgress, cancelled) -> {
+                    List<FileInfo> files = pipeline.scan(request);
+                    if (cancelled.get()) return List.of();
+                    Platform.runLater(() -> fileTreeController.populate(files));
+
+                    onProgress.accept("Разбивка на части...");
+                    List<Chunk> chunks = pipeline.aggregate(request, files);
+                    if (cancelled.get()) return List.of();
+
+                    onProgress.accept("Запись файлов...");
+                    List<Path> result = pipeline.write(request, chunks);
+
+                    Platform.runLater(() -> setStatusBar("Готово. Создано " + result.size() + " файлов."));
+                    return result;
+                },
+                this::setStatusBar,
+                file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
+                () -> {
+                    progressBar.setVisible(false);
+                    toggleButtons(false);
+                    refreshButton.setVisible(true);
+                    lastRequest = request;
+                }
+        );
+    }
+
+    // ========== СЕРВЕР ==========
+
+    @FXML
+    private void onToggleServer() {
+        if (contextServer.isRunning()) {
+            contextServer.stop();
+            serverButton.setText("🚀 Запустить сервер");
+            setStatusBar("Сервер остановлен");
+        } else if (lastRequest != null && projectInfo != null) {
+            try {
+                Path outputDir = Path.of(lastRequest.outputPath());
+                List<Path> files = Files.list(outputDir)
+                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
+                        .sorted()
+                        .collect(Collectors.toList());
+
+                contextServer.start(9090, files, projectInfo);
+                serverButton.setText("⏹ Остановить сервер");
+                setStatusBar("Сервер запущен на порту 9090");
+            } catch (IOException e) {
+                log.error("Failed to start server", e);
+                setStatusBar("Ошибка запуска сервера", true);
+            }
+        } else {
+            setStatusBar("Сначала выполните сканирование", true);
+        }
+    }
+
+    // ========== НАСТРОЙКИ ==========
 
     @FXML
     private void onOpenSettings() {
@@ -127,79 +237,30 @@ public class DashboardController {
     }
 
     @FXML
-    private void onStart() {
-        projectInfo = ProjectInfo.from(sourcePathField.getText());
-        updateOutputPathWithProjectName();
-
-        PrepareRequest request = prepareRequest();
-
-        requestValidator.validate(request).ifPresentOrElse(
-                this::setStatusBar,
-                () -> startScanTask(request)
-        );
-    }
-
-    @FXML
-    private void onStop() {
-        taskRunner.cancel();
-        setStatusBar("Отмена...");
-    }
-
-    @FXML
-    private void onRefresh() {
-        if (lastRequest == null) return;
-
+    private void onOpenLogs() {
         try {
-            Path outputDir = Path.of(lastRequest.outputPath());
-            if (Files.exists(outputDir)) {
-                Files.list(outputDir)
-                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
-                        .forEach(f -> {
-                            try { Files.deleteIfExists(f); }
-                            catch (IOException e) { log.warn("Failed to delete: {}", f); }
-                        });
-            }
+            Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
+            Files.createDirectories(logDir);
+            java.awt.Desktop.getDesktop().open(logDir.toFile());
         } catch (IOException e) {
-            log.warn("Failed to clean output dir", e);
+            log.error("Failed to open logs folder", e);
+            setStatusBar("Не удалось открыть папку с логами", true);
         }
-
-        startScanTask(lastRequest);
     }
 
-    @FXML
-    private void onOpenSourceFolder() {
-        openFolder(sourcePathField.getText());
+    // ========== УТИЛИТЫ ==========
+
+    private void toggleButtons(boolean running) {
+        startButton.setVisible(!running);
+        stopButton.setVisible(running);
     }
 
-    @FXML
-    private void onOpenOutputFolder() {
-        openFolder(outputPathField.getText());
-    }
-
-    @FXML
-    private void onToggleServer() {
-        if (contextServer.isRunning()) {
-            contextServer.stop();
-            serverButton.setText("🚀 Запустить сервер");
-            setStatusBar("Сервер остановлен");
-        } else if (lastRequest != null && projectInfo != null) {
-            try {
-                Path outputDir = Path.of(lastRequest.outputPath());
-                List<Path> files = Files.list(outputDir)
-                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
-                        .sorted()
-                        .collect(Collectors.toList());
-
-                contextServer.start(9090, files, projectInfo);
-                serverButton.setText("⏹ Остановить сервер");
-                setStatusBar("Сервер запущен на порту 9090");
-            } catch (IOException e) {
-                log.error("Failed to start server", e);
-                setStatusBar("Ошибка запуска сервера", true);
-            }
-        } else {
-            setStatusBar("Сначала выполните сканирование", true);
-        }
+    private File chooseDirectory(String title, String initialPath) {
+        DirectoryChooser chooser = new DirectoryChooser();
+        chooser.setTitle(title);
+        File dir = new File(initialPath);
+        if (dir.exists() && dir.isDirectory()) chooser.setInitialDirectory(dir);
+        return chooser.showDialog(sourcePathField.getScene().getWindow());
     }
 
     private void openFolder(String path) {
@@ -216,52 +277,20 @@ public class DashboardController {
         }
     }
 
-    private void startScanTask(PrepareRequest request) {
-        toggleButtons(true);
-        progressBar.setVisible(true);
-        resultsBox.getChildren().clear();
-        fileTreeController.clear();
-        refreshButton.setVisible(false);
-
-        taskRunner.run(
-                (onProgress, cancelled) -> {
-                    List<FileInfo> files = pipeline.scan(request);
-                    if (cancelled.get()) return List.of();
-                    Platform.runLater(() -> fileTreeController.populate(files));
-
-                    onProgress.accept("Разбивка на части...");
-                    List<Chunk> chunks = pipeline.aggregate(request, files);
-                    if (cancelled.get()) return List.of();
-
-                    onProgress.accept("Запись файлов...");
-                    List<Path> result = pipeline.write(request, chunks);
-
-                    Platform.runLater(() -> setStatusBar("Готово. Создано " + result.size() + " файлов."));
-
-                    return result;
-                },
-                this::setStatusBar,
-                file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
-                () -> {
-                    progressBar.setVisible(false);
-                    toggleButtons(false);
-                    refreshButton.setVisible(true);
-                    lastRequest = request;
-                }
-        );
-    }
-
-    private void toggleButtons(boolean running) {
-        startButton.setVisible(!running);
-        stopButton.setVisible(running);
-    }
-
-    private File chooseDirectory(String title, String initialPath) {
-        DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle(title);
-        File dir = new File(initialPath);
-        if (dir.exists() && dir.isDirectory()) chooser.setInitialDirectory(dir);
-        return chooser.showDialog(sourcePathField.getScene().getWindow());
+    private void cleanOutputDir(String outputPath) {
+        try {
+            Path dir = Path.of(outputPath);
+            if (Files.exists(dir)) {
+                Files.list(dir)
+                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
+                        .forEach(f -> {
+                            try { Files.deleteIfExists(f); }
+                            catch (IOException e) { log.warn("Failed to delete: {}", f); }
+                        });
+            }
+        } catch (IOException e) {
+            log.warn("Failed to clean output dir", e);
+        }
     }
 
     private void setStatusBar(String text) {
@@ -277,18 +306,6 @@ public class DashboardController {
             statusLabel.setText(text);
             statusLabel.setStyle(isError ? "-fx-text-fill: red;" : "-fx-text-fill: gray;");
         });
-    }
-
-    @FXML
-    private void onOpenLogs() {
-        try {
-            Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
-            Files.createDirectories(logDir);
-            java.awt.Desktop.getDesktop().open(logDir.toFile());
-        } catch (IOException e) {
-            log.error("Failed to open logs folder", e);
-            setStatusBar("Не удалось открыть папку с логами", true);
-        }
     }
 
     private Stage getMainStage() {
