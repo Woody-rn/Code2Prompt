@@ -5,9 +5,9 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
+import ru.npepub.config.AppConfig;
 import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PInject;
-import ru.npepub.config.AppConfig;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -18,18 +18,12 @@ import java.util.Map;
  */
 public class SettingsController {
 
-    @FXML
-    private ComboBox<String> modelCombo;
-    @FXML
-    private TextField maxSymbolsField;
-    @FXML
-    private TextField safetyMarginField;
-    @FXML
-    private TextField defaultOutputPathField;
-    @FXML
-    private ComboBox<String> devLogLevelCombo;
-    @FXML
-    private CheckBox debugModeCheckBox;
+    @FXML private ComboBox<String> modelCombo;
+    @FXML private TextField maxSymbolsField;
+    @FXML private TextField safetyMarginField;
+    @FXML private TextField defaultOutputPathField;
+    @FXML private ComboBox<String> devLogLevelCombo;
+    @FXML private CheckBox debugModeCheckBox;
 
     @SuppressWarnings("unused")
     @C2PInject
@@ -95,7 +89,9 @@ public class SettingsController {
                 Path.of(defaultOutputPathField.getText()),
                 AppConfig.LogLevel.valueOf(devLogLevelCombo.getValue()),
                 config.errorLogEnabled(),
-                debugModeCheckBox.isSelected()
+                debugModeCheckBox.isSelected(),
+                config.recentProjects(),
+                config.recentProjectsCount()
         );
     }
 }

@@ -12,12 +12,13 @@
 
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3">
 
+        <!--suppress JavaFxUnresolvedFxIdReference -->
         <fx:include fx:id="fileTree" source="file-tree.fxml"/>
 
         <VBox spacing="10">
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="Папка-источник:" prefWidth="120"/>
-                <TextField fx:id="sourcePathField" HBox.hgrow="ALWAYS" promptText="Выберите папку с проектом"/>
+                <ComboBox fx:id="sourcePathField" HBox.hgrow="ALWAYS" editable="true" promptText="Выберите папку с проектом"/>
                 <Button text="Обзор" onAction="#onBrowseSource"/>
                 <Button text="📂" onAction="#onOpenSourceFolder"/>
             </HBox>

@@ -9,12 +9,12 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.AppConfig;
 import ru.npepub.config.ConfigPort;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
-import ru.npepub.config.AppConfig;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.model.ProjectInfo;
@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +43,7 @@ public class DashboardController {
 
     // ========== FXML ПОЛЯ ==========
 
-    @FXML private TextField sourcePathField;
+    @FXML private ComboBox<String> sourcePathField;
     @FXML private TextField outputPathField;
     @FXML private TextField limitField;
     @FXML private ProgressBar progressBar;
@@ -81,6 +82,8 @@ public class DashboardController {
         logWindowManager.setOnClosed(this::disableDebugMode);
         applyLogLevel();
 
+        sourcePathField.getItems().addAll(config.recentProjects());
+
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
         }
@@ -97,8 +100,8 @@ public class DashboardController {
 
     @FXML
     private void onBrowseSource() {
-        File dir = chooseDirectory("Выберите папку с проектом", sourcePathField.getText());
-        if (dir != null) sourcePathField.setText(dir.getAbsolutePath());
+        File dir = chooseDirectory("Выберите папку с проектом", sourcePathField.getEditor().getText());
+        if (dir != null) sourcePathField.getEditor().setText(dir.getAbsolutePath());
     }
 
     @FXML
@@ -109,7 +112,7 @@ public class DashboardController {
 
     @FXML
     private void onOpenSourceFolder() {
-        openFolder(sourcePathField.getText());
+        openFolder(sourcePathField.getEditor().getText());
     }
 
     @FXML
@@ -121,13 +124,17 @@ public class DashboardController {
 
     @FXML
     private void onStart() {
-        projectInfo = ProjectInfo.from(sourcePathField.getText());
+        String sourcePath = sourcePathField.getEditor().getText();
+        projectInfo = ProjectInfo.from(sourcePath);
         updateOutputPathWithProjectName();
 
         PrepareRequest request = prepareRequest();
         requestValidator.validate(request).ifPresentOrElse(
                 this::setStatusBar,
-                () -> startScanTask(request)
+                () -> {
+                    addRecentProject(sourcePath);
+                    startScanTask(request);
+                }
         );
     }
 
@@ -229,6 +236,7 @@ public class DashboardController {
                 limitField.setText(String.valueOf(config.effectiveLimit()));
                 outputPathField.setText(config.outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
+                sourcePathField.getItems().setAll(config.recentProjects());
                 setStatusBar("Настройки сохранены");
             }
         } catch (IOException e) {
@@ -248,6 +256,29 @@ public class DashboardController {
         }
     }
 
+    // ========== ИСТОРИЯ ПРОЕКТОВ ==========
+
+    private void addRecentProject(String path) {
+        if (path == null || path.isBlank()) return;
+        List<String> projects = new ArrayList<>(config.recentProjects());
+        projects.remove(path);
+        projects.addFirst(path);
+
+        int max = config.recentProjectsCount();
+        if (projects.size() > max) {
+            projects = projects.subList(0, max);
+        }
+
+        config = new AppConfig(
+                config.modelName(), config.maxSymbols(), config.safetyMargin(),
+                config.outputPath(), config.logLevel(), config.errorLogEnabled(),
+                config.debugMode(), projects, config.recentProjectsCount()
+        );
+        configPort.save(config);
+
+        sourcePathField.getItems().setAll(projects);
+    }
+
     // ========== УТИЛИТЫ ==========
 
     private void toggleButtons(boolean running) {
@@ -260,7 +291,9 @@ public class DashboardController {
         chooser.setTitle(title);
         File dir = new File(initialPath);
         if (dir.exists() && dir.isDirectory()) chooser.setInitialDirectory(dir);
-        return chooser.showDialog(sourcePathField.getScene().getWindow());
+        return chooser.showDialog(sourcePathField.getEditor().getText().isEmpty()
+                ? null
+                : sourcePathField.getScene().getWindow());
     }
 
     private void openFolder(String path) {
@@ -315,7 +348,8 @@ public class DashboardController {
     private void disableDebugMode() {
         config = new AppConfig(
                 config.modelName(), config.maxSymbols(), config.safetyMargin(),
-                config.outputPath(), config.logLevel(), config.errorLogEnabled(), false
+                config.outputPath(), config.logLevel(), config.errorLogEnabled(), false,
+                config.recentProjects(), config.recentProjectsCount()
         );
         configPort.save(config);
     }
@@ -328,7 +362,7 @@ public class DashboardController {
 
     private PrepareRequest prepareRequest() {
         return new PrepareRequest(
-                sourcePathField.getText(),
+                sourcePathField.getEditor().getText(),
                 outputPathField.getText(),
                 limitField.getText()
         );

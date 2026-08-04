@@ -9,13 +9,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
  * File-based implementation of {@link ConfigPort}.
  * Stores configuration in ~/.code2prompt/config/app.properties.
  */
-
 @C2PComponent
 class ConfigPortImpl implements ConfigPort {
 
@@ -38,7 +39,6 @@ class ConfigPortImpl implements ConfigPort {
         try (InputStream in = Files.newInputStream(CONFIG_FILE)) {
             Properties props = new Properties();
             props.load(in);
-
             return toAppConfig(props);
         } catch (IOException | NumberFormatException e) {
             log.warn("Failed to load config, using defaults", e);
@@ -52,7 +52,6 @@ class ConfigPortImpl implements ConfigPort {
 
         try {
             Files.createDirectories(CONFIG_DIR);
-
             Properties props = getProperties(config);
 
             try (OutputStream out = Files.newOutputStream(CONFIG_FILE)) {
@@ -72,10 +71,19 @@ class ConfigPortImpl implements ConfigPort {
         props.setProperty("log.level", config.logLevel().name());
         props.setProperty("log.error.enabled", String.valueOf(config.errorLogEnabled()));
         props.setProperty("debug.mode", String.valueOf(config.debugMode()));
+        props.setProperty("recent.projects", String.join(";", config.recentProjects()));
+        props.setProperty("recent.projects.count", String.valueOf(config.recentProjectsCount()));
         return props;
     }
 
     private AppConfig toAppConfig(Properties props) {
+        List<String> recent = Arrays.stream(
+                        props.getProperty("recent.projects", "").split(";"))
+                .filter(s -> !s.isEmpty())
+                .toList();
+        int recentCount = Integer.parseInt(
+                props.getProperty("recent.projects.count", "10"));
+
         return new AppConfig(
                 props.getProperty("model.name", AppConfig.DEFAULT_MODEL),
                 Integer.parseInt(props.getProperty("model.maxSymbols",
@@ -86,7 +94,9 @@ class ConfigPortImpl implements ConfigPort {
                         AppConfig.DEFAULT_OUTPUT_PATH.toString())),
                 AppConfig.LogLevel.valueOf(props.getProperty("log.level", "INFO")),
                 Boolean.parseBoolean(props.getProperty("log.error.enabled", "true")),
-                Boolean.parseBoolean(props.getProperty("debug.mode", "false"))
+                Boolean.parseBoolean(props.getProperty("debug.mode", "false")),
+                recent,
+                recentCount
         );
     }
 }

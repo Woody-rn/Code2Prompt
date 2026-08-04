@@ -1,11 +1,11 @@
 package ru.npepub.config;
 
 import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Application configuration values.
  */
-
 public record AppConfig(
         String modelName,
         int maxSymbols,
@@ -13,7 +13,9 @@ public record AppConfig(
         Path outputPath,
         LogLevel logLevel,
         boolean errorLogEnabled,
-        boolean debugMode
+        boolean debugMode,
+        List<String> recentProjects,
+        int recentProjectsCount
 ) {
     public enum LogLevel {
         DEBUG, INFO, WARN, OFF
@@ -44,7 +46,9 @@ public record AppConfig(
                 DEFAULT_OUTPUT_PATH,
                 LogLevel.INFO,
                 true,
-                false
+                false,
+                List.of(),
+                10
         );
     }
 }
