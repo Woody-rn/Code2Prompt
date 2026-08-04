@@ -14,7 +14,7 @@ import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
-import ru.npepub.model.AppConfig;
+import ru.npepub.config.AppConfig;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.model.ProjectInfo;

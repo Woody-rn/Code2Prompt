@@ -7,7 +7,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PInject;
-import ru.npepub.model.AppConfig;
+import ru.npepub.config.AppConfig;
 
 import java.io.File;
 import java.nio.file.Path;

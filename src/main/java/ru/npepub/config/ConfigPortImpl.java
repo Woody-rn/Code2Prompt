@@ -3,7 +3,6 @@ package ru.npepub.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.api.C2PComponent;
-import ru.npepub.model.AppConfig;
 
 import java.io.IOException;
 import java.io.InputStream;

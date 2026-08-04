@@ -7,6 +7,15 @@ import ru.npepub.service.ChunkFormatter;
 
 /**
  * Formats chunks with separators and relative file paths.
+ * <p>
+ * Output format:
+ * <pre>
+ * ========================================
+ * File: src/main/java/com/example/User.java
+ * ========================================
+ * [file content]
+ * </pre>
+ * The file path is relative to the scanned project root.
  */
 
 @C2PComponent

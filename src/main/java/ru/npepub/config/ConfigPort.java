@@ -1,7 +1,5 @@
 package ru.npepub.config;
 
-import ru.npepub.model.AppConfig;
-
 /**
  * Port for loading and persisting application configuration.
  */

@@ -1,4 +1,4 @@
-package ru.npepub.model;
+package ru.npepub.config;
 
 import java.nio.file.Path;
 
