@@ -10,8 +10,13 @@
     <HBox spacing="2" alignment="CENTER_LEFT">
         <Label text="Файлы проекта" style="-fx-font-weight: bold;"/>
         <Region HBox.hgrow="ALWAYS"/>
-        <Button text="▼" onAction="#onExpandAll" styleClass="small-button"/>
+        <Button text="📋" onAction="#onCopyTree" styleClass="small-button">
+            <tooltip>
+                <Tooltip text="Копировать структуру"/>
+            </tooltip>
+        </Button>
         <Button text="▲" onAction="#onCollapseAll" styleClass="small-button"/>
+        <Button text="▼" onAction="#onExpandAll" styleClass="small-button"/>
     </HBox>
 
     <TreeView fx:id="fileTree" VBox.vgrow="ALWAYS" prefWidth="250"/>

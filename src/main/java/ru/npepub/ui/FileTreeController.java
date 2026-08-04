@@ -5,6 +5,8 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import ru.npepub.model.FileInfo;
 
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.util.List;
 
 /**
@@ -33,7 +35,9 @@ public class FileTreeController {
      * Clears the tree.
      */
     public void clear() {
-        fileTree.setRoot(null);
+        if (fileTree != null) {
+            fileTree.setRoot(null);
+        }
     }
 
     /**
@@ -41,9 +45,45 @@ public class FileTreeController {
      */
     @FXML
     private void onExpandAll() {
+        if (fileTree != null && fileTree.getRoot() != null) {
+            expandAll(fileTree.getRoot());
+        }
+    }
+
+    /**
+     * Collapses all folders in the tree.
+     */
+    @FXML
+    private void onCollapseAll() {
+        if (fileTree != null && fileTree.getRoot() != null) {
+            collapseAll(fileTree.getRoot());
+        }
+    }
+
+    /**
+     * Copies the file tree structure to clipboard.
+     */
+    @FXML
+    private void onCopyTree() {
         TreeItem<String> root = fileTree.getRoot();
-        if (root != null) {
-            expandAll(root);
+        if (root == null) return;
+
+        StringBuilder sb = new StringBuilder();
+        buildTreeString(root, sb, 0);
+
+        Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(new StringSelection(sb.toString()), null);
+    }
+
+    private void buildTreeString(TreeItem<String> item, StringBuilder sb, int depth) {
+        if (item == null || item.getValue() == null) return;
+        sb.append("  ".repeat(depth))
+                .append(item.isLeaf() ? "📄 " : "📁 ")
+                .append(item.getValue())
+                .append("\n");
+        for (TreeItem<String> child : item.getChildren()) {
+            buildTreeString(child, sb, depth + 1);
         }
     }
 
@@ -52,14 +92,6 @@ public class FileTreeController {
         item.setExpanded(true);
         for (TreeItem<?> child : item.getChildren()) {
             expandAll(child);
-        }
-    }
-
-    @FXML
-    private void onCollapseAll() {
-        TreeItem<String> root = fileTree.getRoot();
-        if (root != null) {
-            collapseAll(root);
         }
     }
 
