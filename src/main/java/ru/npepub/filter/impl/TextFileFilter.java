@@ -6,6 +6,7 @@ import ru.npepub.di.api.C2PComponent;
 import ru.npepub.filter.FileFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -34,7 +35,22 @@ class TextFileFilter implements FileFilter {
             log.debug("Skipping binary file: {}", filePath);
             return EXCLUDE;
         }
+        
+        if (!isValidUtf8(data)) {
+            log.debug("Skipping non-UTF-8 file: {}", filePath);
+            return EXCLUDE;
+        }
+        
         return INCLUDE;
+    }
+
+    /**
+     * Checks whether the byte array is valid UTF-8.
+     * Invalid sequences are replaced with \uFFFD by the decoder.
+     */
+    private boolean isValidUtf8(byte[] bytes) {
+        String decoded = new String(bytes, StandardCharsets.UTF_8);
+        return !decoded.contains("\uFFFD");
     }
 
     private Optional<byte[]> readBytes(Path filePath) {
