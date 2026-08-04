@@ -88,6 +88,6 @@ class OutputWriterImplTest {
     }
 
     private FileInfo fileInfo(String path, String content) {
-        return new FileInfo(Path.of(path), content, content.length());
+        return new FileInfo(Path.of(path), content, content.length(), false, 0, 0);
     }
 }

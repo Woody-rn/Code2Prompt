@@ -4,26 +4,37 @@ import java.nio.file.Path;
 
 /**
  * Represents a scanned file with its relative path and content.
+ * Supports splitting large files into multiple parts.
  */
-
 public record FileInfo(
         Path relativePath,
         String content,
-        int size
+        int size,
+        boolean isSplit,
+        int partIndex,
+        int totalParts
 ) {
     /**
      * Creates a FileInfo from an absolute file path and its content.
-     *
-     * @param rootDir  the root directory of scanning
-     * @param filePath absolute path to the file
-     * @param content  file content as string
-     * @return new FileInfo with relative path computed from rootDir
      */
     public static FileInfo of(Path rootDir, Path filePath, String content) {
         return new FileInfo(
                 rootDir.relativize(filePath),
                 content,
-                content.length()
+                content.length(),
+                false, 0, 0
+        );
+    }
+
+    /**
+     * Creates a split part of a file.
+     */
+    public static FileInfo split(FileInfo original, String partContent, int partIndex, int totalParts) {
+        return new FileInfo(
+                original.relativePath(),
+                partContent,
+                partContent.length(),
+                true, partIndex, totalParts
         );
     }
 }

@@ -10,9 +10,10 @@ import ru.npepub.service.FileAggregator;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class FileAggregatorImplTest {
+
     private FileAggregator aggregator;
 
     @BeforeEach
@@ -46,22 +47,8 @@ class FileAggregatorImplTest {
     }
 
     @Test
-    void shouldKeepLargeFileAloneInChunk() {
-        FileInfo small = fileInfo("small.java", "x", 1);
-        FileInfo large = fileInfo("large.java", "x".repeat(100), 1000);
-
-        List<Chunk> chunks = aggregator.aggregate(List.of(small, large), 500);
-
-        assertThat(chunks).hasSize(2);
-        assertThat(chunks.get(0).files()).containsExactly(small);
-        assertThat(chunks.get(1).files()).containsExactly(large);
-        assertThat(chunks.get(1).totalSize()).isGreaterThan(500);
-    }
-
-    @Test
     void shouldReturnEmptyListForEmptyInput() {
         List<Chunk> chunks = aggregator.aggregate(List.of(), 1000);
-
         assertThat(chunks).isEmpty();
     }
 
@@ -70,7 +57,8 @@ class FileAggregatorImplTest {
         FileInfo f1 = fileInfo("a.java", "a", 1);
         FileInfo f2 = fileInfo("b.java", "b", 1);
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(f1, f2), 1);
+        // Каждый файл с заголовком ~87 символов, лимит 90 — только один влезает
+        List<Chunk> chunks = aggregator.aggregate(List.of(f1, f2), 90);
 
         assertThat(chunks).hasSize(2);
         assertThat(chunks.get(0).index()).isEqualTo(1);
@@ -78,41 +66,34 @@ class FileAggregatorImplTest {
     }
 
     @Test
-    void shouldNeverSplitSingleFile() {
-        FileInfo singleFile = fileInfo("huge.java", "x".repeat(1000), 1000);
+    void shouldSplitLargeFileIntoParts() {
+        String bigContent = "x".repeat(1000);
+        FileInfo bigFile = fileInfo("Big.java", bigContent, bigContent.length());
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(singleFile), 500);
+        List<Chunk> chunks = aggregator.aggregate(List.of(bigFile), 300);
 
-        assertThat(chunks).hasSize(1);
-        assertThat(chunks.get(0).files()).containsExactly(singleFile);
+        assertThat(chunks).isNotEmpty();
+        for (Chunk chunk : chunks) {
+            for (FileInfo file : chunk.files()) {
+                assertThat(file.isSplit()).isTrue();
+                assertThat(file.relativePath().toString()).isEqualTo("Big.java");
+            }
+        }
     }
 
     @Test
-    void shouldKeepOversizedFileInOwnChunk() {
-        FileInfo huge = fileInfo("huge.java", "x".repeat(1000), 1000);
-
-        List<Chunk> chunks = aggregator.aggregate(List.of(huge), 500);
-
-        assertThat(chunks).hasSize(1);
-        assertThat(chunks.get(0).files()).containsExactly(huge);
-        assertThat(chunks.get(0).totalSize()).isGreaterThan(500);
-    }
-
-    @Test
-    void shouldNotMixOversizedFileWithOthers() {
+    void shouldNotMixSplitFileWithOtherFiles() {
         FileInfo small = fileInfo("small.java", "x", 1);
-        FileInfo huge = fileInfo("huge.java", "x".repeat(1000), 1000);
-        FileInfo another = fileInfo("another.java", "y", 1);
+        FileInfo big = fileInfo("big.java", "y".repeat(1000), 1000);
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(small, huge, another), 500);
+        List<Chunk> chunks = aggregator.aggregate(List.of(small, big), 500);
 
-        assertThat(chunks).hasSize(3);
-        assertThat(chunks.get(0).files()).containsExactly(small);
-        assertThat(chunks.get(1).files()).containsExactly(huge);
-        assertThat(chunks.get(2).files()).containsExactly(another);
+        assertThat(chunks).isNotEmpty();
+        // small должен быть в первом чанке, big разбит в следующих
+        assertThat(chunks.get(0).files().stream().anyMatch(f -> f.relativePath().toString().equals("small.java"))).isTrue();
     }
 
     private FileInfo fileInfo(String path, String content, int size) {
-        return new FileInfo(Path.of(path), content, size);
+        return new FileInfo(Path.of(path), content, size, false, 0, 0);
     }
 }
