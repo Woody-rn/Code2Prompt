@@ -32,8 +32,8 @@ class OutputWriterImplTest {
         List<Path> paths = writer.write(List.of(chunk), outputDir);
 
         assertThat(paths).hasSize(1);
-        assertThat(paths.get(0).getFileName().toString()).isEqualTo("code2prompt_part1.txt");
-        assertThat(paths.get(0)).exists();
+        assertThat(paths.getFirst().getFileName().toString()).isEqualTo("code2prompt_part1.txt");
+        assertThat(paths.getFirst()).exists();
     }
 
     @Test

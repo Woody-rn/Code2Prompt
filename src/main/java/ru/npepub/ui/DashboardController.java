@@ -162,7 +162,7 @@ public class DashboardController {
                 (onProgress, cancelled) -> {
                     List<FileInfo> files = pipeline.scan(request);
                     if (cancelled.get()) return List.of();
-                    Platform.runLater(() -> fileTreeController.populate(files));
+                    Platform.runLater(() -> fileTreeController.populate(files, projectInfo.name()));
 
                     onProgress.accept("Разбивка на части...");
                     List<Chunk> chunks = pipeline.aggregate(request, files);
@@ -263,7 +263,7 @@ public class DashboardController {
 
         List<String> projects = new ArrayList<>(config.recentProjects());
         projects.remove(path);
-        projects.add(0, path);
+        projects.addFirst(path);
 
         int max = config.recentProjectsCount();
         if (projects.size() > max) {

@@ -30,7 +30,7 @@ class FileAggregatorImplTest {
         List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2), 1000);
 
         assertThat(chunks).hasSize(1);
-        assertThat(chunks.get(0).files()).containsExactly(file1, file2);
+        assertThat(chunks.getFirst().files()).containsExactly(file1, file2);
     }
 
     @Test
@@ -90,7 +90,7 @@ class FileAggregatorImplTest {
 
         assertThat(chunks).isNotEmpty();
         // small должен быть в первом чанке, big разбит в следующих
-        assertThat(chunks.get(0).files().stream().anyMatch(f -> f.relativePath().toString().equals("small.java"))).isTrue();
+        assertThat(chunks.getFirst().files().stream().anyMatch(f -> f.relativePath().toString().equals("small.java"))).isTrue();
     }
 
     private FileInfo fileInfo(String path, String content, int size) {

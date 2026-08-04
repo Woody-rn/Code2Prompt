@@ -20,8 +20,9 @@ public class FileTreeController {
     /**
      * Fills the tree with the given file infos.
      */
-    public void populate(List<FileInfo> files) {
-        TreeItem<String> root = new TreeItem<>("Проект");
+    public void populate(List<FileInfo> files, String projectName) {
+        String rootName = "Project - " + (projectName != null ? projectName : "");
+        TreeItem<String> root = new TreeItem<>(rootName);
         root.setExpanded(true);
 
         for (FileInfo file : files) {
