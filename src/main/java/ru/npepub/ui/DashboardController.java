@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.*;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -43,43 +44,26 @@ public class DashboardController {
 
     // ========== FXML ПОЛЯ ==========
 
-    @FXML
-    private ComboBox<String> sourcePathField;
-    @FXML
-    private TextField outputPathField;
-    @FXML
-    private TextField limitField;
-    @FXML
-    private ProgressBar progressBar;
-    @FXML
-    private VBox resultsBox;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Button startButton;
-    @FXML
-    private Button stopButton;
-    @FXML
-    private Button refreshButton;
-    @FXML
-    private Button serverButton;
-    @FXML
-    private FileTreeController fileTreeController;
-    @FXML
-    private Label serverIndicator;
+    @FXML private ComboBox<String> sourcePathField;
+    @FXML private TextField outputPathField;
+    @FXML private TextField limitField;
+    @FXML private ProgressBar progressBar;
+    @FXML private VBox resultsBox;
+    @FXML private Label statusLabel;
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
+    @FXML private Button refreshButton;
+    @FXML private Button serverButton;
+    @FXML private FileTreeController fileTreeController;
+    @FXML private Label serverIndicator;
 
     // ========== ЗАВИСИМОСТИ ==========
 
-    @C2PInject
-    private ConfigPort configPort;
-    @C2PInject
-    private ContainerDI container;
-    @C2PInject
-    private LogWindowPort logWindowManager;
-    @C2PInject
-    private PrepareContextPipeline pipeline;
-    @C2PInject
-    private RequestValidator requestValidator;
+    @C2PInject private ConfigPort configPort;
+    @C2PInject private ContainerDI container;
+    @C2PInject private LogWindowPort logWindowManager;
+    @C2PInject private PrepareContextPipeline pipeline;
+    @C2PInject private RequestValidator requestValidator;
 
     // ========== СОСТОЯНИЕ ==========
 
@@ -103,6 +87,8 @@ public class DashboardController {
         sourcePathField.getItems().addAll(config.recentProjects());
         serverIndicator.getStyleClass().setAll("server-off");
 
+        setupDragAndDrop();
+
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
         }
@@ -112,6 +98,26 @@ public class DashboardController {
             if (stage != null) {
                 stage.setOnCloseRequest(event -> contextServer.stop());
             }
+        });
+    }
+
+    // ========== DRAG & DROP ==========
+
+    private void setupDragAndDrop() {
+        sourcePathField.setOnDragOver(event -> {
+            if (event.getDragboard().hasFiles()) {
+                event.acceptTransferModes(TransferMode.COPY);
+            }
+            event.consume();
+        });
+
+        sourcePathField.setOnDragDropped(event -> {
+            List<File> files = event.getDragboard().getFiles();
+            if (!files.isEmpty() && files.get(0).isDirectory()) {
+                sourcePathField.getEditor().setText(files.get(0).getAbsolutePath());
+            }
+            event.setDropCompleted(true);
+            event.consume();
         });
     }
 
@@ -338,11 +344,8 @@ public class DashboardController {
                 Files.list(dir)
                         .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
                         .forEach(f -> {
-                            try {
-                                Files.deleteIfExists(f);
-                            } catch (IOException e) {
-                                log.warn("Failed to delete: {}", f);
-                            }
+                            try { Files.deleteIfExists(f); }
+                            catch (IOException e) { log.warn("Failed to delete: {}", f); }
                         });
             }
         } catch (IOException e) {
