@@ -10,23 +10,21 @@
     <content>
         <VBox spacing="15" styleClass="root">
 
-            <!-- Модель -->
-            <VBox spacing="5">
-                <Label text="Модель AI:" style="-fx-font-weight: bold;"/>
-                <ComboBox fx:id="modelCombo" prefWidth="Infinity"/>
-            </VBox>
-
-            <!-- Лимит -->
-            <VBox spacing="5">
-                <Label text="Лимит символов модели:" style="-fx-font-weight: bold;"/>
-                <TextField fx:id="maxSymbolsField"/>
-            </VBox>
-
-            <!-- Запас -->
-            <VBox spacing="5">
-                <Label text="Запас безопасности (%):" style="-fx-font-weight: bold;"/>
-                <TextField fx:id="safetyMarginField"/>
-            </VBox>
+            <!-- Модель, Лимит и Запас -->
+            <HBox spacing="10">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Модель AI:" style="-fx-font-weight: bold;"/>
+                    <ComboBox fx:id="modelCombo" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Лимит символов:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="maxSymbolsField" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                </VBox>
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Запас (%):" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="safetyMarginField" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                </VBox>
+            </HBox>
 
             <!-- Папка вывода -->
             <VBox spacing="5">
@@ -46,25 +44,28 @@
                 <Button text="🗑 Очистить логи" onAction="#onClearLogs"/>
             </VBox>
 
-            <!-- Исключённые папки -->
-            <VBox spacing="5" VBox.vgrow="ALWAYS">
-                <Label text="Исключённые папки (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
-                <ListView fx:id="excludedDirsList" prefHeight="100" maxWidth="Infinity"/>
-                <HBox spacing="5">
-                    <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="Название папки"/>
-                    <Button text="➕" onAction="#onAddExcludedDir"/>
-                </HBox>
-            </VBox>
+            <!-- Исключённые папки и файлы (в два ряда) -->
+            <HBox spacing="10" VBox.vgrow="ALWAYS">
+                <!-- Исключённые папки -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                    <Label text="Исключённые папки (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
+                    <ListView fx:id="excludedDirsList" prefHeight="250" maxWidth="Infinity" VBox.vgrow="ALWAYS"/>
+                    <HBox spacing="5">
+                        <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="Название папки"/>
+                        <Button text="➕" onAction="#onAddExcludedDir"/>
+                    </HBox>
+                </VBox>
 
-            <!-- Исключённые файлы -->
-            <VBox spacing="5" VBox.vgrow="ALWAYS">
-                <Label text="Исключённые файлы (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
-                <ListView fx:id="excludedFileNamesList" prefHeight="100" maxWidth="Infinity"/>
-                <HBox spacing="5">
-                    <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="Имя файла"/>
-                    <Button text="➕" onAction="#onAddExcludedFileName"/>
-                </HBox>
-            </VBox>
+                <!-- Исключённые файлы -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                    <Label text="Исключённые файлы (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
+                    <ListView fx:id="excludedFileNamesList" prefHeight="250" maxWidth="Infinity" VBox.vgrow="ALWAYS"/>
+                    <HBox spacing="5">
+                        <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="Имя файла"/>
+                        <Button text="➕" onAction="#onAddExcludedFileName"/>
+                    </HBox>
+                </VBox>
+            </HBox>
 
         </VBox>
     </content>
