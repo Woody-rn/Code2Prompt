@@ -43,25 +43,43 @@ public class DashboardController {
 
     // ========== FXML ПОЛЯ ==========
 
-    @FXML private ComboBox<String> sourcePathField;
-    @FXML private TextField outputPathField;
-    @FXML private TextField limitField;
-    @FXML private ProgressBar progressBar;
-    @FXML private VBox resultsBox;
-    @FXML private Label statusLabel;
-    @FXML private Button startButton;
-    @FXML private Button stopButton;
-    @FXML private Button refreshButton;
-    @FXML private Button serverButton;
-    @FXML private FileTreeController fileTreeController;
+    @FXML
+    private ComboBox<String> sourcePathField;
+    @FXML
+    private TextField outputPathField;
+    @FXML
+    private TextField limitField;
+    @FXML
+    private ProgressBar progressBar;
+    @FXML
+    private VBox resultsBox;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private Button refreshButton;
+    @FXML
+    private Button serverButton;
+    @FXML
+    private FileTreeController fileTreeController;
+    @FXML
+    private Label serverIndicator;
 
     // ========== ЗАВИСИМОСТИ ==========
 
-    @C2PInject private ConfigPort configPort;
-    @C2PInject private ContainerDI container;
-    @C2PInject private LogWindowPort logWindowManager;
-    @C2PInject private PrepareContextPipeline pipeline;
-    @C2PInject private RequestValidator requestValidator;
+    @C2PInject
+    private ConfigPort configPort;
+    @C2PInject
+    private ContainerDI container;
+    @C2PInject
+    private LogWindowPort logWindowManager;
+    @C2PInject
+    private PrepareContextPipeline pipeline;
+    @C2PInject
+    private RequestValidator requestValidator;
 
     // ========== СОСТОЯНИЕ ==========
 
@@ -83,6 +101,7 @@ public class DashboardController {
         applyLogLevel();
 
         sourcePathField.getItems().addAll(config.recentProjects());
+        serverIndicator.getStyleClass().setAll("server-off");
 
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
@@ -193,6 +212,7 @@ public class DashboardController {
         if (contextServer.isRunning()) {
             contextServer.stop();
             serverButton.setText("🚀 Запустить сервер");
+            serverIndicator.getStyleClass().setAll("server-off");
             setStatusBar("Сервер остановлен");
         } else if (lastRequest != null && projectInfo != null) {
             try {
@@ -204,6 +224,7 @@ public class DashboardController {
 
                 contextServer.start(9090, files, projectInfo);
                 serverButton.setText("⏹ Остановить сервер");
+                serverIndicator.getStyleClass().setAll("server-on");
                 setStatusBar("Сервер запущен на порту 9090");
             } catch (IOException e) {
                 log.error("Failed to start server", e);
@@ -317,8 +338,11 @@ public class DashboardController {
                 Files.list(dir)
                         .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
                         .forEach(f -> {
-                            try { Files.deleteIfExists(f); }
-                            catch (IOException e) { log.warn("Failed to delete: {}", f); }
+                            try {
+                                Files.deleteIfExists(f);
+                            } catch (IOException e) {
+                                log.warn("Failed to delete: {}", f);
+                            }
                         });
             }
         } catch (IOException e) {

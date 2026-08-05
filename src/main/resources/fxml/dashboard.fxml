@@ -35,8 +35,8 @@
                 <TextField fx:id="limitField" prefWidth="100" text="95000"/>
                 <Button text="Настройки" onAction="#onOpenSettings" styleClass="settings-button"/>
                 <Button text="📁 Логи" onAction="#onOpenLogs" styleClass="settings-button"/>
-                <Button fx:id="serverButton" text="🚀 Запустить сервер" onAction="#onToggleServer"
-                        styleClass="settings-button"/>
+                <Button fx:id="serverButton" text="🚀 Запустить сервер" onAction="#onToggleServer" styleClass="settings-button"/>
+                <Label fx:id="serverIndicator" text="●"/>
             </HBox>
 
             <HBox spacing="10">

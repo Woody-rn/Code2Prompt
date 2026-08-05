@@ -123,3 +123,13 @@
     -fx-border-color: #ddd;
     -fx-border-radius: 4px;
 }
+
+.server-on {
+    -fx-text-fill: #27ae60;
+    -fx-font-size: 20px;
+}
+
+.server-off {
+    -fx-text-fill: red;
+    -fx-font-size: 20px;
+}
