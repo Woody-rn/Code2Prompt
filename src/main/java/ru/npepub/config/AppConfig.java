@@ -16,7 +16,8 @@ public record AppConfig(
         boolean debugMode,
         List<String> recentProjects,
         int recentProjectsCount,
-        List<String> excludedDirs
+        List<String> excludedDirs,
+        List<String> excludedFileNames
 ) {
     public enum LogLevel {
         DEBUG, INFO, WARN, OFF
@@ -32,17 +33,16 @@ public record AppConfig(
             ".git", ".gradle", ".idea", "build", "target",
             "node_modules", "__pycache__", ".svn", "out", "dist"
     );
+    public static final List<String> DEFAULT_EXCLUDED_FILE_NAMES = List.of(
+            ".env", ".env.local", ".env.production",
+            "credentials.json", "secrets.yaml", "secrets.yml",
+            "key.pem", "id_rsa", "id_ed25519"
+    );
 
-    /**
-     * @return effective symbol limit after applying safety margin
-     */
     public int effectiveLimit() {
         return (int) (maxSymbols * (1 - safetyMargin));
     }
 
-    /**
-     * @return default configuration
-     */
     public static AppConfig defaults() {
         return new AppConfig(
                 DEFAULT_MODEL,
@@ -54,7 +54,8 @@ public record AppConfig(
                 false,
                 List.of(),
                 10,
-                DEFAULT_EXCLUDED_DIRS
+                DEFAULT_EXCLUDED_DIRS,
+                DEFAULT_EXCLUDED_FILE_NAMES
         );
     }
 }

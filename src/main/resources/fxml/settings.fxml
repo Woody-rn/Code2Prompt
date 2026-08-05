@@ -56,6 +56,16 @@
                 </HBox>
             </VBox>
 
+            <!-- Исключённые файлы -->
+            <VBox spacing="5" VBox.vgrow="ALWAYS">
+                <Label text="Исключённые файлы (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="excludedFileNamesList" prefHeight="100" maxWidth="Infinity"/>
+                <HBox spacing="5">
+                    <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="Имя файла"/>
+                    <Button text="➕" onAction="#onAddExcludedFileName"/>
+                </HBox>
+            </VBox>
+
         </VBox>
     </content>
 

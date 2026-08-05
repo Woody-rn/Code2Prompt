@@ -125,6 +125,7 @@ public class DashboardController {
     @FXML
     private void onStart() {
         String sourcePath = sourcePathField.getEditor().getText();
+        sourcePathField.setValue(sourcePath);
         projectInfo = ProjectInfo.from(sourcePath);
         updateOutputPathWithProjectName();
 
@@ -263,7 +264,7 @@ public class DashboardController {
 
         List<String> projects = new ArrayList<>(config.recentProjects());
         projects.remove(path);
-        projects.addFirst(path);
+        projects.add(0, path);
 
         int max = config.recentProjectsCount();
         if (projects.size() > max) {
@@ -274,10 +275,9 @@ public class DashboardController {
                 config.modelName(), config.maxSymbols(), config.safetyMargin(),
                 config.outputPath(), config.logLevel(), config.errorLogEnabled(),
                 config.debugMode(), projects, config.recentProjectsCount(),
-                config.excludedDirs()
+                config.excludedDirs(), config.excludedFileNames()
         );
         configPort.save(config);
-
         sourcePathField.getItems().setAll(projects);
     }
 
@@ -293,9 +293,7 @@ public class DashboardController {
         chooser.setTitle(title);
         File dir = new File(initialPath);
         if (dir.exists() && dir.isDirectory()) chooser.setInitialDirectory(dir);
-        return chooser.showDialog(sourcePathField.getEditor().getText().isEmpty()
-                ? null
-                : sourcePathField.getScene().getWindow());
+        return chooser.showDialog(sourcePathField.getScene().getWindow());
     }
 
     private void openFolder(String path) {
@@ -352,7 +350,7 @@ public class DashboardController {
                 config.modelName(), config.maxSymbols(), config.safetyMargin(),
                 config.outputPath(), config.logLevel(), config.errorLogEnabled(), false,
                 config.recentProjects(), config.recentProjectsCount(),
-                config.excludedDirs()
+                config.excludedDirs(), config.excludedFileNames()
         );
         configPort.save(config);
     }

@@ -33,6 +33,8 @@ public class SettingsController {
     @FXML private CheckBox debugModeCheckBox;
     @FXML private ListView<String> excludedDirsList;
     @FXML private TextField newExcludedDirField;
+    @FXML private ListView<String> excludedFileNamesList;
+    @FXML private TextField newExcludedFileNameField;
 
     @SuppressWarnings("unused")
     @C2PInject
@@ -40,6 +42,7 @@ public class SettingsController {
 
     private AppConfig config;
     private ObservableList<String> excludedDirs;
+    private ObservableList<String> excludedFileNames;
 
     private static final Map<String, Integer> MODEL_LIMITS = Map.of(
             "DeepSeek V3", 100_000,
@@ -74,16 +77,22 @@ public class SettingsController {
         devLogLevelCombo.setValue(config.logLevel().name());
 
         excludedDirs = FXCollections.observableArrayList(
-                config.excludedDirs().stream().sorted().toList()
-        );
+                config.excludedDirs().stream().sorted().toList());
         excludedDirsList.setItems(excludedDirs);
-
         excludedDirsList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 String selected = excludedDirsList.getSelectionModel().getSelectedItem();
-                if (selected != null) {
-                    excludedDirs.remove(selected);
-                }
+                if (selected != null) excludedDirs.remove(selected);
+            }
+        });
+
+        excludedFileNames = FXCollections.observableArrayList(
+                config.excludedFileNames().stream().sorted().toList());
+        excludedFileNamesList.setItems(excludedFileNames);
+        excludedFileNamesList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                String selected = excludedFileNamesList.getSelectionModel().getSelectedItem();
+                if (selected != null) excludedFileNames.remove(selected);
             }
         });
     }
@@ -107,7 +116,18 @@ public class SettingsController {
         String dir = newExcludedDirField.getText().trim();
         if (!dir.isEmpty() && !excludedDirs.contains(dir)) {
             excludedDirs.add(dir);
+            FXCollections.sort(excludedDirs);
             newExcludedDirField.clear();
+        }
+    }
+
+    @FXML
+    private void onAddExcludedFileName() {
+        String name = newExcludedFileNameField.getText().trim();
+        if (!name.isEmpty() && !excludedFileNames.contains(name)) {
+            excludedFileNames.add(name);
+            FXCollections.sort(excludedFileNames);
+            newExcludedFileNameField.clear();
         }
     }
 
@@ -117,7 +137,6 @@ public class SettingsController {
             Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
             Path logFile = logDir.resolve("code2prompt.log");
             Path errorFile = logDir.resolve("errors.log");
-
             if (Files.exists(logFile)) Files.writeString(logFile, "");
             if (Files.exists(errorFile)) Files.writeString(errorFile, "");
         } catch (IOException e) {
@@ -139,7 +158,8 @@ public class SettingsController {
                 debugModeCheckBox.isSelected(),
                 config.recentProjects(),
                 config.recentProjectsCount(),
-                List.copyOf(excludedDirs)
+                List.copyOf(excludedDirs),
+                List.copyOf(excludedFileNames)
         );
     }
 }

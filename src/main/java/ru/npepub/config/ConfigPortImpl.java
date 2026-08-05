@@ -13,10 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-/**
- * File-based implementation of {@link ConfigPort}.
- * Stores configuration in ~/.code2prompt/config/app.properties.
- */
 @C2PComponent
 class ConfigPortImpl implements ConfigPort {
 
@@ -33,9 +29,7 @@ class ConfigPortImpl implements ConfigPort {
             log.info("Config file not found, using defaults");
             return AppConfig.defaults();
         }
-
         log.debug("Loading config from {}", CONFIG_FILE);
-
         try (InputStream in = Files.newInputStream(CONFIG_FILE)) {
             Properties props = new Properties();
             props.load(in);
@@ -49,11 +43,9 @@ class ConfigPortImpl implements ConfigPort {
     @Override
     public void save(AppConfig config) {
         log.debug("Saving config to {}", CONFIG_FILE);
-
         try {
             Files.createDirectories(CONFIG_DIR);
             Properties props = getProperties(config);
-
             try (OutputStream out = Files.newOutputStream(CONFIG_FILE)) {
                 props.store(out, "Code2Prompt Configuration");
             }
@@ -74,39 +66,32 @@ class ConfigPortImpl implements ConfigPort {
         props.setProperty("recent.projects", String.join(";", config.recentProjects()));
         props.setProperty("recent.projects.count", String.valueOf(config.recentProjectsCount()));
         props.setProperty("excluded.dirs", String.join(";", config.excludedDirs()));
+        props.setProperty("excluded.file.names", String.join(";", config.excludedFileNames()));
         return props;
     }
 
     private AppConfig toAppConfig(Properties props) {
-        List<String> recent = Arrays.stream(
-                        props.getProperty("recent.projects", "").split(";"))
-                .filter(s -> !s.isEmpty())
-                .toList();
-        int recentCount = Integer.parseInt(
-                props.getProperty("recent.projects.count", "10"));
+        List<String> recent = Arrays.stream(props.getProperty("recent.projects", "").split(";"))
+                .filter(s -> !s.isEmpty()).toList();
+        int recentCount = Integer.parseInt(props.getProperty("recent.projects.count", "10"));
 
-        List<String> excludedDirs = Arrays.stream(
-                        props.getProperty("excluded.dirs", "").split(";"))
-                .filter(s -> !s.isEmpty())
-                .toList();
-        if (excludedDirs.isEmpty()) {
-            excludedDirs = AppConfig.DEFAULT_EXCLUDED_DIRS;
-        }
+        List<String> excludedDirs = Arrays.stream(props.getProperty("excluded.dirs", "").split(";"))
+                .filter(s -> !s.isEmpty()).toList();
+        if (excludedDirs.isEmpty()) excludedDirs = AppConfig.DEFAULT_EXCLUDED_DIRS;
+
+        List<String> excludedFileNames = Arrays.stream(props.getProperty("excluded.file.names", "").split(";"))
+                .filter(s -> !s.isEmpty()).toList();
+        if (excludedFileNames.isEmpty()) excludedFileNames = AppConfig.DEFAULT_EXCLUDED_FILE_NAMES;
 
         return new AppConfig(
                 props.getProperty("model.name", AppConfig.DEFAULT_MODEL),
-                Integer.parseInt(props.getProperty("model.maxSymbols",
-                        String.valueOf(AppConfig.DEFAULT_MAX_SYMBOLS))),
-                Double.parseDouble(props.getProperty("model.safetyMargin",
-                        String.valueOf(AppConfig.DEFAULT_SAFETY_MARGIN))),
-                Path.of(props.getProperty("output.path",
-                        AppConfig.DEFAULT_OUTPUT_PATH.toString())),
+                Integer.parseInt(props.getProperty("model.maxSymbols", String.valueOf(AppConfig.DEFAULT_MAX_SYMBOLS))),
+                Double.parseDouble(props.getProperty("model.safetyMargin", String.valueOf(AppConfig.DEFAULT_SAFETY_MARGIN))),
+                Path.of(props.getProperty("output.path", AppConfig.DEFAULT_OUTPUT_PATH.toString())),
                 AppConfig.LogLevel.valueOf(props.getProperty("log.level", "INFO")),
                 Boolean.parseBoolean(props.getProperty("log.error.enabled", "true")),
                 Boolean.parseBoolean(props.getProperty("debug.mode", "false")),
-                recent,
-                recentCount,
-                excludedDirs
+                recent, recentCount, excludedDirs, excludedFileNames
         );
     }
 }
