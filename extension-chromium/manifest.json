@@ -4,7 +4,10 @@
   "version": "1.0",
   "description": "Добавляет контекст проекта в чат DeepSeek",
   "permissions": ["activeTab"],
-  "host_permissions": ["https://chat.deepseek.com/*"],
+  "host_permissions": [
+    "https://chat.deepseek.com/*",
+    "https://localhost:9090/*"
+  ],
   "content_scripts": [
     {
       "matches": ["https://chat.deepseek.com/*"],

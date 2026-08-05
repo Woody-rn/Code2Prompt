@@ -20,6 +20,7 @@ import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.model.ProjectInfo;
 import ru.npepub.pipeline.PrepareContextPipeline;
+import ru.npepub.server.ContextServer;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.task.TaskRunner;
 import ru.npepub.util.ProjectPathResolver;
@@ -71,7 +72,7 @@ public class DashboardController {
     private final TaskRunner taskRunner = new TaskRunner();
     private final ResultCardFactory resultCardFactory = new ResultCardFactory();
     private PrepareRequest lastRequest;
-    private final ContextServer contextServer = new ContextServer();
+    @C2PInject private ContextServer contextServer;
     private ProjectInfo projectInfo;
 
     // ========== ИНИЦИАЛИЗАЦИЯ ==========
@@ -231,10 +232,13 @@ public class DashboardController {
                 contextServer.start(9090, files, projectInfo);
                 serverButton.setText("⏹ Остановить сервер");
                 serverIndicator.getStyleClass().setAll("server-on");
-                setStatusBar("Сервер запущен на порту 9090");
-            } catch (IOException e) {
-                log.error("Failed to start server", e);
-                setStatusBar("Ошибка запуска сервера", true);
+
+                // ✅ ОБНОВЛЕНО СООБЩЕНИЕ
+                setStatusBar("🔒 Сервер запущен на https://localhost:9090");
+
+            } catch (Exception e) {
+                log.error("Failed to start HTTPS server", e);
+                setStatusBar("❌ Ошибка запуска сервера: " + e.getMessage(), true);
             }
         } else {
             setStatusBar("Сначала выполните сканирование", true);

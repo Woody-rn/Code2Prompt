@@ -1,4 +1,6 @@
 // ========== НАСТРОЙКИ ==========
+const SERVER_URL = 'https://localhost:9090';
+
 let allParts = [];
 let currentPart = 0;
 let isSending = false;
@@ -10,11 +12,85 @@ let totalParts = 0;
 // ========== DOM-ЭЛЕМЕНТЫ ПАНЕЛИ ==========
 let panel, queueLabel, progressBar, delayInput, autoCheckbox, actionBtn, prevBtn, nextBtn, statusLabel, miniIcon, projectLabel, refreshBtn;
 
+// ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+
 function getTextarea() {
     return document.querySelector('textarea');
 }
 
+/**
+ * ✅ Универсальная функция для запросов к серверу
+ * Использует заголовки для управления кешем, а не параметры в URL
+ */
+async function apiRequest(endpoint, params = {}) {
+    // Собираем URL только с бизнес-параметрами
+    const urlParams = new URLSearchParams(params);
+    const url = `${SERVER_URL}${endpoint}${urlParams.toString() ? '?' + urlParams : ''}`;
+
+    console.log(`🔍 API Request: ${url}`);
+
+    try {
+        const response = await fetch(url, {
+            headers: {
+                // ✅ Заголовки для управления кешем
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
+
+        console.log(`📡 Status: ${response.status}`);
+
+        if (!response.ok) {
+            const text = await response.text();
+            console.error(`❌ API Error: ${response.status} - ${text}`);
+            throw new Error(`Server returned ${response.status}: ${text}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('❌ API Request failed:', error);
+        throw error;
+    }
+}
+
+/**
+ * ✅ Загрузить информацию о проекте
+ */
+async function loadProjectName() {
+    try {
+        const data = await apiRequest('/project');
+        if (projectLabel && data.name) {
+            projectLabel.textContent = data.name;
+            projectLabel.title = data.name;
+        }
+    } catch(e) {
+        if (projectLabel) projectLabel.textContent = '—';
+    }
+}
+
+/**
+ * ✅ Загрузить все части с сервера
+ */
+async function loadPartsFromServer() {
+    console.log('🔍 Loading parts from server...');
+
+    // Загружаем первую часть чтобы узнать total
+    const firstPart = await apiRequest('/context/parts', { id: 0 });
+    totalParts = firstPart.total;
+    allParts = [];
+
+    // Загружаем остальные части
+    for (let i = 0; i < totalParts; i++) {
+        const part = await apiRequest('/context/parts', { id: i });
+        allParts.push(part);
+    }
+
+    console.log(`✅ Loaded ${totalParts} parts`);
+}
+
 // ========== ПАНЕЛЬ УПРАВЛЕНИЯ ==========
+
 function createPanel() {
     panel = document.createElement('div');
     panel.id = 'c2p-panel';
@@ -68,18 +144,7 @@ function createPanel() {
     refreshBtn.addEventListener('click', async () => {
         setStatus('Проверка сервера...');
         try {
-            const response = await fetch('http://localhost:9090/context/parts?id=0');
-            if (!response.ok) throw new Error('Server returned ' + response.status);
-            
-            const firstPart = await response.json();
-            totalParts = firstPart.total;
-            allParts = [];
-            
-            for (let i = 0; i < totalParts; i++) {
-                const part = await fetch(`http://localhost:9090/context/parts?id=${i}`).then(r => r.json());
-                allParts.push(part);
-            }
-            
+            await loadPartsFromServer();
             currentPart = 0;
             isSending = false;
             retryScheduled = false;
@@ -88,6 +153,7 @@ function createPanel() {
             await loadProjectName();
             setStatus('Готово. Загружено ' + totalParts + ' частей');
         } catch(e) {
+            console.error('❌ Refresh error:', e);
             setStatus('⚠ Сервер недоступен');
             if (actionBtn) {
                 actionBtn.textContent = '⚠ Сервер недоступен';
@@ -116,7 +182,7 @@ function createPanel() {
             setStatus('Готов');
             return;
         }
-        
+
         if (isSending) {
             isSending = false;
             updateButton();
@@ -125,27 +191,29 @@ function createPanel() {
             if (allParts.length === 0) {
                 loadParts();
             } else {
-                isSending = true;
-                updateButton();
-                insertAndSend();
+                refreshDataAndSend();
             }
         }
     });
 
     prevBtn.addEventListener('click', () => {
         if (allParts.length === 0) return;
-        currentPart = Math.max(0, currentPart - 1);
-        updateQueue();
-        showPartInTextarea();
-        setStatus('Часть ' + (currentPart + 1) + '/' + totalParts);
+        if (currentPart > 0) {
+            currentPart--;
+            updateQueue();
+            showPartInTextarea();
+            setStatus('Часть ' + (currentPart + 1) + '/' + totalParts);
+        }
     });
 
     nextBtn.addEventListener('click', () => {
         if (allParts.length === 0) return;
-        currentPart = Math.min(totalParts - 1, currentPart + 1);
-        updateQueue();
-        showPartInTextarea();
-        setStatus('Часть ' + (currentPart + 1) + '/' + totalParts);
+        if (currentPart < totalParts - 1) {
+            currentPart++;
+            updateQueue();
+            showPartInTextarea();
+            setStatus('Часть ' + (currentPart + 1) + '/' + totalParts);
+        }
     });
 
     makeDraggable(panel);
@@ -225,6 +293,8 @@ function addStyles() {
         .c2p-buttons button { padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; transition: transform 0.1s; }
         .c2p-buttons button:active { transform: scale(0.95); }
         #c2p-prev, #c2p-next { width: 32px; background: #45475a; color: #cdd6f4; flex: 0; }
+        #c2p-prev:hover:not(:disabled), #c2p-next:hover:not(:disabled) { background: #585b70; }
+        #c2p-prev:disabled, #c2p-next:disabled { opacity: 0.4; cursor: not-allowed; }
         #c2p-action { flex: 1; }
         #c2p-delay { background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 2px 6px; width: 50px; }
         .c2p-status {
@@ -269,33 +339,58 @@ function makeDraggable(el) {
     }
 }
 
+// ========== ОБНОВЛЕНИЕ UI ==========
+
 function updateQueue() {
-    if (queueLabel) queueLabel.textContent = `${currentPart + 1}/${totalParts}`;
-    if (progressBar) progressBar.style.width = totalParts > 0 ? `${(currentPart / totalParts) * 100}%` : '0%';
+    if (queueLabel) {
+        if (totalParts === 0) {
+            queueLabel.textContent = '0/0';
+        } else if (currentPart >= totalParts) {
+            queueLabel.textContent = `${totalParts}/${totalParts} ✓`;
+        } else {
+            queueLabel.textContent = `${currentPart + 1}/${totalParts}`;
+        }
+    }
+    if (progressBar) {
+        const progress = totalParts > 0 ? Math.min((currentPart / totalParts) * 100, 100) : 0;
+        progressBar.style.width = progress + '%';
+    }
+
+    if (prevBtn) prevBtn.disabled = (currentPart <= 0 || totalParts === 0);
+    if (nextBtn) nextBtn.disabled = (currentPart >= totalParts - 1 || totalParts === 0);
 }
 
 function updateButton() {
     if (!actionBtn) return;
+
     if (totalParts > 0 && currentPart >= totalParts && !isSending) {
         actionBtn.textContent = '✓ Готово';
         actionBtn.style.background = '#6c7086';
         actionBtn.style.color = '#cdd6f4';
-    } else if (isSending) {
+        return;
+    }
+
+    if (isSending) {
         actionBtn.textContent = '⏸ Пауза';
         actionBtn.style.background = '#f9e2af';
         actionBtn.style.color = '#1e1e2e';
-    } else if (allParts.length > 0) {
+        return;
+    }
+
+    if (allParts.length > 0) {
         actionBtn.textContent = '▶ Продолжить';
         actionBtn.style.background = '#a6e3a1';
         actionBtn.style.color = '#1e1e2e';
-    } else {
-        actionBtn.textContent = '▶ Подключиться';
-        actionBtn.style.background = '#89b4fa';
-        actionBtn.style.color = '#1e1e2e';
+        return;
     }
+
+    actionBtn.textContent = '▶ Подключиться';
+    actionBtn.style.background = '#89b4fa';
+    actionBtn.style.color = '#1e1e2e';
 }
 
 // ========== ЛОГИКА ОТПРАВКИ ==========
+
 function setNativeValue(element, value) {
     const prototypeValueSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')?.set;
     if (prototypeValueSetter) {
@@ -310,43 +405,20 @@ function clickSendButton() {
     const sendBtn = document.querySelector(
         'div[role="button"]:not(.ds-button--disabled) svg path[d*="M8.3125"]'
     )?.closest('div[role="button"]');
-    
+
     if (sendBtn) {
         sendBtn.click();
-        console.log('Code2Prompt: send button clicked');
+        console.log('📤 Code2Prompt: send button clicked');
         return true;
     }
+    console.warn('⚠️ Send button not found');
     return false;
-}
-
-async function loadProjectName() {
-    try {
-        const res = await fetch('http://localhost:9090/project');
-        const data = await res.json();
-        if (projectLabel && data.name) {
-            projectLabel.textContent = data.name;
-            projectLabel.title = data.name;
-        }
-    } catch(e) {
-        if (projectLabel) projectLabel.textContent = '—';
-    }
 }
 
 async function loadParts() {
     setStatus('Подключение к серверу...');
     try {
-        const response = await fetch('http://localhost:9090/context/parts?id=0');
-        if (!response.ok) throw new Error('Server returned ' + response.status);
-        
-        const firstPart = await response.json();
-        totalParts = firstPart.total;
-        allParts = [];
-        
-        for (let i = 0; i < totalParts; i++) {
-            const part = await fetch(`http://localhost:9090/context/parts?id=${i}`).then(r => r.json());
-            allParts.push(part);
-        }
-        
+        await loadPartsFromServer();
         currentPart = 0;
         retryScheduled = false;
         isSending = true;
@@ -354,14 +426,13 @@ async function loadParts() {
         updateButton();
         await loadProjectName();
         setStatus('Загружено ' + totalParts + ' частей');
-        console.log(`Code2Prompt: ${totalParts} parts loaded.`);
         insertAndSend();
     } catch (e) {
-        console.error('Code2Prompt: server not available -', e.message);
+        console.error('❌ Code2Prompt: server not available -', e.message);
         isSending = false;
         updateButton();
         setStatus('⚠ Сервер недоступен');
-        
+
         if (actionBtn) {
             actionBtn.textContent = '⚠ Сервер недоступен';
             actionBtn.style.background = '#f38ba8';
@@ -371,44 +442,90 @@ async function loadParts() {
     }
 }
 
+async function refreshDataAndSend() {
+    setStatus('Обновление данных...');
+    try {
+        // Проверяем актуальность данных
+        const firstPart = await apiRequest('/context/parts', { id: 0 });
+        const newTotal = firstPart.total;
+
+        if (newTotal !== totalParts) {
+            console.log(`🔄 Code2Prompt: обновлено ${totalParts} → ${newTotal} частей`);
+            totalParts = newTotal;
+            allParts = [];
+
+            for (let i = 0; i < totalParts; i++) {
+                const part = await apiRequest('/context/parts', { id: i });
+                allParts.push(part);
+            }
+
+            currentPart = 0;
+            updateQueue();
+            await loadProjectName();
+            setStatus(`Обновлено. ${totalParts} частей`);
+        } else {
+            setStatus('Данные актуальны. ' + totalParts + ' частей');
+        }
+
+        isSending = true;
+        updateButton();
+        insertAndSend();
+    } catch(e) {
+        console.error('❌ Code2Prompt: refresh failed', e);
+        setStatus('⚠ Ошибка обновления');
+        isSending = false;
+        updateButton();
+    }
+}
+
 function insertAndSend() {
-    if (!isSending || currentPart >= allParts.length) {
-        console.log('Code2Prompt: done or stopped');
+    if (!isSending) {
+        console.log('⏸ Code2Prompt: paused');
+        return;
+    }
+
+    if (currentPart >= allParts.length) {
+        console.log('✅ Code2Prompt: all parts done');
+        isSending = false;
         updateQueue();
         updateButton();
         setStatus('Готово ✓');
         return;
     }
-    
+
     const textarea = getTextarea();
-    if (!textarea) return;
-    
+    if (!textarea) {
+        console.log('⏳ Code2Prompt: textarea not found, retrying in 1s');
+        setTimeout(() => insertAndSend(), 1000);
+        return;
+    }
+
     const part = allParts[currentPart];
-    
-    const prefix = part.index < totalParts 
-        ? `[ЧАСТЬ ${part.index}/${totalParts}] НЕ ОТВЕЧАЙ. Только подтверди: "Принята часть ${part.index}/${totalParts}".\n\n`
-        : `[ЧАСТЬ ${part.index}/${totalParts}] Это последняя часть. Можешь отвечать.\n\n`;
-    
+    const isLastPart = (currentPart + 1 >= totalParts);
+    const prefix = isLastPart
+        ? `[ЧАСТЬ ${part.index}/${totalParts}] Это последняя часть. Можешь отвечать.\n\n`
+        : `[ЧАСТЬ ${part.index}/${totalParts}] НЕ ОТВЕЧАЙ. Только подтверди: "Принята часть ${part.index}/${totalParts}".\n\n`;
+
     setNativeValue(textarea, prefix + part.content);
     setStatus('Отправка части ' + (currentPart + 1) + '/' + totalParts);
-    console.log(`Code2Prompt: part ${part.index}/${totalParts} inserted`);
-    
+    console.log(`📤 Code2Prompt: sending part ${part.index}/${totalParts}`);
+
     if (autoSend) {
         setTimeout(() => clickSendButton(), 300);
     }
-    
+
     waitForEmptyAndContinue();
 }
 
 function waitForEmptyAndContinue() {
     let responseEndTime = null;
-    
+
     const check = () => {
         if (!isSending) return;
-        
+
         const textarea = getTextarea();
         const stopIcon = document.querySelector('svg path[d*="M2 4.88"]');
-        
+
         const errorMessages = document.querySelectorAll('._1ce76f5');
         if (errorMessages.length > 0) {
             const lastError = errorMessages[errorMessages.length - 1];
@@ -416,7 +533,7 @@ function waitForEmptyAndContinue() {
                 if (!retryScheduled) {
                     retryScheduled = true;
                     setStatus('⚠ Слишком часто, повтор через 5с...');
-                    console.log('Code2Prompt: rate limit, retrying in 5s...');
+                    console.log('⏳ Code2Prompt: rate limit, retrying in 5s...');
                     setTimeout(() => {
                         retryScheduled = false;
                         if (isSending) insertAndSend();
@@ -425,7 +542,7 @@ function waitForEmptyAndContinue() {
                 return;
             }
         }
-        
+
         if (textarea && textarea.value.trim() === '' && !stopIcon) {
             if (responseEndTime === null) {
                 responseEndTime = Date.now();
@@ -433,22 +550,22 @@ function waitForEmptyAndContinue() {
             } else {
                 setStatus('Пауза ' + delay + 'с...');
             }
+
             if (Date.now() - responseEndTime >= delay * 1000) {
                 retryScheduled = false;
-                
-                const isLast = (currentPart + 1 >= totalParts);
-                
+
+                const isLastPart = (currentPart + 1 >= totalParts);
                 currentPart++;
                 updateQueue();
-                
-                if (isLast) {
-                    setTimeout(() => {
-                        isSending = false;
-                        updateButton();
-                        setStatus('Готово ✓');
-                    }, 2000);
+
+                if (isLastPart) {
+                    isSending = false;
+                    updateButton();
+                    setStatus('Готово ✓');
+                    console.log('✅ Code2Prompt: all parts sent!');
+                    return;
                 }
-                
+
                 insertAndSend();
                 return;
             }
@@ -456,38 +573,46 @@ function waitForEmptyAndContinue() {
             responseEndTime = null;
             if (stopIcon) {
                 setStatus('Идёт ответ ИИ...');
+            } else if (textarea && textarea.value.trim() !== '') {
+                setStatus('Получен ответ...');
             }
         }
-        
+
         setTimeout(check, 300);
     };
-    
+
     check();
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
+
 function attachToTextarea(textarea) {
     textarea.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.ctrlKey) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('⌨️ Ctrl+Enter pressed, loading parts...');
             loadParts();
         }
     }, true);
 }
 
 function init() {
+    console.log('🚀 Code2Prompt extension initializing...');
     addStyles();
     createPanel();
-    
+
     const observer = new MutationObserver(() => {
         const textarea = getTextarea();
         if (textarea && !textarea.dataset.c2pAttached) {
             textarea.dataset.c2pAttached = 'true';
+            console.log('✅ Textarea found, attaching listener');
             attachToTextarea(textarea);
         }
     });
     observer.observe(document.body, { childList: true, subtree: true });
+
+    console.log('✅ Code2Prompt initialized');
 }
 
 init();
