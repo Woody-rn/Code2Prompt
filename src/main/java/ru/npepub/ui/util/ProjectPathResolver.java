@@ -1,4 +1,4 @@
-package ru.npepub.util;
+package ru.npepub.ui.util;
 
 import ru.npepub.model.ProjectInfo;
 

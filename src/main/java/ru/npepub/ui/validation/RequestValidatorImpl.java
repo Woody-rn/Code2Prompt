@@ -1,4 +1,4 @@
-package ru.npepub.validation;
+package ru.npepub.ui.validation;
 
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;

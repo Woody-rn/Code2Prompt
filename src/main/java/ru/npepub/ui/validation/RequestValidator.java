@@ -1,4 +1,4 @@
-package ru.npepub.validation;
+package ru.npepub.ui.validation;
 
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;

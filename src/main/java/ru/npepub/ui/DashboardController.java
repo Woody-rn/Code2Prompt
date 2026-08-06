@@ -19,12 +19,12 @@ import ru.npepub.dto.ValidationError;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.model.ProjectInfo;
-import ru.npepub.pipeline.PrepareContextPipeline;
+import ru.npepub.service.pipeline.PrepareContextPipeline;
 import ru.npepub.server.ContextServer;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.task.TaskRunner;
-import ru.npepub.util.ProjectPathResolver;
-import ru.npepub.validation.RequestValidator;
+import ru.npepub.ui.util.ProjectPathResolver;
+import ru.npepub.ui.validation.RequestValidator;
 
 import java.io.File;
 import java.io.IOException;

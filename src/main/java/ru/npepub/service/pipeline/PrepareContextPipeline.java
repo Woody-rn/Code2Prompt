@@ -1,4 +1,4 @@
-package ru.npepub.pipeline;
+package ru.npepub.service.pipeline;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
