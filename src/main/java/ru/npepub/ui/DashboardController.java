@@ -17,10 +17,10 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
 import ru.npepub.model.ProjectInfo;
-import ru.npepub.ui.log.LogWindowPort;
+import ru.npepub.ui.coordinator.ContextServerLauncher;
 import ru.npepub.ui.coordinator.ProjectHistoryStore;
 import ru.npepub.ui.coordinator.ScanPipelineRunner;
-import ru.npepub.ui.coordinator.ContextServerLauncher;
+import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.util.ProjectPathResolver;
 import ru.npepub.ui.validation.RequestValidator;
 
@@ -38,25 +38,45 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML private ComboBox<String> sourcePathField;
-    @FXML private TextField outputPathField;
-    @FXML private TextField limitField;
-    @FXML private ProgressBar progressBar;
-    @FXML private VBox resultsBox;
-    @FXML private Label statusLabel;
-    @FXML private Button startButton;
-    @FXML private Button stopButton;
-    @FXML private Button serverButton;
-    @FXML private FileTreeController fileTreeController;
-    @FXML private Label serverIndicator;
+    @FXML
+    private ComboBox<String> sourcePathField;
+    @FXML
+    private TextField outputPathField;
+    @FXML
+    private TextField limitField;
+    @FXML
+    private ProgressBar progressBar;
+    @FXML
+    private VBox resultsBox;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private Button serverButton;
+    @FXML
+    private FileTreeController fileTreeController;
+    @FXML
+    private Label serverIndicator;
 
-    @C2PInject private ConfigPort configPort;
-    @C2PInject private ContainerDI container;
-    @C2PInject private LogWindowPort logWindowManager;
-    @C2PInject private RequestValidator requestValidator;
-    @C2PInject private ScanPipelineRunner pipelineRunner;
-    @C2PInject private ContextServerLauncher serverLauncher;
-    @C2PInject private ProjectHistoryStore projectHistory;
+    @C2PInject
+    private ConfigPort configPort;
+    @C2PInject
+    private ContainerDI container;
+    @C2PInject
+    private LogWindowPort logWindowManager;
+    @C2PInject
+    private RequestValidator requestValidator;
+    @C2PInject
+    private ResultCardFactory resultCardFactory;
+    @C2PInject
+    private ScanPipelineRunner pipelineRunner;
+    @C2PInject
+    private ContextServerLauncher serverLauncher;
+    @C2PInject
+    private ProjectHistoryStore projectHistory;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
@@ -179,7 +199,7 @@ public class DashboardController {
     }
 
     private void addResultCard(Path file) {
-        resultsBox.getChildren().add(new ResultCardFactory().create(file));
+        resultsBox.getChildren().add(resultCardFactory.create(file));
     }
 
     // ========== СЕРВЕР ==========
