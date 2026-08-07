@@ -90,6 +90,8 @@ public class DashboardController {
 
         setupDragAndDrop();
 
+        fileTreeController.setStatusConsumer(this::setStatusBar);
+
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
         }
@@ -189,7 +191,7 @@ public class DashboardController {
                 (onProgress, cancelled) -> {
                     List<FileInfo> files = pipeline.scan(request);
                     if (cancelled.get()) return List.of();
-                    Platform.runLater(() -> fileTreeController.populate(files, projectInfo.name()));
+                    Platform.runLater(() -> fileTreeController.populate(files, projectInfo.name(), Path.of(request.sourcePath())));
 
                     onProgress.accept("Разбивка на части...");
                     List<Chunk> chunks = pipeline.aggregate(request, files);

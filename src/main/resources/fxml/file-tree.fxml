@@ -15,6 +15,11 @@
                 <Tooltip text="Копировать структуру"/>
             </tooltip>
         </Button>
+        <Button text="📄" onAction="#onCopySelectedFiles" styleClass="small-button">
+            <tooltip>
+                <Tooltip text="Копировать содержимое выбранных файлов"/>
+            </tooltip>
+        </Button>
         <Button text="▲" onAction="#onCollapseAll" styleClass="small-button"/>
         <Button text="▼" onAction="#onExpandAll" styleClass="small-button"/>
     </HBox>
