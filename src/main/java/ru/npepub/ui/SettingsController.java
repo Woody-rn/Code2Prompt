@@ -144,6 +144,19 @@ public class SettingsController {
         }
     }
 
+    @FXML
+    private void onResetToDefaults() {
+        AppConfig defaults = AppConfig.defaults();
+        modelCombo.setValue(defaults.modelName());
+        maxSymbolsField.setText(String.valueOf(defaults.maxSymbols()));
+        safetyMarginField.setText(String.valueOf((int)(defaults.safetyMargin() * 100)));
+        defaultOutputPathField.setText(defaults.outputPath().toString());
+        devLogLevelCombo.setValue(defaults.logLevel().name());
+        debugModeCheckBox.setSelected(defaults.debugMode());
+        excludedDirs.setAll(defaults.excludedDirs().stream().sorted().toList());
+        excludedFileNames.setAll(defaults.excludedFileNames().stream().sorted().toList());
+    }
+
     /**
      * @return updated config from the form values
      */

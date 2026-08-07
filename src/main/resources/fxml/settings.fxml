@@ -41,12 +41,10 @@
                 <CheckBox fx:id="debugModeCheckBox" text="Режим отладки (окно с логами)"/>
                 <Label text="Уровень логов:"/>
                 <ComboBox fx:id="devLogLevelCombo" prefWidth="Infinity"/>
-                <Button text="🗑 Очистить логи" onAction="#onClearLogs"/>
             </VBox>
 
-            <!-- Исключённые папки и файлы (в два ряда) -->
+            <!-- Исключённые папки и файлы -->
             <HBox spacing="10" VBox.vgrow="ALWAYS">
-                <!-- Исключённые папки -->
                 <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                     <Label text="Исключённые папки (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
                     <ListView fx:id="excludedDirsList" prefHeight="250" maxWidth="Infinity" VBox.vgrow="ALWAYS"/>
@@ -56,7 +54,6 @@
                     </HBox>
                 </VBox>
 
-                <!-- Исключённые файлы -->
                 <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                     <Label text="Исключённые файлы (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
                     <ListView fx:id="excludedFileNamesList" prefHeight="250" maxWidth="Infinity" VBox.vgrow="ALWAYS"/>
@@ -65,6 +62,12 @@
                         <Button text="➕" onAction="#onAddExcludedFileName"/>
                     </HBox>
                 </VBox>
+            </HBox>
+
+            <!-- Очистка и сброс -->
+            <HBox spacing="10">
+                <Button text="🗑 Очистить логи" onAction="#onClearLogs"/>
+                <Button text="↺ Сбросить все настройки" onAction="#onResetToDefaults"/>
             </HBox>
 
         </VBox>
