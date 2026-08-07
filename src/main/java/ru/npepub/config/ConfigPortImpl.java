@@ -45,7 +45,7 @@ class ConfigPortImpl implements ConfigPort {
         log.debug("Saving config to {}", CONFIG_FILE);
         try {
             Files.createDirectories(CONFIG_DIR);
-            Properties props = getProperties(config);
+            Properties props = toProperties(config);
             try (OutputStream out = Files.newOutputStream(CONFIG_FILE)) {
                 props.store(out, "Code2Prompt Configuration");
             }
@@ -54,44 +54,83 @@ class ConfigPortImpl implements ConfigPort {
         }
     }
 
-    private Properties getProperties(AppConfig config) {
-        Properties props = new Properties();
-        props.setProperty("model.name", config.modelName());
-        props.setProperty("model.maxSymbols", String.valueOf(config.maxSymbols()));
-        props.setProperty("model.safetyMargin", String.valueOf(config.safetyMargin()));
-        props.setProperty("output.path", config.outputPath().toString());
-        props.setProperty("log.level", config.logLevel().name());
-        props.setProperty("log.error.enabled", String.valueOf(config.errorLogEnabled()));
-        props.setProperty("debug.mode", String.valueOf(config.debugMode()));
-        props.setProperty("recent.projects", String.join(";", config.recentProjects()));
-        props.setProperty("recent.projects.count", String.valueOf(config.recentProjectsCount()));
-        props.setProperty("excluded.dirs", String.join(";", config.excludedDirs()));
-        props.setProperty("excluded.file.names", String.join(";", config.excludedFileNames()));
-        return props;
+    private Properties toProperties(AppConfig c) {
+        Properties p = new Properties();
+        p.setProperty("ai.model.name", c.aiModel().name());
+        p.setProperty("ai.model.maxSymbols", String.valueOf(c.aiModel().maxSymbols()));
+        p.setProperty("ai.model.safetyMargin", String.valueOf(c.aiModel().safetyMargin()));
+        p.setProperty("paths.output", c.paths().outputPath().toString());
+        p.setProperty("paths.recent", String.join(";", c.paths().recentProjects()));
+        p.setProperty("paths.recent.count", String.valueOf(c.paths().recentProjectsCount()));
+        p.setProperty("filter.excluded.dirs", String.join(";", c.filter().excludedDirs()));
+        p.setProperty("filter.excluded.files", String.join(";", c.filter().excludedFileNames()));
+        p.setProperty("log.level", c.log().level().name());
+        p.setProperty("log.error.enabled", String.valueOf(c.log().errorEnabled()));
+        p.setProperty("prompt.system", c.prompt().systemPrompt());
+        p.setProperty("prompt.partPrefix", c.prompt().partPrefixTemplate());
+        p.setProperty("prompt.finalPart", c.prompt().finalPartTemplate());
+        p.setProperty("prompt.fileSeparator", c.prompt().fileSeparator());
+        p.setProperty("debug.mode", String.valueOf(c.debugMode()));
+        return p;
     }
 
-    private AppConfig toAppConfig(Properties props) {
-        List<String> recent = Arrays.stream(props.getProperty("recent.projects", "").split(";"))
-                .filter(s -> !s.isEmpty()).toList();
-        int recentCount = Integer.parseInt(props.getProperty("recent.projects.count", "10"));
-
-        List<String> excludedDirs = Arrays.stream(props.getProperty("excluded.dirs", "").split(";"))
-                .filter(s -> !s.isEmpty()).toList();
-        if (excludedDirs.isEmpty()) excludedDirs = AppConfig.DEFAULT_EXCLUDED_DIRS;
-
-        List<String> excludedFileNames = Arrays.stream(props.getProperty("excluded.file.names", "").split(";"))
-                .filter(s -> !s.isEmpty()).toList();
-        if (excludedFileNames.isEmpty()) excludedFileNames = AppConfig.DEFAULT_EXCLUDED_FILE_NAMES;
-
+    private AppConfig toAppConfig(Properties p) {
         return new AppConfig(
-                props.getProperty("model.name", AppConfig.DEFAULT_MODEL),
-                Integer.parseInt(props.getProperty("model.maxSymbols", String.valueOf(AppConfig.DEFAULT_MAX_SYMBOLS))),
-                Double.parseDouble(props.getProperty("model.safetyMargin", String.valueOf(AppConfig.DEFAULT_SAFETY_MARGIN))),
-                Path.of(props.getProperty("output.path", AppConfig.DEFAULT_OUTPUT_PATH.toString())),
-                AppConfig.LogLevel.valueOf(props.getProperty("log.level", "INFO")),
-                Boolean.parseBoolean(props.getProperty("log.error.enabled", "true")),
-                Boolean.parseBoolean(props.getProperty("debug.mode", "false")),
-                recent, recentCount, excludedDirs, excludedFileNames
+                loadAiModel(p),
+                loadPaths(p),
+                loadFilter(p),
+                loadLog(p),
+                loadPrompt(p),
+                Boolean.parseBoolean(p.getProperty("debug.mode", "false"))
         );
+    }
+
+    private AiModelConfig loadAiModel(Properties p) {
+        return new AiModelConfig(
+                p.getProperty("ai.model.name", AiModelConfig.defaults().name()),
+                Integer.parseInt(p.getProperty("ai.model.maxSymbols",
+                        String.valueOf(AiModelConfig.defaults().maxSymbols()))),
+                Double.parseDouble(p.getProperty("ai.model.safetyMargin",
+                        String.valueOf(AiModelConfig.defaults().safetyMargin())))
+        );
+    }
+
+    private PathConfig loadPaths(Properties p) {
+        List<String> recent = Arrays.stream(p.getProperty("paths.recent", "").split(";"))
+                .filter(s -> !s.isEmpty()).toList();
+        int recentCount = Integer.parseInt(p.getProperty("paths.recent.count", "10"));
+        return new PathConfig(
+                Path.of(p.getProperty("paths.output", PathConfig.defaults().outputPath().toString())),
+                recent, recentCount
+        );
+    }
+
+    private FilterConfig loadFilter(Properties p) {
+        List<String> dirs = loadList(p, "filter.excluded.dirs", FilterConfig.defaults().excludedDirs());
+        List<String> files = loadList(p, "filter.excluded.files", FilterConfig.defaults().excludedFileNames());
+        return new FilterConfig(dirs, files);
+    }
+
+    private LogConfig loadLog(Properties p) {
+        return new LogConfig(
+                LogConfig.LogLevel.valueOf(p.getProperty("log.level", LogConfig.defaults().level().name())),
+                Boolean.parseBoolean(p.getProperty("log.error.enabled",
+                        String.valueOf(LogConfig.defaults().errorEnabled())))
+        );
+    }
+
+    private PromptConfig loadPrompt(Properties p) {
+        return new PromptConfig(
+                p.getProperty("prompt.system", PromptConfig.defaults().systemPrompt()),
+                p.getProperty("prompt.partPrefix", PromptConfig.defaults().partPrefixTemplate()),
+                p.getProperty("prompt.finalPart", PromptConfig.defaults().finalPartTemplate()),
+                p.getProperty("prompt.fileSeparator", PromptConfig.defaults().fileSeparator())
+        );
+    }
+
+    private List<String> loadList(Properties p, String key, List<String> defaults) {
+        String value = p.getProperty(key, "");
+        if (value.isEmpty()) return defaults;
+        return Arrays.stream(value.split(";")).filter(s -> !s.isEmpty()).toList();
     }
 }

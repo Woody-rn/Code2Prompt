@@ -16,22 +16,19 @@ import java.util.Set;
 @C2PComponent
 class ExcludedDirFilter implements FileFilter {
 
-    private static final boolean EXCLUDE = false;
-    private static final boolean INCLUDE = true;
-
     @C2PInject
     private ConfigPort configPort;
 
     @Override
     public boolean shouldInclude(Path filePath) {
         AppConfig config = configPort.load();
-        Set<String> excluded = new HashSet<>(config.excludedDirs());
+        Set<String> excluded = new HashSet<>(config.filter().excludedDirs());
 
         for (Path part : filePath) {
             if (excluded.contains(part.toString())) {
-                return EXCLUDE;
+                return false;
             }
         }
-        return INCLUDE;
+        return true;
     }
 }

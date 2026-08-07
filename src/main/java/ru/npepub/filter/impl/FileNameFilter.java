@@ -14,9 +14,6 @@ import java.nio.file.Path;
 @C2PComponent
 class FileNameFilter implements FileFilter {
 
-    private static final boolean INCLUDE = true;
-    private static final boolean EXCLUDE = false;
-
     @C2PInject
     private ConfigPort configPort;
 
@@ -24,10 +21,6 @@ class FileNameFilter implements FileFilter {
     public boolean shouldInclude(Path filePath) {
         AppConfig config = configPort.load();
         String fileName = filePath.getFileName().toString();
-
-        if (config.excludedFileNames().contains(fileName)) {
-            return EXCLUDE;
-        }
-        return INCLUDE;
+        return !config.filter().excludedFileNames().contains(fileName);
     }
 }

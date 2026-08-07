@@ -10,8 +10,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.config.AppConfig;
-import ru.npepub.config.ConfigPort;
+import ru.npepub.config.*;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
@@ -67,7 +66,7 @@ public class DashboardController {
     public void initialize() {
         config = configPort.load();
         limitField.setText(String.valueOf(config.effectiveLimit()));
-        outputPathField.setText(config.outputPath().toString());
+        outputPathField.setText(config.paths().outputPath().toString());
         logWindowManager.setOnClosed(this::disableDebugMode);
         applyLogLevel();
 
@@ -83,13 +82,9 @@ public class DashboardController {
 
         Platform.runLater(() -> {
             Stage stage = getMainStage();
-            if (stage != null) {
-                stage.setOnCloseRequest(event -> serverLauncher.stop());
-            }
+            if (stage != null) stage.setOnCloseRequest(event -> serverLauncher.stop());
         });
     }
-
-    // ========== DRAG & DROP ==========
 
     private void setupDragAndDrop() {
         sourcePathField.setOnDragOver(event -> {
@@ -98,7 +93,6 @@ public class DashboardController {
             }
             event.consume();
         });
-
         sourcePathField.setOnDragDropped(event -> {
             List<File> files = event.getDragboard().getFiles();
             if (!files.isEmpty() && files.getFirst().isDirectory()) {
@@ -108,8 +102,6 @@ public class DashboardController {
             event.consume();
         });
     }
-
-    // ========== НАВИГАЦИЯ ==========
 
     @FXML
     private void onBrowseSource() {
@@ -124,16 +116,10 @@ public class DashboardController {
     }
 
     @FXML
-    private void onOpenSourceFolder() {
-        openFolder(sourcePathField.getEditor().getText());
-    }
+    private void onOpenSourceFolder() { openFolder(sourcePathField.getEditor().getText()); }
 
     @FXML
-    private void onOpenOutputFolder() {
-        openFolder(outputPathField.getText());
-    }
-
-    // ========== СКАНИРОВАНИЕ ==========
+    private void onOpenOutputFolder() { openFolder(outputPathField.getText()); }
 
     @FXML
     private void onStart() {
@@ -184,8 +170,6 @@ public class DashboardController {
         resultsBox.getChildren().add(resultCardFactory.create(file));
     }
 
-    // ========== СЕРВЕР ==========
-
     @FXML
     private void onToggleServer() {
         if (serverLauncher.isRunning()) {
@@ -223,8 +207,6 @@ public class DashboardController {
         }
     }
 
-    // ========== НАСТРОЙКИ ==========
-
     @FXML
     private void onOpenSettings() {
         try {
@@ -244,7 +226,7 @@ public class DashboardController {
                 config = updated;
                 applyLogLevel();
                 limitField.setText(String.valueOf(config.effectiveLimit()));
-                outputPathField.setText(config.outputPath().toString());
+                outputPathField.setText(config.paths().outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
                 sourcePathField.getItems().setAll(projectHistory.getAll());
                 setStatusBar("Настройки сохранены");
@@ -265,8 +247,6 @@ public class DashboardController {
         }
     }
 
-    // ========== УТИЛИТЫ ==========
-
     private void toggleButtons(boolean running) {
         startButton.setVisible(!running);
         stopButton.setVisible(running);
@@ -283,24 +263,16 @@ public class DashboardController {
     private void openFolder(String path) {
         try {
             File dir = new File(path);
-            if (dir.exists() && dir.isDirectory()) {
-                java.awt.Desktop.getDesktop().open(dir);
-            } else {
-                setStatusBar("Папка не существует", true);
-            }
+            if (dir.exists() && dir.isDirectory()) java.awt.Desktop.getDesktop().open(dir);
+            else setStatusBar("Папка не существует", true);
         } catch (IOException e) {
             log.error("Failed to open folder: {}", path, e);
             setStatusBar("Не удалось открыть папку", true);
         }
     }
 
-    private void setStatusBar(String text) {
-        setStatusBar(text, false);
-    }
-
-    private void setStatusBar(ValidationError error) {
-        setStatusBar(error.description(), true);
-    }
+    private void setStatusBar(String text) { setStatusBar(text, false); }
+    private void setStatusBar(ValidationError error) { setStatusBar(error.description(), true); }
 
     private void setStatusBar(String text, boolean isError) {
         Platform.runLater(() -> {
@@ -309,16 +281,12 @@ public class DashboardController {
         });
     }
 
-    private Stage getMainStage() {
-        return (Stage) sourcePathField.getScene().getWindow();
-    }
+    private Stage getMainStage() { return (Stage) sourcePathField.getScene().getWindow(); }
 
     private void disableDebugMode() {
         config = new AppConfig(
-                config.modelName(), config.maxSymbols(), config.safetyMargin(),
-                config.outputPath(), config.logLevel(), config.errorLogEnabled(), false,
-                config.recentProjects(), config.recentProjectsCount(),
-                config.excludedDirs(), config.excludedFileNames()
+                config.aiModel(), config.paths(), config.filter(), config.log(),
+                config.prompt(), false
         );
         configPort.save(config);
     }
@@ -326,7 +294,7 @@ public class DashboardController {
     private void applyLogLevel() {
         ch.qos.logback.classic.Logger root =
                 (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
-        root.setLevel(ch.qos.logback.classic.Level.toLevel(config.logLevel().name()));
+        root.setLevel(ch.qos.logback.classic.Level.toLevel(config.log().level().name()));
     }
 
     private PrepareRequest prepareRequest() {
@@ -338,9 +306,7 @@ public class DashboardController {
     }
 
     private void updateOutputPathWithProjectName() {
-        String resolved = ProjectPathResolver.resolveOutputPath(
-                projectInfo, config.outputPath().toString()
-        );
-        outputPathField.setText(resolved);
+        outputPathField.setText(ProjectPathResolver.resolveOutputPath(
+                projectInfo, config.paths().outputPath().toString()));
     }
 }

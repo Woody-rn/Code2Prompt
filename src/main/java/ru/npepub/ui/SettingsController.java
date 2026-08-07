@@ -3,12 +3,14 @@ package ru.npepub.ui;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.config.AppConfig;
-import ru.npepub.config.ConfigPort;
+import ru.npepub.config.*;
 import ru.npepub.di.api.C2PInject;
 
 import java.io.File;
@@ -36,7 +38,6 @@ public class SettingsController {
     @FXML private ListView<String> excludedFileNamesList;
     @FXML private TextField newExcludedFileNameField;
 
-    @SuppressWarnings("unused")
     @C2PInject
     private ConfigPort configPort;
 
@@ -57,27 +58,25 @@ public class SettingsController {
         config = configPort.load();
 
         modelCombo.getItems().addAll(MODEL_LIMITS.keySet());
-        modelCombo.setValue(config.modelName());
+        modelCombo.setValue(config.aiModel().name());
 
         modelCombo.setOnAction(e -> {
             String selected = modelCombo.getValue();
             Integer limit = MODEL_LIMITS.get(selected);
-            if (limit != null) {
-                maxSymbolsField.setText(String.valueOf(limit));
-            }
+            if (limit != null) maxSymbolsField.setText(String.valueOf(limit));
         });
 
-        maxSymbolsField.setText(String.valueOf(config.maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int) (config.safetyMargin() * 100)));
-        defaultOutputPathField.setText(config.outputPath().toString());
+        maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
+        safetyMarginField.setText(String.valueOf((int)(config.aiModel().safetyMargin() * 100)));
+        defaultOutputPathField.setText(config.paths().outputPath().toString());
 
         debugModeCheckBox.setSelected(config.debugMode());
 
         devLogLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
-        devLogLevelCombo.setValue(config.logLevel().name());
+        devLogLevelCombo.setValue(config.log().level().name());
 
         excludedDirs = FXCollections.observableArrayList(
-                config.excludedDirs().stream().sorted().toList());
+                config.filter().excludedDirs().stream().sorted().toList());
         excludedDirsList.setItems(excludedDirs);
         excludedDirsList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
@@ -87,7 +86,7 @@ public class SettingsController {
         });
 
         excludedFileNames = FXCollections.observableArrayList(
-                config.excludedFileNames().stream().sorted().toList());
+                config.filter().excludedFileNames().stream().sorted().toList());
         excludedFileNamesList.setItems(excludedFileNames);
         excludedFileNamesList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
@@ -106,9 +105,7 @@ public class SettingsController {
             chooser.setInitialDirectory(initialDir);
         }
         File dir = chooser.showDialog(defaultOutputPathField.getScene().getWindow());
-        if (dir != null) {
-            defaultOutputPathField.setText(dir.getAbsolutePath());
-        }
+        if (dir != null) defaultOutputPathField.setText(dir.getAbsolutePath());
     }
 
     @FXML
@@ -147,32 +144,39 @@ public class SettingsController {
     @FXML
     private void onResetToDefaults() {
         AppConfig defaults = AppConfig.defaults();
-        modelCombo.setValue(defaults.modelName());
-        maxSymbolsField.setText(String.valueOf(defaults.maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int)(defaults.safetyMargin() * 100)));
-        defaultOutputPathField.setText(defaults.outputPath().toString());
-        devLogLevelCombo.setValue(defaults.logLevel().name());
+        modelCombo.setValue(defaults.aiModel().name());
+        maxSymbolsField.setText(String.valueOf(defaults.aiModel().maxSymbols()));
+        safetyMarginField.setText(String.valueOf((int)(defaults.aiModel().safetyMargin() * 100)));
+        defaultOutputPathField.setText(defaults.paths().outputPath().toString());
+        devLogLevelCombo.setValue(defaults.log().level().name());
         debugModeCheckBox.setSelected(defaults.debugMode());
-        excludedDirs.setAll(defaults.excludedDirs().stream().sorted().toList());
-        excludedFileNames.setAll(defaults.excludedFileNames().stream().sorted().toList());
+        excludedDirs.setAll(defaults.filter().excludedDirs().stream().sorted().toList());
+        excludedFileNames.setAll(defaults.filter().excludedFileNames().stream().sorted().toList());
     }
 
-    /**
-     * @return updated config from the form values
-     */
+    /** Returns updated config from the form values. */
     public AppConfig getUpdatedConfig() {
         return new AppConfig(
-                modelCombo.getValue(),
-                Integer.parseInt(maxSymbolsField.getText()),
-                Double.parseDouble(safetyMarginField.getText()) / 100.0,
-                Path.of(defaultOutputPathField.getText()),
-                AppConfig.LogLevel.valueOf(devLogLevelCombo.getValue()),
-                config.errorLogEnabled(),
-                debugModeCheckBox.isSelected(),
-                config.recentProjects(),
-                config.recentProjectsCount(),
-                List.copyOf(excludedDirs),
-                List.copyOf(excludedFileNames)
+                new AiModelConfig(
+                        modelCombo.getValue(),
+                        Integer.parseInt(maxSymbolsField.getText()),
+                        Double.parseDouble(safetyMarginField.getText()) / 100.0
+                ),
+                new PathConfig(
+                        Path.of(defaultOutputPathField.getText()),
+                        config.paths().recentProjects(),
+                        config.paths().recentProjectsCount()
+                ),
+                new FilterConfig(
+                        List.copyOf(excludedDirs),
+                        List.copyOf(excludedFileNames)
+                ),
+                new LogConfig(
+                        LogConfig.LogLevel.valueOf(devLogLevelCombo.getValue()),
+                        config.log().errorEnabled()
+                ),
+                config.prompt(),
+                debugModeCheckBox.isSelected()
         );
     }
 }
