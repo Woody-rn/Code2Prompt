@@ -13,7 +13,7 @@ import java.nio.file.Path;
 /**
  * Creates chunk card UI components for result files.
  */
-class ResultCardFactory {
+public class ResultCardFactory {
 
     private static final Logger log = LoggerFactory.getLogger(ResultCardFactory.class);
 

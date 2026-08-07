@@ -16,24 +16,19 @@ import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
-import ru.npepub.model.Chunk;
-import ru.npepub.model.FileInfo;
 import ru.npepub.model.ProjectInfo;
-import ru.npepub.service.pipeline.PrepareContextPipeline;
-import ru.npepub.server.ContextServer;
 import ru.npepub.ui.log.LogWindowPort;
-import ru.npepub.ui.task.TaskRunner;
+import ru.npepub.ui.coordinator.ProjectHistoryStore;
+import ru.npepub.ui.coordinator.ScanPipelineRunner;
+import ru.npepub.ui.coordinator.ContextServerLauncher;
 import ru.npepub.ui.util.ProjectPathResolver;
 import ru.npepub.ui.validation.RequestValidator;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Main dashboard controller.
@@ -43,8 +38,6 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    // ========== FXML ПОЛЯ ==========
-
     @FXML private ComboBox<String> sourcePathField;
     @FXML private TextField outputPathField;
     @FXML private TextField limitField;
@@ -53,29 +46,21 @@ public class DashboardController {
     @FXML private Label statusLabel;
     @FXML private Button startButton;
     @FXML private Button stopButton;
-    @FXML private Button refreshButton;
     @FXML private Button serverButton;
     @FXML private FileTreeController fileTreeController;
     @FXML private Label serverIndicator;
 
-    // ========== ЗАВИСИМОСТИ ==========
-
     @C2PInject private ConfigPort configPort;
     @C2PInject private ContainerDI container;
     @C2PInject private LogWindowPort logWindowManager;
-    @C2PInject private PrepareContextPipeline pipeline;
     @C2PInject private RequestValidator requestValidator;
-
-    // ========== СОСТОЯНИЕ ==========
+    @C2PInject private ScanPipelineRunner pipelineRunner;
+    @C2PInject private ContextServerLauncher serverLauncher;
+    @C2PInject private ProjectHistoryStore projectHistory;
 
     private AppConfig config;
-    private final TaskRunner taskRunner = new TaskRunner();
-    private final ResultCardFactory resultCardFactory = new ResultCardFactory();
-    private PrepareRequest lastRequest;
-    @C2PInject private ContextServer contextServer;
     private ProjectInfo projectInfo;
-
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    private PrepareRequest lastRequest;
 
     @FXML
     public void initialize() {
@@ -85,11 +70,10 @@ public class DashboardController {
         logWindowManager.setOnClosed(this::disableDebugMode);
         applyLogLevel();
 
-        sourcePathField.getItems().addAll(config.recentProjects());
+        sourcePathField.getItems().setAll(projectHistory.getAll());
         serverIndicator.getStyleClass().setAll("server-off");
 
         setupDragAndDrop();
-
         fileTreeController.setStatusConsumer(this::setStatusBar);
 
         if (config.debugMode()) {
@@ -99,7 +83,7 @@ public class DashboardController {
         Platform.runLater(() -> {
             Stage stage = getMainStage();
             if (stage != null) {
-                stage.setOnCloseRequest(event -> contextServer.stop());
+                stage.setOnCloseRequest(event -> serverLauncher.stop());
             }
         });
     }
@@ -116,15 +100,15 @@ public class DashboardController {
 
         sourcePathField.setOnDragDropped(event -> {
             List<File> files = event.getDragboard().getFiles();
-            if (!files.isEmpty() && files.get(0).isDirectory()) {
-                sourcePathField.getEditor().setText(files.get(0).getAbsolutePath());
+            if (!files.isEmpty() && files.getFirst().isDirectory()) {
+                sourcePathField.getEditor().setText(files.getFirst().getAbsolutePath());
             }
             event.setDropCompleted(true);
             event.consume();
         });
     }
 
-    // ========== НАВИГАЦИЯ ПО ПАПКАМ ==========
+    // ========== НАВИГАЦИЯ ==========
 
     @FXML
     private void onBrowseSource() {
@@ -161,7 +145,8 @@ public class DashboardController {
         requestValidator.validate(request).ifPresentOrElse(
                 this::setStatusBar,
                 () -> {
-                    addRecentProject(sourcePath);
+                    projectHistory.add(sourcePath);
+                    sourcePathField.getItems().setAll(projectHistory.getAll());
                     startScanTask(request);
                 }
         );
@@ -169,15 +154,8 @@ public class DashboardController {
 
     @FXML
     private void onStop() {
-        taskRunner.cancel();
+        pipelineRunner.cancel();
         setStatusBar("Отмена...");
-    }
-
-    @FXML
-    private void onRefresh() {
-        if (lastRequest == null) return;
-        cleanOutputDir(lastRequest.outputPath());
-        startScanTask(lastRequest);
     }
 
     private void startScanTask(PrepareRequest request) {
@@ -185,59 +163,40 @@ public class DashboardController {
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
         fileTreeController.clear();
-        refreshButton.setVisible(false);
 
-        taskRunner.run(
-                (onProgress, cancelled) -> {
-                    List<FileInfo> files = pipeline.scan(request);
-                    if (cancelled.get()) return List.of();
-                    Platform.runLater(() -> fileTreeController.populate(files, projectInfo.name(), Path.of(request.sourcePath())));
-
-                    onProgress.accept("Разбивка на части...");
-                    List<Chunk> chunks = pipeline.aggregate(request, files);
-                    if (cancelled.get()) return List.of();
-
-                    onProgress.accept("Запись файлов...");
-                    List<Path> result = pipeline.write(request, chunks);
-
-                    Platform.runLater(() -> setStatusBar("Готово. Создано " + result.size() + " файлов."));
-                    return result;
-                },
+        pipelineRunner.run(
+                request,
                 this::setStatusBar,
-                file -> resultsBox.getChildren().add(resultCardFactory.create(file)),
+                this::addResultCard,
                 () -> {
                     progressBar.setVisible(false);
                     toggleButtons(false);
-                    refreshButton.setVisible(true);
                     lastRequest = request;
-                }
+                },
+                files -> fileTreeController.populate(files, projectInfo.name(), Path.of(request.sourcePath())),
+                this::setStatusBar
         );
+    }
+
+    private void addResultCard(Path file) {
+        resultsBox.getChildren().add(new ResultCardFactory().create(file));
     }
 
     // ========== СЕРВЕР ==========
 
     @FXML
     private void onToggleServer() {
-        if (contextServer.isRunning()) {
-            contextServer.stop();
+        if (serverLauncher.isRunning()) {
+            serverLauncher.stop();
             serverButton.setText("🚀 Запустить сервер");
             serverIndicator.getStyleClass().setAll("server-off");
             setStatusBar("Сервер остановлен");
         } else if (lastRequest != null && projectInfo != null) {
             try {
-                Path outputDir = Path.of(lastRequest.outputPath());
-                List<Path> files = Files.list(outputDir)
-                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
-                        .sorted()
-                        .collect(Collectors.toList());
-
-                contextServer.start(9090, files, projectInfo);
+                serverLauncher.start(Path.of(lastRequest.outputPath()), projectInfo);
                 serverButton.setText("⏹ Остановить сервер");
                 serverIndicator.getStyleClass().setAll("server-on");
-
-                // ✅ ОБНОВЛЕНО СООБЩЕНИЕ
                 setStatusBar("🔒 Сервер запущен на https://localhost:9090");
-
             } catch (Exception e) {
                 log.error("Failed to start HTTPS server", e);
                 setStatusBar("❌ Ошибка запуска сервера: " + e.getMessage(), true);
@@ -270,7 +229,7 @@ public class DashboardController {
                 limitField.setText(String.valueOf(config.effectiveLimit()));
                 outputPathField.setText(config.outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
-                sourcePathField.getItems().setAll(config.recentProjects());
+                sourcePathField.getItems().setAll(projectHistory.getAll());
                 setStatusBar("Настройки сохранены");
             }
         } catch (IOException e) {
@@ -282,36 +241,11 @@ public class DashboardController {
     private void onOpenLogs() {
         try {
             Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
-            Files.createDirectories(logDir);
             java.awt.Desktop.getDesktop().open(logDir.toFile());
         } catch (IOException e) {
             log.error("Failed to open logs folder", e);
             setStatusBar("Не удалось открыть папку с логами", true);
         }
-    }
-
-    // ========== ИСТОРИЯ ПРОЕКТОВ ==========
-
-    private void addRecentProject(String path) {
-        if (path == null || path.isBlank()) return;
-
-        List<String> projects = new ArrayList<>(config.recentProjects());
-        projects.remove(path);
-        projects.add(0, path);
-
-        int max = config.recentProjectsCount();
-        if (projects.size() > max) {
-            projects = projects.subList(0, max);
-        }
-
-        config = new AppConfig(
-                config.modelName(), config.maxSymbols(), config.safetyMargin(),
-                config.outputPath(), config.logLevel(), config.errorLogEnabled(),
-                config.debugMode(), projects, config.recentProjectsCount(),
-                config.excludedDirs(), config.excludedFileNames()
-        );
-        configPort.save(config);
-        sourcePathField.getItems().setAll(projects);
     }
 
     // ========== УТИЛИТЫ ==========
@@ -343,22 +277,6 @@ public class DashboardController {
         }
     }
 
-    private void cleanOutputDir(String outputPath) {
-        try {
-            Path dir = Path.of(outputPath);
-            if (Files.exists(dir)) {
-                Files.list(dir)
-                        .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
-                        .forEach(f -> {
-                            try { Files.deleteIfExists(f); }
-                            catch (IOException e) { log.warn("Failed to delete: {}", f); }
-                        });
-            }
-        } catch (IOException e) {
-            log.warn("Failed to clean output dir", e);
-        }
-    }
-
     private void setStatusBar(String text) {
         setStatusBar(text, false);
     }
@@ -368,7 +286,7 @@ public class DashboardController {
     }
 
     private void setStatusBar(String text, boolean isError) {
-        javafx.application.Platform.runLater(() -> {
+        Platform.runLater(() -> {
             statusLabel.setText(text);
             statusLabel.setStyle(isError ? "-fx-text-fill: red;" : "-fx-text-fill: gray;");
         });
