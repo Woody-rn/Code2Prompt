@@ -12,7 +12,6 @@
 
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3">
 
-        <!--suppress JavaFxUnresolvedFxIdReference -->
         <fx:include fx:id="fileTree" source="file-tree.fxml"/>
 
         <VBox spacing="10">

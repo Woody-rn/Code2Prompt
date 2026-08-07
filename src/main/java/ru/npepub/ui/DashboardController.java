@@ -38,45 +38,26 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML
-    private ComboBox<String> sourcePathField;
-    @FXML
-    private TextField outputPathField;
-    @FXML
-    private TextField limitField;
-    @FXML
-    private ProgressBar progressBar;
-    @FXML
-    private VBox resultsBox;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Button startButton;
-    @FXML
-    private Button stopButton;
-    @FXML
-    private Button serverButton;
-    @FXML
-    private FileTreeController fileTreeController;
-    @FXML
-    private Label serverIndicator;
+    @FXML private ComboBox<String> sourcePathField;
+    @FXML private TextField outputPathField;
+    @FXML private TextField limitField;
+    @FXML private ProgressBar progressBar;
+    @FXML private VBox resultsBox;
+    @FXML private Label statusLabel;
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
+    @FXML private Button serverButton;
+    @FXML private FileTreeController fileTreeController;
+    @FXML private Label serverIndicator;
 
-    @C2PInject
-    private ConfigPort configPort;
-    @C2PInject
-    private ContainerDI container;
-    @C2PInject
-    private LogWindowPort logWindowManager;
-    @C2PInject
-    private RequestValidator requestValidator;
-    @C2PInject
-    private ResultCardFactory resultCardFactory;
-    @C2PInject
-    private ScanPipelineRunner pipelineRunner;
-    @C2PInject
-    private ContextServerLauncher serverLauncher;
-    @C2PInject
-    private ProjectHistoryStore projectHistory;
+    @C2PInject private ConfigPort configPort;
+    @C2PInject private ContainerDI container;
+    @C2PInject private LogWindowPort logWindowManager;
+    @C2PInject private RequestValidator requestValidator;
+    @C2PInject private ScanPipelineRunner pipelineRunner;
+    @C2PInject private ContextServerLauncher serverLauncher;
+    @C2PInject private ProjectHistoryStore projectHistory;
+    @C2PInject private ResultCardFactory resultCardFactory;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
@@ -91,7 +72,7 @@ public class DashboardController {
         applyLogLevel();
 
         sourcePathField.getItems().setAll(projectHistory.getAll());
-        serverIndicator.getStyleClass().setAll("server-off");
+        updateServerUI(false);
 
         setupDragAndDrop();
         fileTreeController.setStatusConsumer(this::setStatusBar);
@@ -179,6 +160,7 @@ public class DashboardController {
     }
 
     private void startScanTask(PrepareRequest request) {
+        stopServerIfRunning();
         toggleButtons(true);
         progressBar.setVisible(true);
         resultsBox.getChildren().clear();
@@ -208,14 +190,12 @@ public class DashboardController {
     private void onToggleServer() {
         if (serverLauncher.isRunning()) {
             serverLauncher.stop();
-            serverButton.setText("🚀 Запустить сервер");
-            serverIndicator.getStyleClass().setAll("server-off");
+            updateServerUI(false);
             setStatusBar("Сервер остановлен");
         } else if (lastRequest != null && projectInfo != null) {
             try {
                 serverLauncher.start(Path.of(lastRequest.outputPath()), projectInfo);
-                serverButton.setText("⏹ Остановить сервер");
-                serverIndicator.getStyleClass().setAll("server-on");
+                updateServerUI(true);
                 setStatusBar("🔒 Сервер запущен на https://localhost:9090");
             } catch (Exception e) {
                 log.error("Failed to start HTTPS server", e);
@@ -223,6 +203,23 @@ public class DashboardController {
             }
         } else {
             setStatusBar("Сначала выполните сканирование", true);
+        }
+    }
+
+    private void stopServerIfRunning() {
+        if (serverLauncher.isRunning()) {
+            serverLauncher.stop();
+            updateServerUI(false);
+        }
+    }
+
+    private void updateServerUI(boolean running) {
+        if (running) {
+            serverButton.setText("⏹ Остановить сервер");
+            serverIndicator.getStyleClass().setAll("server-on");
+        } else {
+            serverButton.setText("🚀 Запустить сервер");
+            serverIndicator.getStyleClass().setAll("server-off");
         }
     }
 
