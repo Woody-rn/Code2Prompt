@@ -3,6 +3,8 @@ package ru.npepub.server;
 import com.sun.net.httpserver.HttpExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.ConfigPort;
+import ru.npepub.config.PromptConfig;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.model.ProjectInfo;
@@ -11,34 +13,29 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Handles all HTTP requests for the context server.
  * Routes: /context, /context/parts, /project
  */
-
 @C2PComponent
 class ContextRequestHandler {
+
     private static final Logger log = LoggerFactory.getLogger(ContextRequestHandler.class);
 
     @C2PInject private JsonResponseHelper jsonHelper;
+    @C2PInject private ConfigPort configPort;
+
     private List<Path> contextFiles;
     private ProjectInfo projectInfo;
 
-    /**
-     * Updates the context files and project info.
-     */
-
+    /** Updates the context files and project info. */
     public void updateContext(List<Path> files, ProjectInfo projectInfo) {
         this.contextFiles = files;
         this.projectInfo = projectInfo;
     }
 
-    /**
-     * Main request handler. Routes to appropriate handler based on path.
-     */
-
+    /** Main request handler. Routes to appropriate handler based on path. */
     public void handleRequest(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
@@ -51,17 +48,10 @@ class ContextRequestHandler {
         }
 
         switch (path) {
-            case "/context":
-                handleContext(exchange);
-                break;
-            case "/context/parts":
-                handleParts(exchange);
-                break;
-            case "/project":
-                handleProject(exchange);
-                break;
-            default:
-                jsonHelper.sendError(exchange, 404, "Not found");
+            case "/context" -> handleContext(exchange);
+            case "/context/parts" -> handleParts(exchange);
+            case "/project" -> handleProject(exchange);
+            default -> jsonHelper.sendError(exchange, 404, "Not found");
         }
     }
 
@@ -71,17 +61,11 @@ class ContextRequestHandler {
             return;
         }
 
-        String content = contextFiles.stream()
-                .map(f -> {
-                    try {
-                        return Files.readString(f);
-                    } catch (IOException e) {
-                        return "Error reading: " + f.getFileName();
-                    }
-                })
-                .collect(Collectors.joining("\n\n"));
-
-        jsonHelper.sendJson(exchange, content);
+        StringBuilder sb = new StringBuilder();
+        for (Path file : contextFiles) {
+            sb.append(Files.readString(file)).append("\n\n");
+        }
+        jsonHelper.sendJson(exchange, sb.toString());
     }
 
     private void handleParts(HttpExchange exchange) throws IOException {
@@ -90,49 +74,44 @@ class ContextRequestHandler {
             return;
         }
 
-        String query = exchange.getRequestURI().getQuery();
-        log.debug("Parts request. Query: {}, Total files: {}", query, contextFiles.size());
-
-        int index = parseIndexFromQuery(query);
-
-        if (index >= 0 && index < contextFiles.size()) {
-            try {
-                String content = Files.readString(contextFiles.get(index));
-                String json = String.format(
-                        "{\"index\":%d,\"total\":%d,\"content\":\"%s\"}",
-                        index + 1,
-                        contextFiles.size(),
-                        jsonHelper.escapeJson(content)
-                );
-                jsonHelper.sendJson(exchange, json);
-            } catch (IOException e) {
-                log.error("Failed to read file at index {}", index, e);
-                jsonHelper.sendError(exchange, 500, "Failed to read file: " + e.getMessage());
-            }
-        } else {
-            log.warn("Index {} out of range (0-{})", index, contextFiles.size() - 1);
-            jsonHelper.sendError(exchange, 404,
-                    "Part not found: " + index + ". Total: " + contextFiles.size());
+        int index = parseIndexFromQuery(exchange.getRequestURI().getQuery());
+        if (index < 0 || index >= contextFiles.size()) {
+            jsonHelper.sendError(exchange, 404, "Part not found: " + index);
+            return;
         }
+
+        String content = Files.readString(contextFiles.get(index));
+        PromptConfig prompt = configPort.load().prompt();
+        int total = contextFiles.size();
+        int partNumber = index + 1;
+        boolean isFirst = partNumber == 1;
+        boolean isLast = partNumber == total;
+
+        String prefix = isLast
+                ? resolveTemplate(prompt.finalPartTemplate(), partNumber, total)
+                : resolveTemplate(prompt.partPrefixTemplate(), partNumber, total);
+
+        if (isFirst && !prompt.systemPrompt().isBlank()) {
+            prefix = prompt.systemPrompt() + "\n\n" + prefix;
+        }
+
+        String fullContent = prefix + content;
+
+        String json = String.format(
+                "{\"index\":%d,\"total\":%d,\"content\":\"%s\"}",
+                partNumber, total, jsonHelper.escapeJson(fullContent)
+        );
+        jsonHelper.sendJson(exchange, json);
     }
 
     private int parseIndexFromQuery(String query) {
-        if (query == null || !query.startsWith("id=")) {
-            log.warn("No valid id parameter in request, using default 0");
-            return 0;
-        }
-
+        if (query == null || !query.startsWith("id=")) return 0;
         try {
             String idValue = query.substring(3);
             int ampIndex = idValue.indexOf('&');
-            if (ampIndex > 0) {
-                idValue = idValue.substring(0, ampIndex);
-            }
-            int index = Integer.parseInt(idValue);
-            log.debug("Parsed index: {}", index);
-            return index;
+            if (ampIndex > 0) idValue = idValue.substring(0, ampIndex);
+            return Integer.parseInt(idValue);
         } catch (NumberFormatException e) {
-            log.warn("Invalid id parameter: {}", query);
             return -1;
         }
     }
@@ -141,5 +120,11 @@ class ContextRequestHandler {
         String json = "{\"name\":\"" +
                 (projectInfo != null ? projectInfo.name() : "") + "\"}";
         jsonHelper.sendJson(exchange, json);
+    }
+
+    private String resolveTemplate(String template, int part, int total) {
+        return template
+                .replace("{part}", String.valueOf(part))
+                .replace("{total}", String.valueOf(total));
     }
 }
