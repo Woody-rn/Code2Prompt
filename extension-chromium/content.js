@@ -250,8 +250,7 @@ function showPartInTextarea() {
     const textarea = getTextarea();
     if (!textarea || currentPart >= allParts.length) return;
     const part = allParts[currentPart];
-    const prefix = `[ЧАСТЬ ${part.index}/${totalParts}]\n\n`;
-    setNativeValue(textarea, prefix + part.content);
+    setNativeValue(textarea, part.content);
 }
 
 function addStyles() {
@@ -445,7 +444,6 @@ async function loadParts() {
 async function refreshDataAndSend() {
     setStatus('Обновление данных...');
     try {
-        // Проверяем актуальность данных
         const firstPart = await apiRequest('/context/parts', { id: 0 });
         const newTotal = firstPart.total;
 
@@ -501,12 +499,7 @@ function insertAndSend() {
     }
 
     const part = allParts[currentPart];
-    const isLastPart = (currentPart + 1 >= totalParts);
-    const prefix = isLastPart
-        ? `[ЧАСТЬ ${part.index}/${totalParts}] Это последняя часть. Можешь отвечать.\n\n`
-        : `[ЧАСТЬ ${part.index}/${totalParts}] НЕ ОТВЕЧАЙ. Только подтверди: "Принята часть ${part.index}/${totalParts}".\n\n`;
-
-    setNativeValue(textarea, prefix + part.content);
+    setNativeValue(textarea, part.content);
     setStatus('Отправка части ' + (currentPart + 1) + '/' + totalParts);
     console.log(`📤 Code2Prompt: sending part ${part.index}/${totalParts}`);
 
@@ -554,11 +547,10 @@ function waitForEmptyAndContinue() {
             if (Date.now() - responseEndTime >= delay * 1000) {
                 retryScheduled = false;
 
-                const isLastPart = (currentPart + 1 >= totalParts);
                 currentPart++;
                 updateQueue();
 
-                if (isLastPart) {
+                if (currentPart >= totalParts) {
                     isSending = false;
                     updateButton();
                     setStatus('Готово ✓');
