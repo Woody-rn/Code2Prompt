@@ -20,7 +20,7 @@ function getTextarea() {
 
 /**
  * ✅ Универсальная функция для запросов к серверу
- * Использует заголовки для управления кешем, а не параметры в URL
+ * использует заголовки для управления кешем, а не параметры в URL
  */
 async function apiRequest(endpoint, params = {}) {
     // Собираем URL только с бизнес-параметрами
@@ -75,7 +75,7 @@ async function loadProjectName() {
 async function loadPartsFromServer() {
     console.log('🔍 Loading parts from server...');
 
-    // Загружаем первую часть чтобы узнать total
+    // Загружаем первую часть, чтобы узнать total
     const firstPart = await apiRequest('/context/parts', { id: 0 });
     totalParts = firstPart.total;
     allParts = [];

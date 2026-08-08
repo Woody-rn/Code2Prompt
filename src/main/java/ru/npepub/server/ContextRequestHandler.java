@@ -84,15 +84,15 @@ class ContextRequestHandler {
         PromptConfig prompt = configPort.load().prompt();
         int total = contextFiles.size();
         int partNumber = index + 1;
-        boolean isFirst = partNumber == 1;
         boolean isLast = partNumber == total;
 
         String prefix = isLast
                 ? resolveTemplate(prompt.finalPartTemplate(), partNumber, total)
                 : resolveTemplate(prompt.partPrefixTemplate(), partNumber, total);
 
-        if (isFirst && !prompt.systemPrompt().isBlank()) {
-            prefix = prompt.systemPrompt() + "\n\n" + prefix;
+        // System prompt добавляется только к последней части, перед содержимым
+        if (isLast && !prompt.systemPrompt().isBlank()) {
+            prefix = prefix + "\n" + prompt.systemPrompt() + "\n\n";
         }
 
         String fullContent = prefix + content;
