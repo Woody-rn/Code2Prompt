@@ -4,73 +4,107 @@
 <?import javafx.scene.layout.*?>
 <DialogPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ru.npepub.ui.SettingsController"
-            prefWidth="450"
+            prefWidth="750" minWidth="650" prefHeight="600" minHeight="500"
             stylesheets="@../css/style.css">
 
     <content>
-        <VBox spacing="15" styleClass="root">
+        <HBox spacing="20" VBox.vgrow="ALWAYS">
 
-            <!-- Модель, Лимит и Запас -->
-            <HBox spacing="10">
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                    <Label text="Модель AI:" style="-fx-font-weight: bold;"/>
-                    <ComboBox fx:id="modelCombo" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                </VBox>
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                    <Label text="Лимит символов:" style="-fx-font-weight: bold;"/>
-                    <TextField fx:id="maxSymbolsField" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                </VBox>
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                    <Label text="Запас (%):" style="-fx-font-weight: bold;"/>
-                    <TextField fx:id="safetyMarginField" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                </VBox>
-            </HBox>
+            <!-- ========== ЛЕВАЯ КОЛОНКА ========== -->
+            <VBox spacing="15" HBox.hgrow="ALWAYS" minWidth="300" VBox.vgrow="ALWAYS">
 
-            <!-- Папка вывода -->
-            <VBox spacing="5">
-                <Label text="Папка вывода по умолчанию:" style="-fx-font-weight: bold;"/>
+                <!-- Модель, Лимит и Запас -->
                 <HBox spacing="10">
-                    <TextField fx:id="defaultOutputPathField" HBox.hgrow="ALWAYS"/>
-                    <Button text="Обзор" onAction="#onBrowseOutput"/>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Модель AI:" style="-fx-font-weight: bold;"/>
+                        <ComboBox fx:id="modelCombo" maxWidth="Infinity"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Лимит символов:" style="-fx-font-weight: bold;"/>
+                        <TextField fx:id="maxSymbolsField"/>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label text="Запас (%):" style="-fx-font-weight: bold;"/>
+                        <TextField fx:id="safetyMarginField"/>
+                    </VBox>
                 </HBox>
-            </VBox>
 
-            <!-- Разработчик -->
-            <VBox spacing="5">
-                <Label text="Разработчик" style="-fx-font-weight: bold;"/>
-                <CheckBox fx:id="debugModeCheckBox" text="Режим отладки (окно с логами)"/>
-                <Label text="Уровень логов:"/>
-                <ComboBox fx:id="devLogLevelCombo" prefWidth="Infinity"/>
-            </VBox>
-
-            <!-- Исключённые папки и файлы -->
-            <HBox spacing="10" VBox.vgrow="ALWAYS">
-                <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                    <Label text="Исключённые папки (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
-                    <ListView fx:id="excludedDirsList" prefHeight="250" maxWidth="Infinity" VBox.vgrow="ALWAYS"/>
-                    <HBox spacing="5">
-                        <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="Название папки"/>
-                        <Button text="➕" onAction="#onAddExcludedDir"/>
+                <!-- Папка вывода -->
+                <VBox spacing="5">
+                    <Label text="Папка вывода по умолчанию:" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="10">
+                        <TextField fx:id="defaultOutputPathField" HBox.hgrow="ALWAYS"/>
+                        <Button text="Обзор" onAction="#onBrowseOutput"/>
                     </HBox>
                 </VBox>
 
-                <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                    <Label text="Исключённые файлы (двойной клик — удалить):" style="-fx-font-weight: bold;"/>
-                    <ListView fx:id="excludedFileNamesList" prefHeight="250" maxWidth="Infinity" VBox.vgrow="ALWAYS"/>
-                    <HBox spacing="5">
-                        <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="Имя файла"/>
-                        <Button text="➕" onAction="#onAddExcludedFileName"/>
+                <!-- Разработчик -->
+                <VBox spacing="5">
+                    <Label text="Разработчик" style="-fx-font-weight: bold;"/>
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <CheckBox fx:id="debugModeCheckBox" text="Режим отладки"/>
+                        <Label text="Уровень логов:"/>
+                        <ComboBox fx:id="devLogLevelCombo" prefWidth="120"/>
                     </HBox>
                 </VBox>
-            </HBox>
 
-            <!-- Очистка и сброс -->
-            <HBox spacing="10">
-                <Button text="🗑 Очистить логи" onAction="#onClearLogs"/>
-                <Button text="↺ Сбросить все настройки" onAction="#onResetToDefaults"/>
-            </HBox>
+                <!-- Исключённые папки и файлы -->
+                <HBox spacing="10" VBox.vgrow="ALWAYS">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                        <Label text="Исключённые папки:" style="-fx-font-weight: bold;"/>
+                        <ListView fx:id="excludedDirsList" VBox.vgrow="ALWAYS"/>
+                        <HBox spacing="5">
+                            <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="Название папки"/>
+                            <Button text="➕" onAction="#onAddExcludedDir"/>
+                        </HBox>
+                    </VBox>
+                    <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                        <Label text="Исключённые файлы:" style="-fx-font-weight: bold;"/>
+                        <ListView fx:id="excludedFileNamesList" VBox.vgrow="ALWAYS"/>
+                        <HBox spacing="5">
+                            <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="Имя файла"/>
+                            <Button text="➕" onAction="#onAddExcludedFileName"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
 
-        </VBox>
+                <!-- Очистка и сброс -->
+                <HBox spacing="10">
+                    <Button text="🗑 Очистить логи" onAction="#onClearLogs"/>
+                    <Button text="↺ Сбросить все настройки" onAction="#onResetToDefaults"/>
+                </HBox>
+
+            </VBox>
+
+            <!-- ========== ПРАВАЯ КОЛОНКА — ФОРМАТ ПРОМПТА ========== -->
+            <VBox spacing="10" minWidth="300" VBox.vgrow="ALWAYS">
+                <Label text="Формат промпта" style="-fx-font-weight: bold; font-size: 14px;"/>
+
+                <VBox spacing="5" VBox.vgrow="ALWAYS">
+                    <Label text="System prompt:"/>
+                    <TextArea fx:id="systemPromptField" VBox.vgrow="ALWAYS" wrapText="true"
+                              promptText="Добавляется к последней части"/>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Шаблон обычной части:"/>
+                    <TextField fx:id="partPrefixField"/>
+                    <Label text="{part} — номер, {total} — всего частей"
+                           style="-fx-font-size: 10px; -fx-text-fill: #888;"/>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Шаблон последней части:"/>
+                    <TextField fx:id="finalPartField"/>
+                </VBox>
+
+                <VBox spacing="5">
+                    <Label text="Разделитель файлов:"/>
+                    <TextField fx:id="fileSeparatorField"/>
+                </VBox>
+            </VBox>
+
+        </HBox>
     </content>
 
     <ButtonType text="Сохранить" buttonData="OK_DONE"/>

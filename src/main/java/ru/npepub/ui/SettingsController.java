@@ -3,10 +3,7 @@ package ru.npepub.ui;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +24,34 @@ public class SettingsController {
 
     private static final Logger log = LoggerFactory.getLogger(SettingsController.class);
 
-    @FXML private ComboBox<String> modelCombo;
-    @FXML private TextField maxSymbolsField;
-    @FXML private TextField safetyMarginField;
-    @FXML private TextField defaultOutputPathField;
-    @FXML private ComboBox<String> devLogLevelCombo;
-    @FXML private CheckBox debugModeCheckBox;
-    @FXML private ListView<String> excludedDirsList;
-    @FXML private TextField newExcludedDirField;
-    @FXML private ListView<String> excludedFileNamesList;
-    @FXML private TextField newExcludedFileNameField;
+    @FXML
+    private ComboBox<String> modelCombo;
+    @FXML
+    private TextField maxSymbolsField;
+    @FXML
+    private TextField safetyMarginField;
+    @FXML
+    private TextField defaultOutputPathField;
+    @FXML
+    private ComboBox<String> devLogLevelCombo;
+    @FXML
+    private CheckBox debugModeCheckBox;
+    @FXML
+    private ListView<String> excludedDirsList;
+    @FXML
+    private TextField newExcludedDirField;
+    @FXML
+    private ListView<String> excludedFileNamesList;
+    @FXML
+    private TextField newExcludedFileNameField;
+    @FXML
+    private TextArea systemPromptField;
+    @FXML
+    private TextField partPrefixField;
+    @FXML
+    private TextField finalPartField;
+    @FXML
+    private TextField fileSeparatorField;
 
     @C2PInject
     private ConfigPort configPort;
@@ -67,7 +82,7 @@ public class SettingsController {
         });
 
         maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int)(config.aiModel().safetyMargin() * 100)));
+        safetyMarginField.setText(String.valueOf((int) (config.aiModel().safetyMargin() * 100)));
         defaultOutputPathField.setText(config.paths().outputPath().toString());
 
         debugModeCheckBox.setSelected(config.debugMode());
@@ -94,6 +109,11 @@ public class SettingsController {
                 if (selected != null) excludedFileNames.remove(selected);
             }
         });
+
+        systemPromptField.setText(config.prompt().systemPrompt());
+        partPrefixField.setText(config.prompt().partPrefixTemplate());
+        finalPartField.setText(config.prompt().finalPartTemplate());
+        fileSeparatorField.setText(config.prompt().fileSeparator());
     }
 
     @FXML
@@ -146,15 +166,21 @@ public class SettingsController {
         AppConfig defaults = AppConfig.defaults();
         modelCombo.setValue(defaults.aiModel().name());
         maxSymbolsField.setText(String.valueOf(defaults.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int)(defaults.aiModel().safetyMargin() * 100)));
+        safetyMarginField.setText(String.valueOf((int) (defaults.aiModel().safetyMargin() * 100)));
         defaultOutputPathField.setText(defaults.paths().outputPath().toString());
         devLogLevelCombo.setValue(defaults.log().level().name());
         debugModeCheckBox.setSelected(defaults.debugMode());
         excludedDirs.setAll(defaults.filter().excludedDirs().stream().sorted().toList());
         excludedFileNames.setAll(defaults.filter().excludedFileNames().stream().sorted().toList());
+        systemPromptField.setText(defaults.prompt().systemPrompt());
+        partPrefixField.setText(defaults.prompt().partPrefixTemplate());
+        finalPartField.setText(defaults.prompt().finalPartTemplate());
+        fileSeparatorField.setText(defaults.prompt().fileSeparator());
     }
 
-    /** Returns updated config from the form values. */
+    /**
+     * Returns updated config from the form values.
+     */
     public AppConfig getUpdatedConfig() {
         return new AppConfig(
                 new AiModelConfig(
@@ -175,7 +201,12 @@ public class SettingsController {
                         LogConfig.LogLevel.valueOf(devLogLevelCombo.getValue()),
                         config.log().errorEnabled()
                 ),
-                config.prompt(),
+                new PromptConfig(
+                        systemPromptField.getText(),
+                        partPrefixField.getText(),
+                        finalPartField.getText(),
+                        fileSeparatorField.getText()
+                ),
                 debugModeCheckBox.isSelected()
         );
     }
