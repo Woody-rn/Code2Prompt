@@ -64,6 +64,7 @@ class ConfigPortImpl implements ConfigPort {
         p.setProperty("paths.recent.count", String.valueOf(c.paths().recentProjectsCount()));
         p.setProperty("filter.excluded.dirs", String.join(";", c.filter().excludedDirs()));
         p.setProperty("filter.excluded.files", String.join(";", c.filter().excludedFileNames()));
+        p.setProperty("filter.patterns", String.join(";", c.filter().patterns()));
         p.setProperty("log.level", c.log().level().name());
         p.setProperty("log.error.enabled", String.valueOf(c.log().errorEnabled()));
         p.setProperty("prompt.system", c.prompt().systemPrompt());
@@ -108,7 +109,8 @@ class ConfigPortImpl implements ConfigPort {
     private FilterConfig loadFilter(Properties p) {
         List<String> dirs = loadList(p, "filter.excluded.dirs", FilterConfig.defaults().excludedDirs());
         List<String> files = loadList(p, "filter.excluded.files", FilterConfig.defaults().excludedFileNames());
-        return new FilterConfig(dirs, files);
+        List<String> patterns = loadList(p, "filter.patterns", FilterConfig.defaults().patterns());
+        return new FilterConfig(dirs, files, patterns);
     }
 
     private LogConfig loadLog(Properties p) {

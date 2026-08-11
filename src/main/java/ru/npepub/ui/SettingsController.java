@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -32,10 +33,8 @@ public class SettingsController {
     @FXML private TextField defaultOutputPathField;
     @FXML private ComboBox<String> devLogLevelCombo;
     @FXML private CheckBox debugModeCheckBox;
-    @FXML private ListView<String> excludedDirsList;
-    @FXML private TextField newExcludedDirField;
-    @FXML private ListView<String> excludedFileNamesList;
-    @FXML private TextField newExcludedFileNameField;
+    @FXML private ListView<String> excludedPatternsList;
+    @FXML private TextField newPatternField;
     @FXML private TextArea systemPromptField;
     @FXML private TextField partPrefixField;
     @FXML private TextField finalPartField;
@@ -45,8 +44,7 @@ public class SettingsController {
     @C2PInject private ConfigJsonExporter jsonExporter;
 
     private AppConfig config;
-    private ObservableList<String> excludedDirs;
-    private ObservableList<String> excludedFileNames;
+    private ObservableList<String> excludedPatterns;
     private ResourceBundle messages;
 
     private static final Map<String, Integer> MODEL_LIMITS = Map.of(
@@ -80,23 +78,12 @@ public class SettingsController {
         devLogLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
         devLogLevelCombo.setValue(config.log().level().name());
 
-        excludedDirs = FXCollections.observableArrayList(
-                config.filter().excludedDirs().stream().sorted().toList());
-        excludedDirsList.setItems(excludedDirs);
-        excludedDirsList.setOnMouseClicked(event -> {
+        excludedPatterns = FXCollections.observableArrayList(mergeExclusions());
+        excludedPatternsList.setItems(excludedPatterns);
+        excludedPatternsList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
-                String selected = excludedDirsList.getSelectionModel().getSelectedItem();
-                if (selected != null) excludedDirs.remove(selected);
-            }
-        });
-
-        excludedFileNames = FXCollections.observableArrayList(
-                config.filter().excludedFileNames().stream().sorted().toList());
-        excludedFileNamesList.setItems(excludedFileNames);
-        excludedFileNamesList.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                String selected = excludedFileNamesList.getSelectionModel().getSelectedItem();
-                if (selected != null) excludedFileNames.remove(selected);
+                String selected = excludedPatternsList.getSelectionModel().getSelectedItem();
+                if (selected != null) excludedPatterns.remove(selected);
             }
         });
 
@@ -104,6 +91,24 @@ public class SettingsController {
         partPrefixField.setText(config.prompt().partPrefixTemplate());
         finalPartField.setText(config.prompt().finalPartTemplate());
         fileSeparatorField.setText(config.prompt().fileSeparator());
+    }
+
+    private List<String> mergeExclusions() {
+        List<String> all = new ArrayList<>();
+        config.filter().excludedDirs().stream().sorted().forEach(d -> all.add(d + "/"));
+        config.filter().excludedFileNames().stream().sorted().forEach(all::add);
+        config.filter().patterns().stream().sorted().forEach(all::add);
+        return all;
+    }
+
+    @FXML
+    private void onAddPattern() {
+        String input = newPatternField.getText().trim();
+        if (input.isEmpty() || excludedPatterns.contains(input)) return;
+
+        excludedPatterns.add(input);
+        FXCollections.sort(excludedPatterns);
+        newPatternField.clear();
     }
 
     @FXML
@@ -119,26 +124,6 @@ public class SettingsController {
     }
 
     @FXML
-    private void onAddExcludedDir() {
-        String dir = newExcludedDirField.getText().trim();
-        if (!dir.isEmpty() && !excludedDirs.contains(dir)) {
-            excludedDirs.add(dir);
-            FXCollections.sort(excludedDirs);
-            newExcludedDirField.clear();
-        }
-    }
-
-    @FXML
-    private void onAddExcludedFileName() {
-        String name = newExcludedFileNameField.getText().trim();
-        if (!name.isEmpty() && !excludedFileNames.contains(name)) {
-            excludedFileNames.add(name);
-            FXCollections.sort(excludedFileNames);
-            newExcludedFileNameField.clear();
-        }
-    }
-
-    @FXML
     private void onResetToDefaults() {
         AppConfig defaults = AppConfig.defaults();
         modelCombo.setValue(defaults.aiModel().name());
@@ -147,12 +132,25 @@ public class SettingsController {
         defaultOutputPathField.setText(defaults.paths().outputPath().toString());
         devLogLevelCombo.setValue(defaults.log().level().name());
         debugModeCheckBox.setSelected(defaults.debugMode());
-        excludedDirs.setAll(defaults.filter().excludedDirs().stream().sorted().toList());
-        excludedFileNames.setAll(defaults.filter().excludedFileNames().stream().sorted().toList());
+        excludedPatterns.setAll(
+                mergeDefaults(
+                        defaults.filter().excludedDirs(),
+                        defaults.filter().excludedFileNames(),
+                        defaults.filter().patterns()
+                )
+        );
         systemPromptField.setText(defaults.prompt().systemPrompt());
         partPrefixField.setText(defaults.prompt().partPrefixTemplate());
         finalPartField.setText(defaults.prompt().finalPartTemplate());
         fileSeparatorField.setText(defaults.prompt().fileSeparator());
+    }
+
+    private List<String> mergeDefaults(List<String> dirs, List<String> files, List<String> patterns) {
+        List<String> all = new ArrayList<>();
+        dirs.stream().sorted().forEach(d -> all.add(d + "/"));
+        files.stream().sorted().forEach(all::add);
+        patterns.stream().sorted().forEach(all::add);
+        return all;
     }
 
     @FXML
@@ -197,8 +195,13 @@ public class SettingsController {
         defaultOutputPathField.setText(config.paths().outputPath().toString());
         devLogLevelCombo.setValue(config.log().level().name());
         debugModeCheckBox.setSelected(config.debugMode());
-        excludedDirs.setAll(config.filter().excludedDirs().stream().sorted().toList());
-        excludedFileNames.setAll(config.filter().excludedFileNames().stream().sorted().toList());
+        excludedPatterns.setAll(
+                mergeDefaults(
+                        config.filter().excludedDirs(),
+                        config.filter().excludedFileNames(),
+                        config.filter().patterns()
+                )
+        );
         systemPromptField.setText(config.prompt().systemPrompt());
         partPrefixField.setText(config.prompt().partPrefixTemplate());
         finalPartField.setText(config.prompt().finalPartTemplate());
@@ -207,6 +210,20 @@ public class SettingsController {
 
     /** Returns updated config from the form values. */
     public AppConfig getUpdatedConfig() {
+        List<String> dirs = new ArrayList<>();
+        List<String> files = new ArrayList<>();
+        List<String> patterns = new ArrayList<>();
+
+        for (String item : excludedPatterns) {
+            if (item.endsWith("/")) {
+                dirs.add(item.substring(0, item.length() - 1));
+            } else if (item.contains("*")) {
+                patterns.add(item);
+            } else {
+                files.add(item);
+            }
+        }
+
         return new AppConfig(
                 new AiModelConfig(
                         modelCombo.getValue(),
@@ -218,10 +235,7 @@ public class SettingsController {
                         config.paths().recentProjects(),
                         config.paths().recentProjectsCount()
                 ),
-                new FilterConfig(
-                        List.copyOf(excludedDirs),
-                        List.copyOf(excludedFileNames)
-                ),
+                new FilterConfig(dirs, files, patterns),
                 new LogConfig(
                         LogConfig.LogLevel.valueOf(devLogLevelCombo.getValue()),
                         config.log().errorEnabled()

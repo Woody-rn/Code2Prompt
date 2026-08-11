@@ -27,7 +27,8 @@ public class ConfigJsonExporter {
         sb.append("  },\n");
         sb.append("  \"filter\": {\n");
         sb.append("    \"excludedDirs\": ").append(toJsonArray(c.filter().excludedDirs())).append(",\n");
-        sb.append("    \"excludedFileNames\": ").append(toJsonArray(c.filter().excludedFileNames())).append("\n");
+        sb.append("    \"excludedFileNames\": ").append(toJsonArray(c.filter().excludedFileNames())).append(",\n");
+        sb.append("    \"patterns\": ").append(toJsonArray(c.filter().patterns())).append("\n");
         sb.append("  },\n");
         sb.append("  \"log\": {\n");
         sb.append("    \"level\": \"").append(c.log().level().name()).append("\",\n");
@@ -58,7 +59,8 @@ public class ConfigJsonExporter {
                 ),
                 new FilterConfig(
                         extractArray(json, "excludedDirs"),
-                        extractArray(json, "excludedFileNames")
+                        extractArray(json, "excludedFileNames"),
+                        extractArray(json, "patterns")
                 ),
                 new LogConfig(
                         LogConfig.LogLevel.valueOf(extractString(json, "level", "INFO")),

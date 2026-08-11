@@ -79,4 +79,28 @@ class FileFilterIntegrationTest {
 
         assertThat(filter.shouldInclude(file)).isTrue();
     }
+
+    @Test
+    void shouldExcludeClassFileByPattern(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("User.class");
+        Files.writeString(file, "binary");
+
+        assertThat(filter.shouldInclude(file)).isFalse();
+    }
+
+    @Test
+    void shouldExcludeJarFileByPattern(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("lib.jar");
+        Files.writeString(file, "binary");
+
+        assertThat(filter.shouldInclude(file)).isFalse();
+    }
+
+    @Test
+    void shouldIncludeJavaFileWhenClassPatternExists(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("User.java");
+        Files.writeString(file, "class User {}");
+
+        assertThat(filter.shouldInclude(file)).isTrue();
+    }
 }

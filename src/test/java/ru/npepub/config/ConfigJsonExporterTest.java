@@ -29,6 +29,7 @@ class ConfigJsonExporterTest {
         assertThat(restored.paths().outputPath()).isEqualTo(original.paths().outputPath());
         assertThat(restored.filter().excludedDirs()).containsExactlyElementsOf(original.filter().excludedDirs());
         assertThat(restored.filter().excludedFileNames()).containsExactlyElementsOf(original.filter().excludedFileNames());
+        assertThat(restored.filter().patterns()).containsExactlyElementsOf(original.filter().patterns());
         assertThat(restored.log().level()).isEqualTo(original.log().level());
         assertThat(restored.log().errorEnabled()).isEqualTo(original.log().errorEnabled());
         assertThat(restored.prompt().systemPrompt()).isEqualTo(original.prompt().systemPrompt());
@@ -43,7 +44,7 @@ class ConfigJsonExporterTest {
         AppConfig config = new AppConfig(
                 AiModelConfig.defaults(),
                 PathConfig.defaults(),
-                new FilterConfig(List.of(), List.of()),
+                new FilterConfig(List.of(), List.of(), List.of()),
                 LogConfig.defaults(),
                 PromptConfig.defaults(),
                 false
@@ -54,6 +55,7 @@ class ConfigJsonExporterTest {
 
         assertThat(restored.filter().excludedDirs()).isEmpty();
         assertThat(restored.filter().excludedFileNames()).isEmpty();
+        assertThat(restored.filter().patterns()).isEmpty();
     }
 
     @Test

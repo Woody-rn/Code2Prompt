@@ -36,7 +36,7 @@
                 </VBox>
 
                 <VBox spacing="5">
-                    <Label text="%settings.dev.label" style="-fx-font-weight: bold;"/>
+                    <Label text="%settings.logging.label" style="-fx-font-weight: bold;"/>
                     <HBox spacing="15" alignment="CENTER_LEFT">
                         <CheckBox fx:id="debugModeCheckBox" text="%settings.debug"/>
                         <Label text="%settings.log.level"/>
@@ -44,24 +44,14 @@
                     </HBox>
                 </VBox>
 
-                <HBox spacing="10" VBox.vgrow="ALWAYS">
-                    <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                        <Label text="%settings.excluded.dirs" style="-fx-font-weight: bold;"/>
-                        <ListView fx:id="excludedDirsList" VBox.vgrow="ALWAYS"/>
-                        <HBox spacing="5">
-                            <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.dir.prompt"/>
-                            <Button text="➕" onAction="#onAddExcludedDir"/>
-                        </HBox>
-                    </VBox>
-                    <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                        <Label text="%settings.excluded.files" style="-fx-font-weight: bold;"/>
-                        <ListView fx:id="excludedFileNamesList" VBox.vgrow="ALWAYS"/>
-                        <HBox spacing="5">
-                            <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.file.prompt"/>
-                            <Button text="➕" onAction="#onAddExcludedFileName"/>
-                        </HBox>
-                    </VBox>
-                </HBox>
+                <VBox spacing="5" VBox.vgrow="ALWAYS">
+                    <Label text="%settings.excluded.label" style="-fx-font-weight: bold;"/>
+                    <ListView fx:id="excludedPatternsList" VBox.vgrow="ALWAYS"/>
+                    <HBox spacing="5">
+                        <TextField fx:id="newPatternField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.prompt"/>
+                        <Button text="➕" onAction="#onAddPattern"/>
+                    </HBox>
+                </VBox>
 
                 <HBox spacing="10">
                     <Button text="📤 Экспорт" onAction="#onExportConfig"/>
