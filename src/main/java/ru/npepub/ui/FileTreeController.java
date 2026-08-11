@@ -46,6 +46,19 @@ public class FileTreeController {
                 onCopySelectedFiles();
             }
         });
+
+        fileTree.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                TreeItem<FileNode> selected = fileTree.getSelectionModel().getSelectedItem();
+                if (selected != null && !selected.getValue().isDirectory()) {
+                    try {
+                        java.awt.Desktop.getDesktop().open(selected.getValue().path().toFile());
+                    } catch (IOException e) {
+                        log.error("Failed to open file: {}", selected.getValue().path(), e);
+                    }
+                }
+            }
+        });
     }
 
     /**
