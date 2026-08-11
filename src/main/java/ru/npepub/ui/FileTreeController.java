@@ -5,6 +5,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,11 @@ public class FileTreeController {
     @FXML
     private void initialize() {
         fileTree.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        fileTree.setOnKeyPressed(event -> {
+            if (new KeyCodeCombination(KeyCode.C).match(event)) {
+                onCopySelectedFiles();
+            }
+        });
     }
 
     /**
