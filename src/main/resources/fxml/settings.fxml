@@ -64,7 +64,6 @@
                 </HBox>
 
                 <HBox spacing="10">
-                    <Button text="%settings.clear.logs" onAction="#onClearLogs"/>
                     <Button text="%settings.reset.all" onAction="#onResetToDefaults"/>
                 </HBox>
 

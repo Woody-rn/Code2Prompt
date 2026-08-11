@@ -11,8 +11,6 @@ import ru.npepub.config.*;
 import ru.npepub.di.api.C2PInject;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -148,19 +146,6 @@ public class SettingsController {
             excludedFileNames.add(name);
             FXCollections.sort(excludedFileNames);
             newExcludedFileNameField.clear();
-        }
-    }
-
-    @FXML
-    private void onClearLogs() {
-        try {
-            Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
-            Path logFile = logDir.resolve("code2prompt.log");
-            Path errorFile = logDir.resolve("errors.log");
-            if (Files.exists(logFile)) Files.writeString(logFile, "");
-            if (Files.exists(errorFile)) Files.writeString(errorFile, "");
-        } catch (IOException e) {
-            log.warn("Failed to clear logs", e);
         }
     }
 
