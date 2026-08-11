@@ -64,6 +64,8 @@
                 </HBox>
 
                 <HBox spacing="10">
+                    <Button text="📤 Экспорт" onAction="#onExportConfig"/>
+                    <Button text="📥 Импорт" onAction="#onImportConfig"/>
                     <Button text="%settings.reset.all" onAction="#onResetToDefaults"/>
                 </HBox>
 
