@@ -35,7 +35,6 @@ public class SettingsController {
     @FXML private CheckBox debugModeCheckBox;
     @FXML private ListView<String> excludedPatternsList;
     @FXML private TextField newPatternField;
-    @FXML private TextArea systemPromptField;
     @FXML private TextField partPrefixField;
     @FXML private TextField finalPartField;
     @FXML private TextField fileSeparatorField;
@@ -87,7 +86,6 @@ public class SettingsController {
             }
         });
 
-        systemPromptField.setText(config.prompt().systemPrompt());
         partPrefixField.setText(config.prompt().partPrefixTemplate());
         finalPartField.setText(config.prompt().finalPartTemplate());
         fileSeparatorField.setText(config.prompt().fileSeparator());
@@ -139,7 +137,6 @@ public class SettingsController {
                         defaults.filter().patterns()
                 )
         );
-        systemPromptField.setText(defaults.prompt().systemPrompt());
         partPrefixField.setText(defaults.prompt().partPrefixTemplate());
         finalPartField.setText(defaults.prompt().finalPartTemplate());
         fileSeparatorField.setText(defaults.prompt().fileSeparator());
@@ -159,7 +156,7 @@ public class SettingsController {
         chooser.setTitle(messages.getString("export.title"));
         chooser.setInitialFileName("code2prompt-config.json");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
-        File file = chooser.showSaveDialog(systemPromptField.getScene().getWindow());
+        File file = chooser.showSaveDialog(partPrefixField.getScene().getWindow());
         if (file == null) return;
         try {
             Files.writeString(file.toPath(), jsonExporter.toJson(getUpdatedConfig()));
@@ -173,7 +170,7 @@ public class SettingsController {
         FileChooser chooser = new FileChooser();
         chooser.setTitle(messages.getString("import.title"));
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
-        File file = chooser.showOpenDialog(systemPromptField.getScene().getWindow());
+        File file = chooser.showOpenDialog(partPrefixField.getScene().getWindow());
         if (file == null) return;
         try {
             String json = Files.readString(file.toPath());
@@ -202,7 +199,6 @@ public class SettingsController {
                         config.filter().patterns()
                 )
         );
-        systemPromptField.setText(config.prompt().systemPrompt());
         partPrefixField.setText(config.prompt().partPrefixTemplate());
         finalPartField.setText(config.prompt().finalPartTemplate());
         fileSeparatorField.setText(config.prompt().fileSeparator());
@@ -241,7 +237,7 @@ public class SettingsController {
                         config.log().errorEnabled()
                 ),
                 new PromptConfig(
-                        systemPromptField.getText(),
+                        config.prompt().systemPrompt(),
                         partPrefixField.getText(),
                         finalPartField.getText(),
                         fileSeparatorField.getText()

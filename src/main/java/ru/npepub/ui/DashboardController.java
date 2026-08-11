@@ -49,6 +49,7 @@ public class DashboardController {
     @FXML private Button serverButton;
     @FXML private FileTreeController fileTreeController;
     @FXML private Label serverIndicator;
+    @FXML private TextArea promptField;
 
     @C2PInject private ConfigPort configPort;
     @C2PInject private ContainerDI container;
@@ -78,6 +79,8 @@ public class DashboardController {
 
         setupDragAndDrop();
         fileTreeController.setStatusConsumer(this::setStatusBar);
+
+        promptField.setText(config.prompt().systemPrompt());
 
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
@@ -130,6 +133,8 @@ public class DashboardController {
         sourcePathField.setValue(sourcePath);
         projectInfo = ProjectInfo.from(sourcePath);
         updateOutputPathWithProjectName();
+
+        savePromptToConfig();
 
         PrepareRequest request = prepareRequest();
         requestValidator.validate(request).ifPresentOrElse(
@@ -270,6 +275,19 @@ public class DashboardController {
         } catch (IOException e) {
             log.error("Failed to open folder: {}", path, e);
             setStatusBar(messages.getString("status.folder.open.error"), true);
+        }
+    }
+
+    private void savePromptToConfig() {
+        String prompt = promptField.getText();
+        if (prompt != null && !prompt.equals(config.prompt().systemPrompt())) {
+            config = new AppConfig(
+                    config.aiModel(), config.paths(), config.filter(), config.log(),
+                    new PromptConfig(prompt, config.prompt().partPrefixTemplate(),
+                            config.prompt().finalPartTemplate(), config.prompt().fileSeparator()),
+                    config.debugMode()
+            );
+            configPort.save(config);
         }
     }
 

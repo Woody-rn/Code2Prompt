@@ -38,6 +38,9 @@
                 <Label fx:id="serverIndicator" text="●"/>
             </HBox>
 
+            <Label text="%prompt.label" style="-fx-font-weight: bold;"/>
+            <TextArea fx:id="promptField" prefRowCount="3" wrapText="true" promptText="%prompt.placeholder"/>
+
             <HBox spacing="10">
                 <Button fx:id="startButton" text="%start.button" onAction="#onStart" styleClass="start-button"/>
                 <Button fx:id="stopButton" text="%stop.button" onAction="#onStop" visible="false" styleClass="stop-button"/>

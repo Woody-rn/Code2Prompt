@@ -44,13 +44,25 @@
                     </HBox>
                 </VBox>
 
-                <VBox spacing="5" VBox.vgrow="ALWAYS">
-                    <Label text="%settings.excluded.label" style="-fx-font-weight: bold;"/>
-                    <ListView fx:id="excludedPatternsList" VBox.vgrow="ALWAYS"/>
-                    <HBox spacing="5">
-                        <TextField fx:id="newPatternField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.prompt"/>
-                        <Button text="➕" onAction="#onAddPattern"/>
-                    </HBox>
+                <VBox spacing="5">
+                    <Label text="%settings.prompt.section" style="-fx-font-weight: bold;"/>
+
+                    <VBox spacing="5">
+                        <Label text="%settings.prompt.part.prefix"/>
+                        <TextField fx:id="partPrefixField"/>
+                        <Label text="%settings.prompt.part.hint"
+                               style="-fx-font-size: 10px; -fx-text-fill: #888;"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="%settings.prompt.final"/>
+                        <TextField fx:id="finalPartField"/>
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="%settings.prompt.separator"/>
+                        <TextField fx:id="fileSeparatorField"/>
+                    </VBox>
                 </VBox>
 
                 <HBox spacing="10">
@@ -61,31 +73,13 @@
 
             </VBox>
 
-            <VBox spacing="10" minWidth="300" VBox.vgrow="ALWAYS">
-                <Label text="%settings.prompt.section" style="-fx-font-weight: bold; font-size: 14px;"/>
-
-                <VBox spacing="5" VBox.vgrow="ALWAYS">
-                    <Label text="%settings.prompt.system"/>
-                    <TextArea fx:id="systemPromptField" VBox.vgrow="ALWAYS" wrapText="true"
-                              promptText="%settings.prompt.system.prompt"/>
-                </VBox>
-
-                <VBox spacing="5">
-                    <Label text="%settings.prompt.part.prefix"/>
-                    <TextField fx:id="partPrefixField"/>
-                    <Label text="%settings.prompt.part.hint"
-                           style="-fx-font-size: 10px; -fx-text-fill: #888;"/>
-                </VBox>
-
-                <VBox spacing="5">
-                    <Label text="%settings.prompt.final"/>
-                    <TextField fx:id="finalPartField"/>
-                </VBox>
-
-                <VBox spacing="5">
-                    <Label text="%settings.prompt.separator"/>
-                    <TextField fx:id="fileSeparatorField"/>
-                </VBox>
+            <VBox spacing="5" prefWidth="300" VBox.vgrow="ALWAYS">
+                <Label text="%settings.excluded.label" style="-fx-font-weight: bold;"/>
+                <ListView fx:id="excludedPatternsList" VBox.vgrow="ALWAYS"/>
+                <HBox spacing="5">
+                    <TextField fx:id="newPatternField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.prompt"/>
+                    <Button text="➕" onAction="#onAddPattern"/>
+                </HBox>
             </VBox>
 
         </HBox>
