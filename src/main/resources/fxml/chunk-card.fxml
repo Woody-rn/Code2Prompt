@@ -11,8 +11,8 @@
     <Label fx:id="fileNameLabel" text="code2prompt_part1.txt" style="-fx-font-weight: bold;"/>
     <Label fx:id="sizeLabel" text="95 234 симв."/>
     <Region HBox.hgrow="ALWAYS"/>
-    <Button fx:id="openButton" text="📂 Открыть" onAction="#onOpen" styleClass="card-button"/>
-    <Button fx:id="copyButton" text="📋 Копировать" onAction="#onCopy" styleClass="card-button"/>
-    <Label fx:id="copiedLabel" text="✓ Скопировано" visible="false" style="-fx-text-fill: green;"/>
+    <Button fx:id="openButton" text="%chunk.open" onAction="#onOpen" styleClass="card-button"/>
+    <Button fx:id="copyButton" text="%chunk.copy" onAction="#onCopy" styleClass="card-button"/>
+    <Label fx:id="copiedLabel" text="%chunk.copied" visible="false" style="-fx-text-fill: green;"/>
 
 </HBox>

@@ -4,102 +4,95 @@
 <?import javafx.scene.layout.*?>
 <DialogPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ru.npepub.ui.SettingsController"
-            prefWidth="750" minWidth="650" prefHeight="600" minHeight="500"
+            prefWidth="750" minWidth="650" prefHeight="520" minHeight="450"
             stylesheets="@../css/style.css">
 
     <content>
         <HBox spacing="20" VBox.vgrow="ALWAYS">
 
-            <!-- ========== ЛЕВАЯ КОЛОНКА ========== -->
             <VBox spacing="15" HBox.hgrow="ALWAYS" minWidth="300" VBox.vgrow="ALWAYS">
 
-                <!-- Модель, Лимит и Запас -->
                 <HBox spacing="10">
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label text="Модель AI:" style="-fx-font-weight: bold;"/>
+                        <Label text="%settings.model.label" style="-fx-font-weight: bold;"/>
                         <ComboBox fx:id="modelCombo" maxWidth="Infinity"/>
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label text="Лимит символов:" style="-fx-font-weight: bold;"/>
+                        <Label text="%settings.limit.label" style="-fx-font-weight: bold;"/>
                         <TextField fx:id="maxSymbolsField"/>
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label text="Запас (%):" style="-fx-font-weight: bold;"/>
+                        <Label text="%settings.margin.label" style="-fx-font-weight: bold;"/>
                         <TextField fx:id="safetyMarginField"/>
                     </VBox>
                 </HBox>
 
-                <!-- Папка вывода -->
                 <VBox spacing="5">
-                    <Label text="Папка вывода по умолчанию:" style="-fx-font-weight: bold;"/>
+                    <Label text="%settings.output.label" style="-fx-font-weight: bold;"/>
                     <HBox spacing="10">
                         <TextField fx:id="defaultOutputPathField" HBox.hgrow="ALWAYS"/>
-                        <Button text="Обзор" onAction="#onBrowseOutput"/>
+                        <Button text="%settings.browse" onAction="#onBrowseOutput"/>
                     </HBox>
                 </VBox>
 
-                <!-- Разработчик -->
                 <VBox spacing="5">
-                    <Label text="Разработчик" style="-fx-font-weight: bold;"/>
+                    <Label text="%settings.dev.label" style="-fx-font-weight: bold;"/>
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <CheckBox fx:id="debugModeCheckBox" text="Режим отладки"/>
-                        <Label text="Уровень логов:"/>
+                        <CheckBox fx:id="debugModeCheckBox" text="%settings.debug"/>
+                        <Label text="%settings.log.level"/>
                         <ComboBox fx:id="devLogLevelCombo" prefWidth="120"/>
                     </HBox>
                 </VBox>
 
-                <!-- Исключённые папки и файлы -->
                 <HBox spacing="10" VBox.vgrow="ALWAYS">
                     <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                        <Label text="Исключённые папки:" style="-fx-font-weight: bold;"/>
+                        <Label text="%settings.excluded.dirs" style="-fx-font-weight: bold;"/>
                         <ListView fx:id="excludedDirsList" VBox.vgrow="ALWAYS"/>
                         <HBox spacing="5">
-                            <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="Название папки"/>
+                            <TextField fx:id="newExcludedDirField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.dir.prompt"/>
                             <Button text="➕" onAction="#onAddExcludedDir"/>
                         </HBox>
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-                        <Label text="Исключённые файлы:" style="-fx-font-weight: bold;"/>
+                        <Label text="%settings.excluded.files" style="-fx-font-weight: bold;"/>
                         <ListView fx:id="excludedFileNamesList" VBox.vgrow="ALWAYS"/>
                         <HBox spacing="5">
-                            <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="Имя файла"/>
+                            <TextField fx:id="newExcludedFileNameField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.file.prompt"/>
                             <Button text="➕" onAction="#onAddExcludedFileName"/>
                         </HBox>
                     </VBox>
                 </HBox>
 
-                <!-- Очистка и сброс -->
                 <HBox spacing="10">
-                    <Button text="🗑 Очистить логи" onAction="#onClearLogs"/>
-                    <Button text="↺ Сбросить все настройки" onAction="#onResetToDefaults"/>
+                    <Button text="%settings.clear.logs" onAction="#onClearLogs"/>
+                    <Button text="%settings.reset.all" onAction="#onResetToDefaults"/>
                 </HBox>
 
             </VBox>
 
-            <!-- ========== ПРАВАЯ КОЛОНКА — ФОРМАТ ПРОМПТА ========== -->
             <VBox spacing="10" minWidth="300" VBox.vgrow="ALWAYS">
-                <Label text="Формат промпта" style="-fx-font-weight: bold; font-size: 14px;"/>
+                <Label text="%settings.prompt.section" style="-fx-font-weight: bold; font-size: 14px;"/>
 
                 <VBox spacing="5" VBox.vgrow="ALWAYS">
-                    <Label text="System prompt:"/>
+                    <Label text="%settings.prompt.system"/>
                     <TextArea fx:id="systemPromptField" VBox.vgrow="ALWAYS" wrapText="true"
-                              promptText="Добавляется к последней части"/>
+                              promptText="%settings.prompt.system.prompt"/>
                 </VBox>
 
                 <VBox spacing="5">
-                    <Label text="Шаблон обычной части:"/>
+                    <Label text="%settings.prompt.part.prefix"/>
                     <TextField fx:id="partPrefixField"/>
-                    <Label text="{part} — номер, {total} — всего частей"
+                    <Label text="%settings.prompt.part.hint"
                            style="-fx-font-size: 10px; -fx-text-fill: #888;"/>
                 </VBox>
 
                 <VBox spacing="5">
-                    <Label text="Шаблон последней части:"/>
+                    <Label text="%settings.prompt.final"/>
                     <TextField fx:id="finalPartField"/>
                 </VBox>
 
                 <VBox spacing="5">
-                    <Label text="Разделитель файлов:"/>
+                    <Label text="%settings.prompt.separator"/>
                     <TextField fx:id="fileSeparatorField"/>
                 </VBox>
             </VBox>
@@ -107,7 +100,7 @@
         </HBox>
     </content>
 
-    <ButtonType text="Сохранить" buttonData="OK_DONE"/>
-    <ButtonType text="Отмена" buttonData="CANCEL_CLOSE"/>
+    <ButtonType text="%settings.save" buttonData="OK_DONE"/>
+    <ButtonType text="%settings.cancel" buttonData="CANCEL_CLOSE"/>
 
 </DialogPane>

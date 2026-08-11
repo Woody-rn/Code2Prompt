@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  * Controller for the settings dialog.
@@ -59,6 +60,7 @@ public class SettingsController {
     private AppConfig config;
     private ObservableList<String> excludedDirs;
     private ObservableList<String> excludedFileNames;
+    private ResourceBundle messages;
 
     private static final Map<String, Integer> MODEL_LIMITS = Map.of(
             "DeepSeek V3", 100_000,
@@ -74,6 +76,7 @@ public class SettingsController {
 
         modelCombo.getItems().addAll(MODEL_LIMITS.keySet());
         modelCombo.setValue(config.aiModel().name());
+        messages = ResourceBundle.getBundle("messages");
 
         modelCombo.setOnAction(e -> {
             String selected = modelCombo.getValue();

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 /**
  * Main dashboard controller.
@@ -61,9 +62,11 @@ public class DashboardController {
     private AppConfig config;
     private ProjectInfo projectInfo;
     private PrepareRequest lastRequest;
+    private ResourceBundle messages;
 
     @FXML
     public void initialize() {
+        messages = ResourceBundle.getBundle("messages");
         config = configPort.load();
         limitField.setText(String.valueOf(config.effectiveLimit()));
         outputPathField.setText(config.paths().outputPath().toString());
@@ -105,13 +108,13 @@ public class DashboardController {
 
     @FXML
     private void onBrowseSource() {
-        File dir = chooseDirectory("Выберите папку с проектом", sourcePathField.getEditor().getText());
+        File dir = chooseDirectory(messages.getString("browse.source.title"), sourcePathField.getEditor().getText());
         if (dir != null) sourcePathField.getEditor().setText(dir.getAbsolutePath());
     }
 
     @FXML
     private void onBrowseOutput() {
-        File dir = chooseDirectory("Выберите папку для сохранения", outputPathField.getText());
+        File dir = chooseDirectory(messages.getString("browse.output.title"), outputPathField.getText());
         if (dir != null) outputPathField.setText(dir.getAbsolutePath());
     }
 
@@ -142,7 +145,7 @@ public class DashboardController {
     @FXML
     private void onStop() {
         pipelineRunner.cancel();
-        setStatusBar("Отмена...");
+        setStatusBar(messages.getString("status.cancelling"));
     }
 
     private void startScanTask(PrepareRequest request) {
@@ -175,18 +178,18 @@ public class DashboardController {
         if (serverLauncher.isRunning()) {
             serverLauncher.stop();
             updateServerUI(false);
-            setStatusBar("Сервер остановлен");
+            setStatusBar(messages.getString("status.server.stopped"));
         } else if (lastRequest != null && projectInfo != null) {
             try {
                 serverLauncher.start(Path.of(lastRequest.outputPath()), projectInfo);
                 updateServerUI(true);
-                setStatusBar("🔒 Сервер запущен на https://localhost:9090");
+                setStatusBar(messages.getString("status.server.started"));
             } catch (Exception e) {
                 log.error("Failed to start HTTPS server", e);
-                setStatusBar("❌ Ошибка запуска сервера: " + e.getMessage(), true);
+                setStatusBar(messages.getString("status.server.error") + " " + e.getMessage(), true);
             }
         } else {
-            setStatusBar("Сначала выполните сканирование", true);
+            setStatusBar(messages.getString("status.scan.first"), true);
         }
     }
 
@@ -199,10 +202,10 @@ public class DashboardController {
 
     private void updateServerUI(boolean running) {
         if (running) {
-            serverButton.setText("⏹ Остановить сервер");
+            serverButton.setText(messages.getString("server.stop.button"));
             serverIndicator.getStyleClass().setAll("server-on");
         } else {
-            serverButton.setText("🚀 Запустить сервер");
+            serverButton.setText(messages.getString("server.start.button"));
             serverIndicator.getStyleClass().setAll("server-off");
         }
     }
@@ -210,18 +213,17 @@ public class DashboardController {
     @FXML
     private void onOpenSettings() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"), messages);
             loader.setControllerFactory(container::createController);
             DialogPane pane = loader.load();
-            SettingsController ctrl = loader.getController();
 
             Dialog<ButtonType> dialog = new Dialog<>();
-            dialog.setTitle("Настройки");
+            dialog.setTitle(messages.getString("settings.title"));
             dialog.setDialogPane(pane);
 
             Optional<ButtonType> result = dialog.showAndWait();
             if (result.isPresent() && result.get().getButtonData() == ButtonBar.ButtonData.OK_DONE) {
-                AppConfig updated = ctrl.getUpdatedConfig();
+                AppConfig updated = ((SettingsController) loader.getController()).getUpdatedConfig();
                 configPort.save(updated);
                 config = updated;
                 applyLogLevel();
@@ -229,7 +231,7 @@ public class DashboardController {
                 outputPathField.setText(config.paths().outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
                 sourcePathField.getItems().setAll(projectHistory.getAll());
-                setStatusBar("Настройки сохранены");
+                setStatusBar(messages.getString("status.saved"));
             }
         } catch (IOException e) {
             log.error("Failed to open settings", e);
@@ -243,7 +245,7 @@ public class DashboardController {
             java.awt.Desktop.getDesktop().open(logDir.toFile());
         } catch (IOException e) {
             log.error("Failed to open logs folder", e);
-            setStatusBar("Не удалось открыть папку с логами", true);
+            setStatusBar(messages.getString("status.logs.open.error"), true);
         }
     }
 
@@ -264,10 +266,10 @@ public class DashboardController {
         try {
             File dir = new File(path);
             if (dir.exists() && dir.isDirectory()) java.awt.Desktop.getDesktop().open(dir);
-            else setStatusBar("Папка не существует", true);
+            else setStatusBar(messages.getString("status.folder.notfound"), true);
         } catch (IOException e) {
             log.error("Failed to open folder: {}", path, e);
-            setStatusBar("Не удалось открыть папку", true);
+            setStatusBar(messages.getString("status.folder.open.error"), true);
         }
     }
 

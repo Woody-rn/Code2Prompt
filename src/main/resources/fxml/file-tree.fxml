@@ -8,20 +8,28 @@
       VBox.vgrow="ALWAYS">
 
     <HBox spacing="2" alignment="CENTER_LEFT">
-        <Label text="Файлы проекта" style="-fx-font-weight: bold;"/>
+        <Label text="%tree.title" style="-fx-font-weight: bold;"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button text="📋" onAction="#onCopyTree" styleClass="small-button">
             <tooltip>
-                <Tooltip text="Копировать структуру"/>
+                <Tooltip text="%tree.copy.structure"/>
             </tooltip>
         </Button>
         <Button text="📄" onAction="#onCopySelectedFiles" styleClass="small-button">
             <tooltip>
-                <Tooltip text="Копировать содержимое выбранных файлов"/>
+                <Tooltip text="%tree.copy.selected"/>
             </tooltip>
         </Button>
-        <Button text="▲" onAction="#onCollapseAll" styleClass="small-button"/>
-        <Button text="▼" onAction="#onExpandAll" styleClass="small-button"/>
+        <Button text="▲" onAction="#onCollapseAll" styleClass="small-button">
+            <tooltip>
+                <Tooltip text="%tree.collapse.all"/>
+            </tooltip>
+        </Button>
+        <Button text="▼" onAction="#onExpandAll" styleClass="small-button">
+            <tooltip>
+                <Tooltip text="%tree.expand.all"/>
+            </tooltip>
+        </Button>
     </HBox>
 
     <TreeView fx:id="fileTree" VBox.vgrow="ALWAYS" prefWidth="250"/>

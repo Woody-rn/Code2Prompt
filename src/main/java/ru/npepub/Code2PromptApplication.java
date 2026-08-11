@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import ru.npepub.di.ContainerDI;
 
 import java.util.Objects;
+import java.util.ResourceBundle;
 
 public class Code2PromptApplication extends Application {
 
@@ -32,17 +33,18 @@ public class Code2PromptApplication extends Application {
     public void start(Stage primaryStage) throws Exception {
         log.info("Starting Code2Prompt");
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dashboard.fxml"));
+        ResourceBundle bundle = ResourceBundle.getBundle("messages");
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dashboard.fxml"), bundle);
         loader.setControllerFactory(container::createController);
 
         Parent root = loader.load();
-        primaryStage.setTitle("Code2Prompt - npepub.ru");
+        primaryStage.setTitle(bundle.getString("app.title"));
 
         Scene scene = new Scene(root);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/style.css")).toExternalForm());
         primaryStage.setScene(scene);
 
-        primaryStage.setScene(scene);
         primaryStage.getIcons().add(new javafx.scene.image.Image(
                 Objects.requireNonNull(getClass().getResourceAsStream("/icon.png"))));
         primaryStage.show();

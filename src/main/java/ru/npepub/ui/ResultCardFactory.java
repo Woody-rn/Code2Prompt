@@ -9,6 +9,7 @@ import ru.npepub.di.api.C2PComponent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ResourceBundle;
 
 /**
  * Creates chunk card UI components for result files.
@@ -23,7 +24,8 @@ public class ResultCardFactory {
      */
     public Node create(Path file) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/chunk-card.fxml"));
+            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/chunk-card.fxml"), bundle);
             Node card = loader.load();
             loader.<ChunkCardController>getController().setFile(file, Files.readString(file).length());
             return card;

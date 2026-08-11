@@ -8,7 +8,7 @@
       stylesheets="@../css/style.css"
       styleClass="root">
 
-    <Label text="Code2Prompt" styleClass="app-title"/>
+    <Label text="%app.title" styleClass="app-title"/>
 
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3">
 
@@ -16,36 +16,36 @@
 
         <VBox spacing="10">
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Папка-источник:" prefWidth="120"/>
-                <ComboBox fx:id="sourcePathField" HBox.hgrow="ALWAYS" editable="true" promptText="Выберите папку с проектом"/>
-                <Button text="Обзор" onAction="#onBrowseSource"/>
-                <Button text="📂" onAction="#onOpenSourceFolder"/>
+                <Label text="%source.label" prefWidth="120"/>
+                <ComboBox fx:id="sourcePathField" HBox.hgrow="ALWAYS" editable="true" promptText="%source.prompt"/>
+                <Button text="%browse.button" onAction="#onBrowseSource"/>
+                <Button text="%open.folder.button" onAction="#onOpenSourceFolder"/>
             </HBox>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Папка вывода:" prefWidth="120"/>
-                <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="Выберите папку для txt-файлов"/>
-                <Button text="Обзор" onAction="#onBrowseOutput"/>
-                <Button text="📂" onAction="#onOpenOutputFolder"/>
+                <Label text="%output.label" prefWidth="120"/>
+                <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="%output.prompt"/>
+                <Button text="%browse.button" onAction="#onBrowseOutput"/>
+                <Button text="%open.folder.button" onAction="#onOpenOutputFolder"/>
             </HBox>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Лимит символов:" prefWidth="120"/>
+                <Label text="%limit.label" prefWidth="120"/>
                 <TextField fx:id="limitField" prefWidth="100" text="95000"/>
-                <Button text="Настройки" onAction="#onOpenSettings" styleClass="settings-button"/>
-                <Button text="📁 Логи" onAction="#onOpenLogs" styleClass="settings-button"/>
-                <Button fx:id="serverButton" text="🚀 Запустить сервер" onAction="#onToggleServer" styleClass="settings-button"/>
+                <Button text="%settings.button" onAction="#onOpenSettings" styleClass="settings-button"/>
+                <Button text="%logs.button" onAction="#onOpenLogs" styleClass="settings-button"/>
+                <Button fx:id="serverButton" text="%server.start.button" onAction="#onToggleServer" styleClass="settings-button"/>
                 <Label fx:id="serverIndicator" text="●"/>
             </HBox>
 
             <HBox spacing="10">
-                <Button fx:id="startButton" text="СТАРТ" onAction="#onStart" styleClass="start-button"/>
-                <Button fx:id="stopButton" text="СТОП" onAction="#onStop" visible="false" styleClass="stop-button"/>
+                <Button fx:id="startButton" text="%start.button" onAction="#onStart" styleClass="start-button"/>
+                <Button fx:id="stopButton" text="%stop.button" onAction="#onStop" visible="false" styleClass="stop-button"/>
             </HBox>
 
             <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
 
-            <Label text="Результаты:" style="-fx-font-weight: bold;"/>
+            <Label text="%results.label" style="-fx-font-weight: bold;"/>
             <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true">
                 <VBox fx:id="resultsBox" spacing="5"/>
             </ScrollPane>
@@ -53,6 +53,6 @@
 
     </SplitPane>
 
-    <Label fx:id="statusLabel" text="Готово" styleClass="status-bar"/>
+    <Label fx:id="statusLabel" text="%status.ready" styleClass="status-bar"/>
 
 </VBox>
