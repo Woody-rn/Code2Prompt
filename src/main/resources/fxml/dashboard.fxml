@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.npepub.ui.DashboardController"
-      prefWidth="900" prefHeight="650"
+      prefWidth="950" prefHeight="650"
       stylesheets="@../css/style.css"
       styleClass="root">
 
@@ -14,7 +14,7 @@
 
         <fx:include fx:id="fileTree" source="file-tree.fxml"/>
 
-        <VBox spacing="10">
+        <VBox spacing="10" styleClass="content-panel">
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="%source.label" prefWidth="120"/>
                 <ComboBox fx:id="sourcePathField" HBox.hgrow="ALWAYS" editable="true" promptText="%source.prompt"/>
@@ -49,7 +49,7 @@
             <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
 
             <Label text="%results.label" style="-fx-font-weight: bold;"/>
-            <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true">
+            <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="results-scroll">
                 <VBox fx:id="resultsBox" spacing="5"/>
             </ScrollPane>
         </VBox>

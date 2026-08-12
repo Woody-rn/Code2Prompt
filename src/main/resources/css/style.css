@@ -222,3 +222,20 @@
     -fx-background-radius: 8px;
     -fx-padding: 6px 10px;
 }
+
+.content-panel {
+    -fx-padding: 0 10px 0 10px;
+}
+
+.results-scroll {
+    -fx-background-color: white;
+    -fx-border-color: #dfe6e9;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 5px;
+}
+
+.results-scroll .viewport {
+    -fx-background-color: white;
+    -fx-background-radius: 12px;
+}
