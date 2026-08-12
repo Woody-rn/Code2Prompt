@@ -16,14 +16,14 @@
 
         <VBox spacing="10" styleClass="content-panel">
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="%source.label" prefWidth="120"/>
+                <Label text="%source.label" styleClass="field-label"/>
                 <ComboBox fx:id="sourcePathField" HBox.hgrow="ALWAYS" editable="true" promptText="%source.prompt"/>
                 <Button text="%browse.button" onAction="#onBrowseSource"/>
                 <Button text="%open.folder.button" onAction="#onOpenSourceFolder"/>
             </HBox>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="%output.label" prefWidth="120"/>
+                <Label text="%output.label" styleClass="field-label"/>
                 <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="%output.prompt"/>
                 <Button text="%browse.button" onAction="#onBrowseOutput"/>
                 <Button text="%open.folder.button" onAction="#onOpenOutputFolder"/>
@@ -40,7 +40,7 @@
 
             <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
 
-            <Label text="%results.label" style="-fx-font-weight: bold;"/>
+            <Label text="%results.label" styleClass="section-label"/>
             <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="results-scroll">
                 <VBox fx:id="resultsBox" spacing="5"/>
             </ScrollPane>

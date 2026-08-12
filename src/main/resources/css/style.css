@@ -40,7 +40,8 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 12px;
-    -fx-padding: 10px 28px;
+    -fx-padding: 8px 28px;
+    -fx-min-height: 36px;
 }
 
 .start-button:hover {
@@ -57,7 +58,8 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 12px;
-    -fx-padding: 10px 28px;
+    -fx-padding: 8px 28px;
+    -fx-min-height: 36px;
 }
 
 .stop-button:hover {
@@ -100,6 +102,7 @@
     -fx-background-radius: 10px;
     -fx-padding: 8px 16px;
     -fx-font-weight: 500;
+    -fx-min-height: 36px;
 }
 
 .settings-button:hover {
@@ -208,11 +211,15 @@
 .server-on {
     -fx-text-fill: #27ae60;
     -fx-font-size: 20px;
+    -fx-min-height: 36px;
+    -fx-alignment: center;
 }
 
 .server-off {
     -fx-text-fill: #e74c3c;
     -fx-font-size: 20px;
+    -fx-min-height: 36px;
+    -fx-alignment: center;
 }
 
 .tooltip {
@@ -264,9 +271,17 @@
 
 .prompt-section {
     -fx-background-color: #ccd4ee;
-    -fx-border-color: #815FC2FF;
+    -fx-border-color: #815FC2;
     -fx-border-radius: 12px;
     -fx-background-radius: 12px;
     -fx-padding: 12px;
     -fx-spacing: 8px;
+}
+
+.section-label {
+    -fx-font-weight: bold;
+}
+
+.field-label {
+    -fx-min-width: 120px;
 }
