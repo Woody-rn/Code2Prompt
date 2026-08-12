@@ -30,16 +30,12 @@
             </HBox>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="%limit.label" prefWidth="120"/>
-                <TextField fx:id="limitField" prefWidth="100" text="95000"/>
+                <Button fx:id="startButton" text="%start.button" onAction="#onStart" styleClass="start-button"/>
+                <Button fx:id="stopButton" text="%stop.button" onAction="#onStop" visible="false" styleClass="stop-button"/>
+                <Region HBox.hgrow="ALWAYS"/>
                 <Button text="%settings.button" onAction="#onOpenSettings" styleClass="settings-button"/>
                 <Button fx:id="serverButton" text="%server.start.button" onAction="#onToggleServer" styleClass="settings-button"/>
                 <Label fx:id="serverIndicator" text="●"/>
-            </HBox>
-
-            <HBox spacing="10">
-                <Button fx:id="startButton" text="%start.button" onAction="#onStart" styleClass="start-button"/>
-                <Button fx:id="stopButton" text="%stop.button" onAction="#onStop" visible="false" styleClass="stop-button"/>
             </HBox>
 
             <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>

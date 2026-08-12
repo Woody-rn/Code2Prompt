@@ -10,9 +10,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.config.AppConfig;
-import ru.npepub.config.ConfigPort;
-import ru.npepub.config.PromptConfig;
+import ru.npepub.config.*;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
@@ -30,10 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Main dashboard controller.
@@ -43,51 +38,28 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML
-    private ComboBox<String> sourcePathField;
-    @FXML
-    private TextField outputPathField;
-    @FXML
-    private TextField limitField;
-    @FXML
-    private ProgressBar progressBar;
-    @FXML
-    private VBox resultsBox;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Button startButton;
-    @FXML
-    private Button stopButton;
-    @FXML
-    private Button serverButton;
-    @FXML
-    private FileTreeController fileTreeController;
-    @FXML
-    private Label serverIndicator;
-    @FXML
-    private TextArea promptField;
-    @FXML
-    private ComboBox<String> taskCombo;
+    @FXML private ComboBox<String> sourcePathField;
+    @FXML private TextField outputPathField;
+    @FXML private ProgressBar progressBar;
+    @FXML private VBox resultsBox;
+    @FXML private Label statusLabel;
+    @FXML private Button startButton;
+    @FXML private Button stopButton;
+    @FXML private Button serverButton;
+    @FXML private FileTreeController fileTreeController;
+    @FXML private Label serverIndicator;
+    @FXML private TextArea promptField;
+    @FXML private ComboBox<String> taskCombo;
 
-    @C2PInject
-    private ConfigPort configPort;
-    @C2PInject
-    private ContainerDI container;
-    @C2PInject
-    private LogWindowPort logWindowManager;
-    @C2PInject
-    private RequestValidator requestValidator;
-    @C2PInject
-    private ScanPipelineRunner pipelineRunner;
-    @C2PInject
-    private ContextServerLauncher serverLauncher;
-    @C2PInject
-    private ProjectHistoryStore projectHistory;
-    @C2PInject
-    private ResultCardFactory resultCardFactory;
-    @C2PInject
-    private TaskTemplateManager templateManager;
+    @C2PInject private ConfigPort configPort;
+    @C2PInject private ContainerDI container;
+    @C2PInject private LogWindowPort logWindowManager;
+    @C2PInject private RequestValidator requestValidator;
+    @C2PInject private ScanPipelineRunner pipelineRunner;
+    @C2PInject private ContextServerLauncher serverLauncher;
+    @C2PInject private ProjectHistoryStore projectHistory;
+    @C2PInject private ResultCardFactory resultCardFactory;
+    @C2PInject private TaskTemplateManager templateManager;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
@@ -98,7 +70,6 @@ public class DashboardController {
     public void initialize() {
         messages = ResourceBundle.getBundle("messages");
         config = configPort.load();
-        limitField.setText(String.valueOf(config.effectiveLimit()));
         outputPathField.setText(config.paths().outputPath().toString());
         logWindowManager.setOnClosed(this::disableDebugMode);
         applyLogLevel();
@@ -235,14 +206,10 @@ public class DashboardController {
     }
 
     @FXML
-    private void onOpenSourceFolder() {
-        openFolder(sourcePathField.getEditor().getText());
-    }
+    private void onOpenSourceFolder() { openFolder(sourcePathField.getEditor().getText()); }
 
     @FXML
-    private void onOpenOutputFolder() {
-        openFolder(outputPathField.getText());
-    }
+    private void onOpenOutputFolder() { openFolder(outputPathField.getText()); }
 
     @FXML
     private void onStart() {
@@ -349,7 +316,6 @@ public class DashboardController {
                 configPort.save(updated);
                 config = updated;
                 applyLogLevel();
-                limitField.setText(String.valueOf(config.effectiveLimit()));
                 outputPathField.setText(config.paths().outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
                 sourcePathField.getItems().setAll(projectHistory.getAll());
@@ -399,13 +365,8 @@ public class DashboardController {
         }
     }
 
-    private void setStatusBar(String text) {
-        setStatusBar(text, false);
-    }
-
-    private void setStatusBar(ValidationError error) {
-        setStatusBar(error.description(), true);
-    }
+    private void setStatusBar(String text) { setStatusBar(text, false); }
+    private void setStatusBar(ValidationError error) { setStatusBar(error.description(), true); }
 
     private void setStatusBar(String text, boolean isError) {
         Platform.runLater(() -> {
@@ -414,9 +375,7 @@ public class DashboardController {
         });
     }
 
-    private Stage getMainStage() {
-        return (Stage) sourcePathField.getScene().getWindow();
-    }
+    private Stage getMainStage() { return (Stage) sourcePathField.getScene().getWindow(); }
 
     private void disableDebugMode() {
         config = new AppConfig(
@@ -436,7 +395,7 @@ public class DashboardController {
         return new PrepareRequest(
                 sourcePathField.getEditor().getText(),
                 outputPathField.getText(),
-                limitField.getText()
+                String.valueOf(config.effectiveLimit())
         );
     }
 
