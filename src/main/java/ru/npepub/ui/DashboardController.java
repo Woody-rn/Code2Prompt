@@ -361,17 +361,6 @@ public class DashboardController {
         }
     }
 
-    @FXML
-    private void onOpenLogs() {
-        try {
-            Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
-            java.awt.Desktop.getDesktop().open(logDir.toFile());
-        } catch (IOException e) {
-            log.error("Failed to open logs folder", e);
-            setStatusBar(messages.getString("status.logs.open.error"), true);
-        }
-    }
-
     private void toggleButtons(boolean running) {
         startButton.setVisible(!running);
         stopButton.setVisible(running);

@@ -33,7 +33,6 @@
                 <Label text="%limit.label" prefWidth="120"/>
                 <TextField fx:id="limitField" prefWidth="100" text="95000"/>
                 <Button text="%settings.button" onAction="#onOpenSettings" styleClass="settings-button"/>
-                <Button text="%logs.button" onAction="#onOpenLogs" styleClass="settings-button"/>
                 <Button fx:id="serverButton" text="%server.start.button" onAction="#onToggleServer" styleClass="settings-button"/>
                 <Label fx:id="serverIndicator" text="●"/>
             </HBox>

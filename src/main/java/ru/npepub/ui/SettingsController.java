@@ -185,6 +185,16 @@ public class SettingsController {
         }
     }
 
+    @FXML
+    private void onOpenLogs() {
+        try {
+            Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
+            java.awt.Desktop.getDesktop().open(logDir.toFile());
+        } catch (IOException e) {
+            log.error("Failed to open logs folder", e);
+        }
+    }
+
     private void applyConfig(AppConfig config) {
         modelCombo.setValue(config.aiModel().name());
         maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
