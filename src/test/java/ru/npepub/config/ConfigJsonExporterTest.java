@@ -36,6 +36,7 @@ class ConfigJsonExporterTest {
         assertThat(restored.prompt().partPrefixTemplate()).isEqualTo(original.prompt().partPrefixTemplate());
         assertThat(restored.prompt().finalPartTemplate()).isEqualTo(original.prompt().finalPartTemplate());
         assertThat(restored.prompt().fileSeparator()).isEqualTo(original.prompt().fileSeparator());
+        assertThat(restored.prompt().customTemplates()).containsExactlyElementsOf(original.prompt().customTemplates());
         assertThat(restored.debugMode()).isEqualTo(original.debugMode());
     }
 
@@ -64,7 +65,8 @@ class ConfigJsonExporterTest {
                 "Проверь \"кавычки\" и \nпереносы",
                 "Шаблон с \\ и \t",
                 "Финал",
-                "===="
+                "====",
+                List.of("Шаблон 1", "Шаблон \"два\"")
         );
         AppConfig config = new AppConfig(
                 AiModelConfig.defaults(),
@@ -80,5 +82,51 @@ class ConfigJsonExporterTest {
 
         assertThat(restored.prompt().systemPrompt()).isEqualTo("Проверь \"кавычки\" и \nпереносы");
         assertThat(restored.prompt().partPrefixTemplate()).isEqualTo("Шаблон с \\ и \t");
+        assertThat(restored.prompt().customTemplates()).containsExactly("Шаблон 1", "Шаблон \"два\"");
+    }
+
+    @Test
+    void shouldHandleEmptyCustomTemplates() {
+        PromptConfig prompt = new PromptConfig("", "", "", "", List.of());
+        AppConfig config = new AppConfig(
+                AiModelConfig.defaults(),
+                PathConfig.defaults(),
+                FilterConfig.defaults(),
+                LogConfig.defaults(),
+                prompt,
+                false
+        );
+
+        String json = exporter.toJson(config);
+        AppConfig restored = exporter.fromJson(json);
+
+        assertThat(restored.prompt().customTemplates()).isEmpty();
+    }
+
+    @Test
+    void shouldHandleMultipleCustomTemplates() {
+        PromptConfig prompt = new PromptConfig("", "", "", "",
+                List.of("Шаблон 1", "Шаблон с / и \\", "Шаблон с \nпереносом"));
+        AppConfig config = new AppConfig(
+                AiModelConfig.defaults(),
+                PathConfig.defaults(),
+                FilterConfig.defaults(),
+                LogConfig.defaults(),
+                prompt,
+                false
+        );
+
+        String json = exporter.toJson(config);
+        AppConfig restored = exporter.fromJson(json);
+
+        assertThat(restored.prompt().customTemplates())
+                .containsExactly("Шаблон 1", "Шаблон с / и \\", "Шаблон с \nпереносом");
+    }
+
+    @Test
+    void shouldHandleWhitespaceInArray() {
+        String json = "{ \"prompt\": { \"customTemplates\": [  \"a\" , \"b\" , \"c\" ] } }";
+        AppConfig config = exporter.fromJson(json);
+        assertThat(config.prompt().customTemplates()).containsExactly("a", "b", "c");
     }
 }

@@ -240,7 +240,8 @@ public class SettingsController {
                         config.prompt().systemPrompt(),
                         partPrefixField.getText(),
                         finalPartField.getText(),
-                        fileSeparatorField.getText()
+                        fileSeparatorField.getText(),
+                        config.prompt().customTemplates()
                 ),
                 debugModeCheckBox.isSelected()
         );

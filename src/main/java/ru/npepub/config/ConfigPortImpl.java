@@ -9,9 +9,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @C2PComponent
 class ConfigPortImpl implements ConfigPort {
@@ -71,6 +70,10 @@ class ConfigPortImpl implements ConfigPort {
         p.setProperty("prompt.partPrefix", c.prompt().partPrefixTemplate());
         p.setProperty("prompt.finalPart", c.prompt().finalPartTemplate());
         p.setProperty("prompt.fileSeparator", c.prompt().fileSeparator());
+        p.setProperty("prompt.custom.templates",
+                c.prompt().customTemplates().entrySet().stream()
+                        .map(e -> escTemplate(e.getKey()) + "::" + escTemplate(e.getValue()))
+                        .collect(Collectors.joining(";;")));
         p.setProperty("debug.mode", String.valueOf(c.debugMode()));
         return p;
     }
@@ -126,8 +129,31 @@ class ConfigPortImpl implements ConfigPort {
                 p.getProperty("prompt.system", PromptConfig.defaults().systemPrompt()),
                 p.getProperty("prompt.partPrefix", PromptConfig.defaults().partPrefixTemplate()),
                 p.getProperty("prompt.finalPart", PromptConfig.defaults().finalPartTemplate()),
-                p.getProperty("prompt.fileSeparator", PromptConfig.defaults().fileSeparator())
+                p.getProperty("prompt.fileSeparator", PromptConfig.defaults().fileSeparator()),
+                loadCustomTemplates(p)
         );
+    }
+
+    private Map<String, String> loadCustomTemplates(Properties p) {
+        String value = p.getProperty("prompt.custom.templates", "");
+        if (value.isEmpty()) return new LinkedHashMap<>();
+        Map<String, String> map = new LinkedHashMap<>();
+        for (String raw : value.split(";;")) {
+            int sep = raw.indexOf("::");
+            if (sep > 0) {
+                map.put(unescTemplate(raw.substring(0, sep)),
+                        unescTemplate(raw.substring(sep + 2)));
+            }
+        }
+        return map;
+    }
+
+    private String escTemplate(String s) {
+        return s.replace("\\", "\\\\").replace("::", "\\::");
+    }
+
+    private String unescTemplate(String s) {
+        return s.replace("\\::", "::").replace("\\\\", "\\");
     }
 
     private List<String> loadList(Properties p, String key, List<String> defaults) {

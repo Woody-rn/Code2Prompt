@@ -38,6 +38,26 @@
                 <Label fx:id="serverIndicator" text="●"/>
             </HBox>
 
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="%task.label" prefWidth="120"/>
+                <ComboBox fx:id="taskCombo" HBox.hgrow="ALWAYS" promptText="%task.custom"/>
+                <Button text="💾" onAction="#onSaveTemplate" styleClass="template-button">
+                    <tooltip>
+                        <Tooltip text="%template.save.tooltip"/>
+                    </tooltip>
+                </Button>
+                <Button text="✏️" onAction="#onEditTemplate" styleClass="template-button">
+                    <tooltip>
+                        <Tooltip text="%template.edit.tooltip"/>
+                    </tooltip>
+                </Button>
+                <Button text="🗑" onAction="#onDeleteTemplate" styleClass="template-button">
+                    <tooltip>
+                        <Tooltip text="%template.delete.tooltip"/>
+                    </tooltip>
+                </Button>
+            </HBox>
+
             <Label text="%prompt.label" style="-fx-font-weight: bold;"/>
             <TextArea fx:id="promptField" prefRowCount="3" wrapText="true" promptText="%prompt.placeholder"/>
 

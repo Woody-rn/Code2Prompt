@@ -10,7 +10,9 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.config.*;
+import ru.npepub.config.AppConfig;
+import ru.npepub.config.ConfigPort;
+import ru.npepub.config.PromptConfig;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
@@ -19,6 +21,7 @@ import ru.npepub.model.ProjectInfo;
 import ru.npepub.ui.coordinator.ContextServerLauncher;
 import ru.npepub.ui.coordinator.ProjectHistoryStore;
 import ru.npepub.ui.coordinator.ScanPipelineRunner;
+import ru.npepub.ui.coordinator.TaskTemplateManager;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.util.ProjectPathResolver;
 import ru.npepub.ui.validation.RequestValidator;
@@ -26,7 +29,9 @@ import ru.npepub.ui.validation.RequestValidator;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -38,27 +43,51 @@ public class DashboardController {
 
     private static final Logger log = LoggerFactory.getLogger(DashboardController.class);
 
-    @FXML private ComboBox<String> sourcePathField;
-    @FXML private TextField outputPathField;
-    @FXML private TextField limitField;
-    @FXML private ProgressBar progressBar;
-    @FXML private VBox resultsBox;
-    @FXML private Label statusLabel;
-    @FXML private Button startButton;
-    @FXML private Button stopButton;
-    @FXML private Button serverButton;
-    @FXML private FileTreeController fileTreeController;
-    @FXML private Label serverIndicator;
-    @FXML private TextArea promptField;
+    @FXML
+    private ComboBox<String> sourcePathField;
+    @FXML
+    private TextField outputPathField;
+    @FXML
+    private TextField limitField;
+    @FXML
+    private ProgressBar progressBar;
+    @FXML
+    private VBox resultsBox;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Button startButton;
+    @FXML
+    private Button stopButton;
+    @FXML
+    private Button serverButton;
+    @FXML
+    private FileTreeController fileTreeController;
+    @FXML
+    private Label serverIndicator;
+    @FXML
+    private TextArea promptField;
+    @FXML
+    private ComboBox<String> taskCombo;
 
-    @C2PInject private ConfigPort configPort;
-    @C2PInject private ContainerDI container;
-    @C2PInject private LogWindowPort logWindowManager;
-    @C2PInject private RequestValidator requestValidator;
-    @C2PInject private ScanPipelineRunner pipelineRunner;
-    @C2PInject private ContextServerLauncher serverLauncher;
-    @C2PInject private ProjectHistoryStore projectHistory;
-    @C2PInject private ResultCardFactory resultCardFactory;
+    @C2PInject
+    private ConfigPort configPort;
+    @C2PInject
+    private ContainerDI container;
+    @C2PInject
+    private LogWindowPort logWindowManager;
+    @C2PInject
+    private RequestValidator requestValidator;
+    @C2PInject
+    private ScanPipelineRunner pipelineRunner;
+    @C2PInject
+    private ContextServerLauncher serverLauncher;
+    @C2PInject
+    private ProjectHistoryStore projectHistory;
+    @C2PInject
+    private ResultCardFactory resultCardFactory;
+    @C2PInject
+    private TaskTemplateManager templateManager;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
@@ -81,6 +110,7 @@ public class DashboardController {
         fileTreeController.setStatusConsumer(this::setStatusBar);
 
         promptField.setText(config.prompt().systemPrompt());
+        buildTaskCombo();
 
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
@@ -89,6 +119,89 @@ public class DashboardController {
         Platform.runLater(() -> {
             Stage stage = getMainStage();
             if (stage != null) stage.setOnCloseRequest(event -> serverLauncher.stop());
+        });
+    }
+
+    private void buildTaskCombo() {
+        taskCombo.getItems().clear();
+        taskCombo.getItems().addAll(templateManager.getBuiltInTaskNames(messages));
+
+        Map<String, String> custom = templateManager.getCustomTemplates();
+        if (!custom.isEmpty()) {
+            taskCombo.getItems().add("──────────");
+            taskCombo.getItems().addAll(custom.keySet());
+        }
+
+        taskCombo.setOnAction(e -> {
+            String selected = taskCombo.getValue();
+            if (selected == null || selected.equals(messages.getString("task.custom"))) {
+                promptField.clear();
+                return;
+            }
+            if (selected.equals("──────────")) return;
+
+            String prompt = templateManager.getPromptForTask(selected, messages);
+            if (prompt != null) {
+                promptField.setText(prompt);
+            }
+        });
+
+        promptField.textProperty().addListener((obs, old, val) -> {
+            Platform.runLater(() -> {
+                String selected = taskCombo.getValue();
+                String expectedPrompt = templateManager.getPromptForTask(selected, messages);
+                if (expectedPrompt == null || !expectedPrompt.equals(val)) {
+                    taskCombo.setValue(messages.getString("task.custom"));
+                }
+            });
+        });
+    }
+
+    @FXML
+    private void onSaveTemplate() {
+        String prompt = promptField.getText();
+        if (prompt == null || prompt.isBlank()) return;
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle(messages.getString("template.save.title"));
+        dialog.setHeaderText(null);
+        dialog.setContentText(messages.getString("template.save.prompt"));
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(name -> {
+            templateManager.saveOrUpdateTemplate(name, prompt);
+            buildTaskCombo();
+            taskCombo.setValue(name);
+        });
+    }
+
+    @FXML
+    private void onEditTemplate() {
+        String selected = taskCombo.getValue();
+        if (selected == null || templateManager.isBuiltIn(selected, messages)) return;
+        String text = templateManager.getCustomTemplates().get(selected);
+        if (text != null) {
+            promptField.setText(text);
+        }
+    }
+
+    @FXML
+    private void onDeleteTemplate() {
+        String selected = taskCombo.getValue();
+        if (selected == null || templateManager.isBuiltIn(selected, messages)) return;
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle(messages.getString("template.delete.confirm"));
+        confirm.setHeaderText(null);
+        confirm.setContentText(MessageFormat.format(messages.getString("template.delete.confirm"), selected));
+
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                templateManager.deleteTemplate(selected);
+                buildTaskCombo();
+                taskCombo.setValue(messages.getString("task.custom"));
+                promptField.clear();
+            }
         });
     }
 
@@ -122,10 +235,14 @@ public class DashboardController {
     }
 
     @FXML
-    private void onOpenSourceFolder() { openFolder(sourcePathField.getEditor().getText()); }
+    private void onOpenSourceFolder() {
+        openFolder(sourcePathField.getEditor().getText());
+    }
 
     @FXML
-    private void onOpenOutputFolder() { openFolder(outputPathField.getText()); }
+    private void onOpenOutputFolder() {
+        openFolder(outputPathField.getText());
+    }
 
     @FXML
     private void onStart() {
@@ -236,6 +353,7 @@ public class DashboardController {
                 outputPathField.setText(config.paths().outputPath().toString());
                 logWindowManager.toggle(config.debugMode(), getMainStage());
                 sourcePathField.getItems().setAll(projectHistory.getAll());
+                buildTaskCombo();
                 setStatusBar(messages.getString("status.saved"));
             }
         } catch (IOException e) {
@@ -284,15 +402,21 @@ public class DashboardController {
             config = new AppConfig(
                     config.aiModel(), config.paths(), config.filter(), config.log(),
                     new PromptConfig(prompt, config.prompt().partPrefixTemplate(),
-                            config.prompt().finalPartTemplate(), config.prompt().fileSeparator()),
+                            config.prompt().finalPartTemplate(), config.prompt().fileSeparator(),
+                            config.prompt().customTemplates()),
                     config.debugMode()
             );
             configPort.save(config);
         }
     }
 
-    private void setStatusBar(String text) { setStatusBar(text, false); }
-    private void setStatusBar(ValidationError error) { setStatusBar(error.description(), true); }
+    private void setStatusBar(String text) {
+        setStatusBar(text, false);
+    }
+
+    private void setStatusBar(ValidationError error) {
+        setStatusBar(error.description(), true);
+    }
 
     private void setStatusBar(String text, boolean isError) {
         Platform.runLater(() -> {
@@ -301,7 +425,9 @@ public class DashboardController {
         });
     }
 
-    private Stage getMainStage() { return (Stage) sourcePathField.getScene().getWindow(); }
+    private Stage getMainStage() {
+        return (Stage) sourcePathField.getScene().getWindow();
+    }
 
     private void disableDebugMode() {
         config = new AppConfig(
