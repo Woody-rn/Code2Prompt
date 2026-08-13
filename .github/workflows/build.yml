@@ -1,0 +1,43 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build portable zip
+        run: gradle clean zipApp --no-daemon
+
+      - name: Find zip
+        id: find_zip
+        shell: bash
+        run: |
+          ZIP_PATH=$(find build/dist -name "*.zip" | head -n 1)
+          echo "zip_path=$ZIP_PATH" >> $GITHUB_OUTPUT
+          echo "zip_name=$(basename $ZIP_PATH)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_zip.outputs.zip_path }}
+          generate_release_notes: true
