@@ -208,18 +208,36 @@
     -fx-border-color: #3498db;
 }
 
-.server-on {
-    -fx-text-fill: #27ae60;
-    -fx-font-size: 20px;
+.server-button-off {
+    -fx-background-color: #b2bec3;
+    -fx-text-fill: #2d3436;
+    -fx-background-radius: 10px;
+    -fx-padding: 8px 16px;
+    -fx-font-weight: 500;
+    -fx-border-color: #e74c3c;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
     -fx-min-height: 36px;
-    -fx-alignment: center;
 }
 
-.server-off {
-    -fx-text-fill: #e74c3c;
-    -fx-font-size: 20px;
+.server-button-off:hover {
+    -fx-background-color: #95a5a6;
+}
+
+.server-button-on {
+    -fx-background-color: #b2bec3;
+    -fx-text-fill: #2d3436;
+    -fx-background-radius: 10px;
+    -fx-padding: 8px 16px;
+    -fx-font-weight: 500;
+    -fx-border-color: #27ae60;
+    -fx-border-width: 2px;
+    -fx-border-radius: 10px;
     -fx-min-height: 36px;
-    -fx-alignment: center;
+}
+
+.server-button-on:hover {
+    -fx-background-color: #95a5a6;
 }
 
 .tooltip {

@@ -49,7 +49,6 @@ public class DashboardController {
     @FXML private Button stopButton;
     @FXML private Button serverButton;
     @FXML private FileTreeController fileTreeController;
-    @FXML private Label serverIndicator;
     @FXML private TextArea promptField;
     @FXML private ComboBox<String> taskCombo;
     @FXML private VBox promptSection;
@@ -296,10 +295,10 @@ public class DashboardController {
     private void updateServerUI(boolean running) {
         if (running) {
             serverButton.setText(messages.getString("server.stop.button"));
-            serverIndicator.getStyleClass().setAll("server-on");
+            serverButton.getStyleClass().setAll("server-button-on");
         } else {
             serverButton.setText(messages.getString("server.start.button"));
-            serverIndicator.getStyleClass().setAll("server-off");
+            serverButton.getStyleClass().setAll("server-button-off");
         }
     }
 
@@ -339,6 +338,16 @@ public class DashboardController {
         pause.setOnFinished(e -> promptSection.getStyleClass().remove("applied"));
         pause.play();
         setStatusBar(messages.getString("status.prompt.applied"));
+    }
+
+    @FXML
+    private void onOpenInBrowser() {
+        try {
+            java.awt.Desktop.getDesktop().browse(java.net.URI.create("https://localhost:9090/project"));
+        } catch (IOException e) {
+            log.error("Failed to open browser", e);
+            setStatusBar(messages.getString("status.browser.open.error"), true);
+        }
     }
 
     private void toggleButtons(boolean running) {

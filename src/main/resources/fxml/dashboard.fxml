@@ -34,8 +34,12 @@
                 <Button fx:id="stopButton" text="%stop.button" onAction="#onStop" visible="false" styleClass="stop-button"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="%settings.button" onAction="#onOpenSettings" styleClass="settings-button"/>
-                <Button fx:id="serverButton" text="%server.start.button" onAction="#onToggleServer" styleClass="settings-button"/>
-                <Label fx:id="serverIndicator" text="●"/>
+                <Button fx:id="serverButton" text="%server.start.button" onAction="#onToggleServer" styleClass="server-button-off"/>
+                <Button text="🌐" onAction="#onOpenInBrowser" styleClass="settings-button">
+                    <tooltip>
+                        <Tooltip text="%server.open.browser.tooltip"/>
+                    </tooltip>
+                </Button>
             </HBox>
 
             <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
