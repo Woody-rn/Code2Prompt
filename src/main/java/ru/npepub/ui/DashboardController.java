@@ -18,10 +18,7 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
 import ru.npepub.model.ProjectInfo;
-import ru.npepub.ui.coordinator.ContextServerLauncher;
-import ru.npepub.ui.coordinator.ProjectHistoryStore;
-import ru.npepub.ui.coordinator.ScanPipelineRunner;
-import ru.npepub.ui.coordinator.TaskTemplateManager;
+import ru.npepub.ui.coordinator.*;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.util.ProjectPathResolver;
 import ru.npepub.ui.validation.RequestValidator;
@@ -62,6 +59,7 @@ public class DashboardController {
     @C2PInject private ProjectHistoryStore projectHistory;
     @C2PInject private ResultCardFactory resultCardFactory;
     @C2PInject private TaskTemplateManager templateManager;
+    @C2PInject private HelpService helpService;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
@@ -348,6 +346,21 @@ public class DashboardController {
             log.error("Failed to open browser", e);
             setStatusBar(messages.getString("status.browser.open.error"), true);
         }
+    }
+
+    @FXML
+    private void onHelp() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(messages.getString("help.title"));
+        alert.setHeaderText(null);
+
+        TextArea textArea = new TextArea(helpService.buildHelpText(messages));
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        textArea.setPrefSize(550, 450);
+
+        alert.getDialogPane().setContent(textArea);
+        alert.showAndWait();
     }
 
     private void toggleButtons(boolean running) {

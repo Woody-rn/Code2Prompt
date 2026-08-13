@@ -8,7 +8,15 @@
       stylesheets="@../css/style.css"
       styleClass="root">
 
-    <Label text="%app.title" styleClass="app-title"/>
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="%app.title" styleClass="app-title"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="%help.button" onAction="#onHelp" styleClass="small-button">
+            <tooltip>
+                <Tooltip text="%help.tooltip"/>
+            </tooltip>
+        </Button>
+    </HBox>
 
     <SplitPane VBox.vgrow="ALWAYS" dividerPositions="0.3">
 
