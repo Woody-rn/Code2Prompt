@@ -44,14 +44,17 @@
 
             <ProgressBar fx:id="progressBar" visible="false" prefWidth="Infinity"/>
 
-            <Label text="%results.label" styleClass="section-label"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="%status.label" styleClass="section-label"/>
+                <Label fx:id="statusLabel" text="%status.ready" styleClass="status-bar"/>
+            </HBox>
             <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="results-scroll">
                 <VBox fx:id="resultsBox" spacing="5"/>
             </ScrollPane>
 
             <Separator/>
 
-            <VBox styleClass="prompt-section" spacing="8" fx:id="promptSection">
+            <VBox styleClass="prompt-section" spacing="8">
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <ComboBox fx:id="taskCombo" HBox.hgrow="ALWAYS" promptText="%task.custom"/>
                     <Button text="💾" onAction="#onSaveTemplate" styleClass="template-button">
@@ -80,7 +83,5 @@
         </VBox>
 
     </SplitPane>
-
-    <Label fx:id="statusLabel" text="%status.ready" styleClass="status-bar"/>
 
 </VBox>
