@@ -47,7 +47,7 @@
 
             <Separator/>
 
-            <VBox styleClass="prompt-section" spacing="8">
+            <VBox styleClass="prompt-section" spacing="8" fx:id="promptSection">
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <ComboBox fx:id="taskCombo" HBox.hgrow="ALWAYS" promptText="%task.custom"/>
                     <Button text="💾" onAction="#onSaveTemplate" styleClass="template-button">
@@ -63,6 +63,11 @@
                     <Button text="🗑" onAction="#onDeleteTemplate" styleClass="template-button">
                         <tooltip>
                             <Tooltip text="%template.delete.tooltip"/>
+                        </tooltip>
+                    </Button>
+                    <Button text="%prompt.apply.button" onAction="#onApplyPrompt" styleClass="apply-button">
+                        <tooltip>
+                            <Tooltip text="%prompt.apply.tooltip"/>
                         </tooltip>
                     </Button>
                 </HBox>

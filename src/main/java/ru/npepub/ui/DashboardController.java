@@ -1,5 +1,6 @@
 package ru.npepub.ui;
 
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,6 +9,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.config.*;
@@ -50,6 +52,7 @@ public class DashboardController {
     @FXML private Label serverIndicator;
     @FXML private TextArea promptField;
     @FXML private ComboBox<String> taskCombo;
+    @FXML private VBox promptSection;
 
     @C2PInject private ConfigPort configPort;
     @C2PInject private ContainerDI container;
@@ -269,6 +272,7 @@ public class DashboardController {
             updateServerUI(false);
             setStatusBar(messages.getString("status.server.stopped"));
         } else if (lastRequest != null && projectInfo != null) {
+            savePromptToConfig();
             try {
                 serverLauncher.start(Path.of(lastRequest.outputPath()), projectInfo);
                 updateServerUI(true);
@@ -327,6 +331,16 @@ public class DashboardController {
         }
     }
 
+    @FXML
+    private void onApplyPrompt() {
+        savePromptToConfig();
+        promptSection.getStyleClass().add("applied");
+        PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
+        pause.setOnFinished(e -> promptSection.getStyleClass().remove("applied"));
+        pause.play();
+        setStatusBar(messages.getString("status.prompt.applied"));
+    }
+
     private void toggleButtons(boolean running) {
         startButton.setVisible(!running);
         stopButton.setVisible(running);
@@ -353,15 +367,17 @@ public class DashboardController {
 
     private void savePromptToConfig() {
         String prompt = promptField.getText();
-        if (prompt != null && !prompt.equals(config.prompt().systemPrompt())) {
+        AppConfig freshConfig = configPort.load();
+        if (prompt != null && !prompt.equals(freshConfig.prompt().systemPrompt())) {
             config = new AppConfig(
-                    config.aiModel(), config.paths(), config.filter(), config.log(),
-                    new PromptConfig(prompt, config.prompt().partPrefixTemplate(),
-                            config.prompt().finalPartTemplate(), config.prompt().fileSeparator(),
-                            config.prompt().customTemplates()),
-                    config.debugMode()
+                    freshConfig.aiModel(), freshConfig.paths(), freshConfig.filter(), freshConfig.log(),
+                    new PromptConfig(prompt, freshConfig.prompt().partPrefixTemplate(),
+                            freshConfig.prompt().finalPartTemplate(), freshConfig.prompt().fileSeparator(),
+                            freshConfig.prompt().customTemplates()),
+                    freshConfig.debugMode()
             );
             configPort.save(config);
+            log.debug("Prompt saved to config");
         }
     }
 

@@ -285,3 +285,28 @@
 .field-label {
     -fx-min-width: 120px;
 }
+
+.apply-button {
+    -fx-padding: 4px 12px;
+    -fx-font-size: 13px;
+    -fx-background-color: #27ae60;
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-font-weight: 500;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+
+.apply-button:hover {
+    -fx-background-color: #2ecc71;
+}
+
+.apply-button:pressed {
+    -fx-background-color: #1e8449;
+    -fx-translate-y: 1px;
+}
+
+.prompt-section.applied {
+    -fx-border-color: #27ae60;
+    -fx-border-width: 2px;
+}

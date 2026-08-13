@@ -19,11 +19,10 @@ function getTextarea() {
 }
 
 /**
- * ✅ Универсальная функция для запросов к серверу
- * использует заголовки для управления кешем, а не параметры в URL
+ * Универсальная функция для запросов к серверу.
+ * Использует заголовки для управления кешем, а не параметры в URL.
  */
 async function apiRequest(endpoint, params = {}) {
-    // Собираем URL только с бизнес-параметрами
     const urlParams = new URLSearchParams(params);
     const url = `${SERVER_URL}${endpoint}${urlParams.toString() ? '?' + urlParams : ''}`;
 
@@ -32,7 +31,6 @@ async function apiRequest(endpoint, params = {}) {
     try {
         const response = await fetch(url, {
             headers: {
-                // ✅ Заголовки для управления кешем
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
                 'Expires': '0'
@@ -55,7 +53,7 @@ async function apiRequest(endpoint, params = {}) {
 }
 
 /**
- * ✅ Загрузить информацию о проекте
+ * Загрузить информацию о проекте.
  */
 async function loadProjectName() {
     try {
@@ -70,23 +68,32 @@ async function loadProjectName() {
 }
 
 /**
- * ✅ Загрузить все части с сервера
+ * Загрузить все части с сервера.
  */
 async function loadPartsFromServer() {
     console.log('🔍 Loading parts from server...');
 
-    // Загружаем первую часть, чтобы узнать total
     const firstPart = await apiRequest('/context/parts', { id: 0 });
     totalParts = firstPart.total;
     allParts = [];
 
-    // Загружаем остальные части
     for (let i = 0; i < totalParts; i++) {
         const part = await apiRequest('/context/parts', { id: i });
         allParts.push(part);
     }
 
     console.log(`✅ Loaded ${totalParts} parts`);
+}
+
+/**
+ * Перезагрузить части с сервера. Используется при ручной навигации.
+ */
+async function refreshAllParts() {
+    try {
+        await loadPartsFromServer();
+    } catch(e) {
+        console.warn('⚠️ Не удалось обновить части:', e);
+    }
 }
 
 // ========== ПАНЕЛЬ УПРАВЛЕНИЯ ==========
@@ -196,9 +203,10 @@ function createPanel() {
         }
     });
 
-    prevBtn.addEventListener('click', () => {
+    prevBtn.addEventListener('click', async () => {
         if (allParts.length === 0) return;
         if (currentPart > 0) {
+            await refreshAllParts();
             currentPart--;
             updateQueue();
             showPartInTextarea();
@@ -206,9 +214,10 @@ function createPanel() {
         }
     });
 
-    nextBtn.addEventListener('click', () => {
+    nextBtn.addEventListener('click', async () => {
         if (allParts.length === 0) return;
         if (currentPart < totalParts - 1) {
+            await refreshAllParts();
             currentPart++;
             updateQueue();
             showPartInTextarea();
@@ -444,26 +453,11 @@ async function loadParts() {
 async function refreshDataAndSend() {
     setStatus('Обновление данных...');
     try {
-        const firstPart = await apiRequest('/context/parts', { id: 0 });
-        const newTotal = firstPart.total;
-
-        if (newTotal !== totalParts) {
-            console.log(`🔄 Code2Prompt: обновлено ${totalParts} → ${newTotal} частей`);
-            totalParts = newTotal;
-            allParts = [];
-
-            for (let i = 0; i < totalParts; i++) {
-                const part = await apiRequest('/context/parts', { id: i });
-                allParts.push(part);
-            }
-
-            currentPart = 0;
-            updateQueue();
-            await loadProjectName();
-            setStatus(`Обновлено. ${totalParts} частей`);
-        } else {
-            setStatus('Данные актуальны. ' + totalParts + ' частей');
-        }
+        await loadPartsFromServer();
+        currentPart = 0;
+        updateQueue();
+        await loadProjectName();
+        setStatus('Обновлено. ' + totalParts + ' частей');
 
         isSending = true;
         updateButton();
