@@ -18,6 +18,7 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
 import ru.npepub.model.ProjectInfo;
+import ru.npepub.update.VersionChecker;
 import ru.npepub.ui.coordinator.*;
 import ru.npepub.ui.log.LogWindowPort;
 import ru.npepub.ui.util.ProjectPathResolver;
@@ -25,6 +26,7 @@ import ru.npepub.ui.validation.RequestValidator;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.*;
@@ -60,6 +62,7 @@ public class DashboardController {
     @C2PInject private ResultCardFactory resultCardFactory;
     @C2PInject private TaskTemplateManager templateManager;
     @C2PInject private HelpService helpService;
+    @C2PInject private VersionChecker versionChecker;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
@@ -90,7 +93,30 @@ public class DashboardController {
         Platform.runLater(() -> {
             Stage stage = getMainStage();
             if (stage != null) stage.setOnCloseRequest(event -> serverLauncher.stop());
+            checkForUpdates();
         });
+    }
+
+    private void checkForUpdates() {
+        VersionChecker.UpdateInfo update = versionChecker.check();
+        if (update.updateAvailable()) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(messages.getString("update.title"));
+            alert.setHeaderText(MessageFormat.format(messages.getString("update.header"), update.version()));
+            alert.setContentText(messages.getString("update.content"));
+            ButtonType download = new ButtonType(messages.getString("update.download"));
+            ButtonType later = new ButtonType(messages.getString("update.later"));
+            alert.getButtonTypes().setAll(download, later);
+            alert.showAndWait().ifPresent(btn -> {
+                if (btn == download) {
+                    try {
+                        java.awt.Desktop.getDesktop().browse(URI.create(update.url()));
+                    } catch (IOException e) {
+                        log.error("Failed to open browser", e);
+                    }
+                }
+            });
+        }
     }
 
     private void buildTaskCombo() {

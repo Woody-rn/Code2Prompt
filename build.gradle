@@ -39,10 +39,6 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 
-test {
-    useJUnitPlatform()
-}
-
 tasks.register('fatJar', Jar) {
     archiveClassifier = 'all'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -90,4 +86,20 @@ tasks.register('zipApp', Zip) {
     }
     archiveFileName = "Code2Prompt-${version}-portable.zip"
     destinationDirectory = layout.buildDirectory.dir("dist")
+}
+
+tasks.register('generateVersionFile') {
+    def versionFile = layout.buildDirectory.file('generated-resources/version.properties')
+    outputs.file(versionFile)
+    doLast {
+        versionFile.get().asFile.parentFile.mkdirs()
+        versionFile.get().asFile.text = "app.version=${project.version}\ngithub.api.url=https://api.github.com/repos/Woody-rn/Code2Prompt/releases/latest\n"
+    }
+}
+
+sourceSets.main.resources.srcDir layout.buildDirectory.dir('generated-resources')
+processResources.dependsOn generateVersionFile
+
+test {
+    useJUnitPlatform()
 }
