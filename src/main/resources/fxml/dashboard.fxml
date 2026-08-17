@@ -39,10 +39,12 @@
 
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Button fx:id="startButton" text="%start.button" onAction="#onStart" styleClass="start-button"/>
-                <Button fx:id="stopButton" text="%stop.button" onAction="#onStop" visible="false" styleClass="stop-button"/>
+                <Button fx:id="stopButton" text="%stop.button" onAction="#onStop" visible="false"
+                        styleClass="stop-button"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="%settings.button" onAction="#onOpenSettings" styleClass="settings-button"/>
-                <Button fx:id="serverButton" text="%server.start.button" onAction="#onToggleServer" styleClass="server-button-off"/>
+                <Button fx:id="serverButton" text="%server.start.button" onAction="#onToggleServer"
+                        styleClass="server-button-off"/>
                 <Button text="🌐" onAction="#onOpenInBrowser" styleClass="settings-button">
                     <tooltip>
                         <Tooltip text="%server.open.browser.tooltip"/>
@@ -62,7 +64,7 @@
 
             <Separator/>
 
-            <VBox styleClass="prompt-section" spacing="8">
+            <VBox fx:id="promptSection" styleClass="prompt-section" spacing="8">
                 <HBox spacing="10" alignment="CENTER_LEFT">
                     <ComboBox fx:id="taskCombo" HBox.hgrow="ALWAYS" promptText="%task.custom"/>
                     <Button text="💾" onAction="#onSaveTemplate" styleClass="template-button">
