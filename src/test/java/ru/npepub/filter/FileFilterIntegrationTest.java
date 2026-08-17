@@ -16,6 +16,7 @@ class FileFilterIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        System.setProperty("user.home", System.getProperty("java.io.tmpdir") + "/c2p-test");
         ContainerDI container = new ContainerDI();
         filter = container.get(FileFilter.class);
     }

@@ -25,7 +25,8 @@ class ExcludedDirFilter implements FileFilter {
         Set<String> excluded = new HashSet<>(config.filter().excludedDirs());
 
         for (Path part : filePath) {
-            if (excluded.contains(part.toString())) {
+            String name = part.toString();
+            if (excluded.contains(name) || excluded.contains(name + "/")) {
                 return false;
             }
         }
