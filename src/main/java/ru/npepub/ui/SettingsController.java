@@ -231,7 +231,7 @@ public class SettingsController {
         }
 
         return new AppConfig(
-                new AiModelConfig(
+                new ModelLimitConfig(
                         modelCombo.getValue(),
                         Integer.parseInt(maxSymbolsField.getText()),
                         Double.parseDouble(safetyMarginField.getText()) / 100.0

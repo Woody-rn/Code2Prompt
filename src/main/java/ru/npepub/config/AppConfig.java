@@ -4,7 +4,7 @@ package ru.npepub.config;
  * Application configuration.
  */
 public record AppConfig(
-        AiModelConfig aiModel,
+        ModelLimitConfig aiModel,
         PathConfig paths,
         FilterConfig filter,
         LogConfig log,
@@ -18,7 +18,7 @@ public record AppConfig(
 
     public static AppConfig defaults() {
         return new AppConfig(
-                AiModelConfig.defaults(),
+                ModelLimitConfig.defaults(),
                 PathConfig.defaults(),
                 FilterConfig.defaults(),
                 LogConfig.defaults(),

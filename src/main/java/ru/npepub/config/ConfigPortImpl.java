@@ -89,13 +89,13 @@ class ConfigPortImpl implements ConfigPort {
         );
     }
 
-    private AiModelConfig loadAiModel(Properties p) {
-        return new AiModelConfig(
-                p.getProperty("ai.model.name", AiModelConfig.defaults().name()),
+    private ModelLimitConfig loadAiModel(Properties p) {
+        return new ModelLimitConfig(
+                p.getProperty("ai.model.name", ModelLimitConfig.defaults().name()),
                 Integer.parseInt(p.getProperty("ai.model.maxSymbols",
-                        String.valueOf(AiModelConfig.defaults().maxSymbols()))),
+                        String.valueOf(ModelLimitConfig.defaults().maxSymbols()))),
                 Double.parseDouble(p.getProperty("ai.model.safetyMargin",
-                        String.valueOf(AiModelConfig.defaults().safetyMargin())))
+                        String.valueOf(ModelLimitConfig.defaults().safetyMargin())))
         );
     }
 

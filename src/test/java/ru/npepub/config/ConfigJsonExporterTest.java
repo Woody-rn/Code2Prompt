@@ -45,7 +45,7 @@ class ConfigJsonExporterTest {
     @Test
     void shouldHandleEmptyArrays() {
         AppConfig config = new AppConfig(
-                AiModelConfig.defaults(),
+                ModelLimitConfig.defaults(),
                 PathConfig.defaults(),
                 new FilterConfig(List.of(), List.of(), List.of()),
                 LogConfig.defaults(),
@@ -75,7 +75,7 @@ class ConfigJsonExporterTest {
                 templates
         );
         AppConfig config = new AppConfig(
-                AiModelConfig.defaults(),
+                ModelLimitConfig.defaults(),
                 PathConfig.defaults(),
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
@@ -95,7 +95,7 @@ class ConfigJsonExporterTest {
     void shouldHandleEmptyCustomTemplates() {
         PromptConfig prompt = new PromptConfig("", "", "", "", new LinkedHashMap<>());
         AppConfig config = new AppConfig(
-                AiModelConfig.defaults(),
+                ModelLimitConfig.defaults(),
                 PathConfig.defaults(),
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
@@ -118,7 +118,7 @@ class ConfigJsonExporterTest {
 
         PromptConfig prompt = new PromptConfig("", "", "", "", templates);
         AppConfig config = new AppConfig(
-                AiModelConfig.defaults(),
+                ModelLimitConfig.defaults(),
                 PathConfig.defaults(),
                 FilterConfig.defaults(),
                 LogConfig.defaults(),

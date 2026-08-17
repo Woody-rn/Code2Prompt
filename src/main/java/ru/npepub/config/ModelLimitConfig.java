@@ -3,7 +3,7 @@ package ru.npepub.config;
 /**
  * AI model settings.
  */
-public record AiModelConfig(
+public record ModelLimitConfig(
         String name,
         int maxSymbols,
         double safetyMargin
@@ -13,7 +13,7 @@ public record AiModelConfig(
         return (int) (maxSymbols * (1 - safetyMargin));
     }
 
-    public static AiModelConfig defaults() {
-        return new AiModelConfig("DeepSeek V3", 100_000, 0.05);
+    public static ModelLimitConfig defaults() {
+        return new ModelLimitConfig("DeepSeek V3", 100_000, 0.05);
     }
 }

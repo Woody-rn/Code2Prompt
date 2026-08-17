@@ -55,7 +55,7 @@ public class ConfigJsonExporter {
      */
     public AppConfig fromJson(String json) {
         return new AppConfig(
-                new AiModelConfig(
+                new ModelLimitConfig(
                         extractString(json, "name"),
                         extractInt(json, "maxSymbols", 100000),
                         extractDouble(json, "safetyMargin", 0.05)
