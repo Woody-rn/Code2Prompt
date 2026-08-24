@@ -12,9 +12,7 @@ public record AppConfig(
         boolean oneFilePerChunk,
         boolean debugMode
 ) {
-    /**
-     * Convenience accessor for effective model limit.
-     */
+    /** Convenience accessor for effective model limit. */
     public int effectiveLimit() {
         return aiModel.effectiveLimit();
     }
@@ -29,5 +27,15 @@ public record AppConfig(
                 false,
                 false
         );
+    }
+
+    /** Returns a copy with a new paths config. */
+    public AppConfig withPaths(PathConfig newPaths) {
+        return new AppConfig(aiModel, newPaths, filter, log, prompt, oneFilePerChunk, debugMode);
+    }
+
+    /** Returns a copy with a new prompt config. */
+    public AppConfig withPrompt(PromptConfig newPrompt) {
+        return new AppConfig(aiModel, paths, filter, log, newPrompt, oneFilePerChunk, debugMode);
     }
 }

@@ -59,8 +59,6 @@ class ConfigPortImpl implements ConfigPort {
         p.setProperty("ai.model.maxSymbols", String.valueOf(c.aiModel().maxSymbols()));
         p.setProperty("ai.model.safetyMargin", String.valueOf(c.aiModel().safetyMargin()));
         p.setProperty("paths.output", c.paths().outputPath().toString());
-        p.setProperty("paths.recent", String.join(";", c.paths().recentProjects()));
-        p.setProperty("paths.recent.count", String.valueOf(c.paths().recentProjectsCount()));
         p.setProperty("filter.excluded.dirs", String.join(";", c.filter().excludedDirs()));
         p.setProperty("filter.excluded.files", String.join(";", c.filter().excludedFileNames()));
         p.setProperty("filter.patterns", String.join(";", c.filter().patterns()));
@@ -106,8 +104,7 @@ class ConfigPortImpl implements ConfigPort {
                 .filter(s -> !s.isEmpty()).toList();
         int recentCount = Integer.parseInt(p.getProperty("paths.recent.count", "10"));
         return new PathConfig(
-                Path.of(p.getProperty("paths.output", PathConfig.defaults().outputPath().toString())),
-                recent, recentCount
+                Path.of(p.getProperty("paths.output", PathConfig.defaults().outputPath().toString()))
         );
     }
 

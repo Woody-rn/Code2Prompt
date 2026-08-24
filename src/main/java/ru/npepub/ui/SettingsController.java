@@ -254,9 +254,7 @@ public class SettingsController {
                         Double.parseDouble(safetyMarginField.getText()) / 100.0
                 ),
                 new PathConfig(
-                        Path.of(defaultOutputPathField.getText()),
-                        config.paths().recentProjects(),
-                        config.paths().recentProjectsCount()
+                        Path.of(defaultOutputPathField.getText())
                 ),
                 new FilterConfig(dirs, files, patterns),
                 new LogConfig(

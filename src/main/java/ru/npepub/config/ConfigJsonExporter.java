@@ -59,8 +59,7 @@ public class ConfigJsonExporter {
                         extractDouble(json, "safetyMargin", 0.05)
                 ),
                 new PathConfig(
-                        Path.of(extractString(json, "outputPath")),
-                        List.of(), 10
+                        Path.of(extractString(json, "outputPath"))
                 ),
                 new FilterConfig(
                         Set.copyOf(extractArray(json, "excludedDirs")),
