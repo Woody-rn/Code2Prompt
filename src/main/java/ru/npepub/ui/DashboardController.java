@@ -418,14 +418,13 @@ public class DashboardController {
         String prompt = promptField.getText();
         AppConfig freshConfig = configPort.load();
         if (prompt != null && !prompt.equals(freshConfig.prompt().systemPrompt())) {
-            config = new AppConfig(
-                    freshConfig.aiModel(), freshConfig.paths(), freshConfig.filter(), freshConfig.log(),
-                    new PromptConfig(prompt, freshConfig.prompt().partPrefixTemplate(),
-                            freshConfig.prompt().finalPartTemplate(), freshConfig.prompt().fileSeparator(),
-                            freshConfig.prompt().customTemplates()),
-                    freshConfig.oneFilePerChunk(),
-                    freshConfig.debugMode()
-            );
+            config = freshConfig.withPrompt(new PromptConfig(
+                    prompt,
+                    freshConfig.prompt().partPrefixTemplate(),
+                    freshConfig.prompt().finalPartTemplate(),
+                    freshConfig.prompt().fileSeparator(),
+                    freshConfig.prompt().customTemplates()
+            ));
             configPort.save(config);
             log.debug("Prompt saved to config");
         }
@@ -444,12 +443,7 @@ public class DashboardController {
     private Stage getMainStage() { return (Stage) sourcePathField.getScene().getWindow(); }
 
     private void disableDebugMode() {
-        config = new AppConfig(
-                config.aiModel(), config.paths(), config.filter(), config.log(),
-                config.prompt(),
-                config.oneFilePerChunk(),
-                false
-        );
+        config = config.withDebugMode(false);
         configPort.save(config);
     }
 

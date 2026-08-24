@@ -78,15 +78,12 @@ public class TaskTemplateManager {
     }
 
     private AppConfig withTemplates(AppConfig config, Map<String, String> templates) {
-        return new AppConfig(
-                config.aiModel(), config.paths(), config.filter(), config.log(),
-                new PromptConfig(config.prompt().systemPrompt(),
-                        config.prompt().partPrefixTemplate(),
-                        config.prompt().finalPartTemplate(),
-                        config.prompt().fileSeparator(),
-                        templates),
-                config.oneFilePerChunk(),
-                config.debugMode()
-        );
+        return config.withPrompt(new PromptConfig(
+                config.prompt().systemPrompt(),
+                config.prompt().partPrefixTemplate(),
+                config.prompt().finalPartTemplate(),
+                config.prompt().fileSeparator(),
+                templates
+        ));
     }
 }

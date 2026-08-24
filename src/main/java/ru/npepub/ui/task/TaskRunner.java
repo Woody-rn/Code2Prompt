@@ -31,6 +31,7 @@ public class TaskRunner {
                     Consumer<String> onProgress,
                     Consumer<Path> onEachResult,
                     Runnable onComplete) {
+        cancelled.set(false);
         new Thread(() -> {
             try {
                 List<Path> results = action.execute(

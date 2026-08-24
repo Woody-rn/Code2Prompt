@@ -98,9 +98,6 @@ class ConfigPortImpl implements ConfigPort {
     }
 
     private PathConfig loadPaths(Properties p) {
-        List<String> recent = Arrays.stream(p.getProperty("paths.recent", "").split(";"))
-                .filter(s -> !s.isEmpty()).toList();
-        int recentCount = Integer.parseInt(p.getProperty("paths.recent.count", "10"));
         return new PathConfig(
                 Path.of(p.getProperty("paths.output", PathConfig.defaults().outputPath().toString()))
         );

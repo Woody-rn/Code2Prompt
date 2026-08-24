@@ -118,9 +118,14 @@ class FileAggregatorImpl implements FileAggregator {
     }
 
     private List<FileInfo> splitFile(FileInfo file, int symbolLimit, int headerSize) {
+        int partLimit = symbolLimit - headerSize - 100;
+        if (partLimit <= 0) {
+            log.warn("Part limit is too small for file: {}", file.relativePath());
+            return List.of(file);
+        }
+
         List<FileInfo> parts = new ArrayList<>();
         String content = file.content();
-        int partLimit = symbolLimit - headerSize - 100;
         int totalParts = (int) Math.ceil((double) content.length() / partLimit);
 
         for (int i = 0; i < totalParts; i++) {

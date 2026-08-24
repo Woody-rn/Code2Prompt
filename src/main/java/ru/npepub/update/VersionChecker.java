@@ -59,7 +59,7 @@ public class VersionChecker {
                 return new UpdateInfo(null, null, false);
             }
 
-            boolean available = !latestVersion.get().equals(currentVersion.get());
+            boolean available = compareVersions(latestVersion.get(), currentVersion.get()) > 0;
             return new UpdateInfo(latestVersion.get(), url.get(), available);
         } catch (IOException | InterruptedException e) {
             log.warn("Failed to check for updates: {}", e.getMessage());
@@ -102,5 +102,17 @@ public class VersionChecker {
         int start = json.indexOf("\"", idx + 11) + 1;
         int end = json.indexOf("\"", start);
         return Optional.of(json.substring(start, end));
+    }
+
+    private int compareVersions(String v1, String v2) {
+        String[] parts1 = v1.split("\\.");
+        String[] parts2 = v2.split("\\.");
+        int max = Math.max(parts1.length, parts2.length);
+        for (int i = 0; i < max; i++) {
+            int n1 = i < parts1.length ? Integer.parseInt(parts1[i]) : 0;
+            int n2 = i < parts2.length ? Integer.parseInt(parts2[i]) : 0;
+            if (n1 != n2) return Integer.compare(n1, n2);
+        }
+        return 0;
     }
 }

@@ -38,4 +38,17 @@ public record AppConfig(
     public AppConfig withPrompt(PromptConfig newPrompt) {
         return new AppConfig(aiModel, paths, filter, log, newPrompt, oneFilePerChunk, debugMode);
     }
+
+    public AppConfig withFilter(FilterConfig newFilter) {
+        return new AppConfig(aiModel, paths, newFilter, log, prompt, oneFilePerChunk, debugMode);
+    }
+
+    public AppConfig withLog(LogConfig newLog) {
+        return new AppConfig(aiModel, paths, filter, newLog, prompt, oneFilePerChunk, debugMode);
+    }
+
+    public AppConfig withDebugMode(boolean newDebugMode) {
+        return new AppConfig(aiModel, paths, filter, log, prompt, oneFilePerChunk, newDebugMode);
+    }
+
 }
