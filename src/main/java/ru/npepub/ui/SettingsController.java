@@ -15,10 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Controller for the settings dialog.
@@ -99,6 +96,14 @@ public class SettingsController {
         return all;
     }
 
+    private List<String> mergeDefaults(Set<String> dirs, Set<String> files, Set<String> patterns) {
+        List<String> all = new ArrayList<>();
+        dirs.stream().sorted().forEach(d -> all.add(d + "/"));
+        files.stream().sorted().forEach(all::add);
+        patterns.stream().sorted().forEach(all::add);
+        return all;
+    }
+
     @FXML
     private void onAddPattern() {
         String input = newPatternField.getText().trim();
@@ -140,14 +145,6 @@ public class SettingsController {
         partPrefixField.setText(defaults.prompt().partPrefixTemplate());
         finalPartField.setText(defaults.prompt().finalPartTemplate());
         fileSeparatorField.setText(defaults.prompt().fileSeparator());
-    }
-
-    private List<String> mergeDefaults(List<String> dirs, List<String> files, List<String> patterns) {
-        List<String> all = new ArrayList<>();
-        dirs.stream().sorted().forEach(d -> all.add(d + "/"));
-        files.stream().sorted().forEach(all::add);
-        patterns.stream().sorted().forEach(all::add);
-        return all;
     }
 
     @FXML
@@ -216,9 +213,9 @@ public class SettingsController {
 
     /** Returns updated config from the form values. */
     public AppConfig getUpdatedConfig() {
-        List<String> dirs = new ArrayList<>();
-        List<String> files = new ArrayList<>();
-        List<String> patterns = new ArrayList<>();
+        Set<String> dirs = new HashSet<>();
+        Set<String> files = new HashSet<>();
+        Set<String> patterns = new HashSet<>();
 
         for (String item : excludedPatterns) {
             if (item.endsWith("/")) {
@@ -253,7 +250,7 @@ public class SettingsController {
                         fileSeparatorField.getText(),
                         config.prompt().customTemplates()
                 ),
-                debugModeCheckBox.isSelected()
+                config.debugMode()
         );
     }
 }

@@ -110,10 +110,18 @@ class ConfigPortImpl implements ConfigPort {
     }
 
     private FilterConfig loadFilter(Properties p) {
-        List<String> dirs = loadList(p, "filter.excluded.dirs", FilterConfig.defaults().excludedDirs());
-        List<String> files = loadList(p, "filter.excluded.files", FilterConfig.defaults().excludedFileNames());
-        List<String> patterns = loadList(p, "filter.patterns", FilterConfig.defaults().patterns());
+        Set<String> dirs = loadSet(p, "filter.excluded.dirs", FilterConfig.defaults().excludedDirs());
+        Set<String> files = loadSet(p, "filter.excluded.files", FilterConfig.defaults().excludedFileNames());
+        Set<String> patterns = loadSet(p, "filter.patterns", FilterConfig.defaults().patterns());
         return new FilterConfig(dirs, files, patterns);
+    }
+
+    private Set<String> loadSet(Properties p, String key, Set<String> defaults) {
+        String value = p.getProperty(key, "");
+        if (value.isEmpty()) return defaults;
+        return Arrays.stream(value.split(";"))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
     }
 
     private LogConfig loadLog(Properties p) {

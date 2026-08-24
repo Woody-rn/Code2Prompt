@@ -3,10 +3,7 @@ package ru.npepub.config;
 import ru.npepub.di.api.C2PComponent;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -65,9 +62,9 @@ public class ConfigJsonExporter {
                         List.of(), 10
                 ),
                 new FilterConfig(
-                        extractArray(json, "excludedDirs"),
-                        extractArray(json, "excludedFileNames"),
-                        extractArray(json, "patterns")
+                        Set.copyOf(extractArray(json, "excludedDirs")),
+                        Set.copyOf(extractArray(json, "excludedFileNames")),
+                        Set.copyOf(extractArray(json, "patterns"))
                 ),
                 new LogConfig(
                         LogConfig.LogLevel.valueOf(extractString(json, "level", "INFO")),
@@ -273,9 +270,9 @@ public class ConfigJsonExporter {
                 .replace("\t", "\\t");
     }
 
-    private String toJsonArray(List<String> list) {
-        if (list.isEmpty()) return "[]";
-        return "[" + list.stream()
+    private String toJsonArray(Set<String> set) {
+        if (set.isEmpty()) return "[]";
+        return "[" + set.stream()
                 .map(s -> "\"" + esc(s) + "\"")
                 .collect(Collectors.joining(", ")) + "]";
     }

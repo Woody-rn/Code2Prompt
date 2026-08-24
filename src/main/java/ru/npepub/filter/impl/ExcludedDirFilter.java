@@ -7,7 +7,6 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.filter.FileFilter;
 
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -22,7 +21,7 @@ class ExcludedDirFilter implements FileFilter {
     @Override
     public boolean shouldInclude(Path filePath) {
         AppConfig config = configPort.load();
-        Set<String> excluded = new HashSet<>(config.filter().excludedDirs());
+        Set<String> excluded = config.filter().excludedDirs();
 
         for (Path part : filePath) {
             String name = part.toString();

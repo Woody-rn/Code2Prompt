@@ -7,6 +7,7 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.filter.FileFilter;
 
 import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * Excludes files with sensitive or unwanted names.
@@ -20,7 +21,8 @@ class FileNameFilter implements FileFilter {
     @Override
     public boolean shouldInclude(Path filePath) {
         AppConfig config = configPort.load();
+        Set<String> excluded = config.filter().excludedFileNames();
         String fileName = filePath.getFileName().toString();
-        return !config.filter().excludedFileNames().contains(fileName);
+        return !excluded.contains(fileName);
     }
 }

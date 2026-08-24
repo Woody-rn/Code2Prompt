@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,9 +30,9 @@ class ConfigJsonExporterTest {
         assertThat(restored.aiModel().maxSymbols()).isEqualTo(original.aiModel().maxSymbols());
         assertThat(restored.aiModel().safetyMargin()).isEqualTo(original.aiModel().safetyMargin());
         assertThat(restored.paths().outputPath()).isEqualTo(original.paths().outputPath());
-        assertThat(restored.filter().excludedDirs()).containsExactlyElementsOf(original.filter().excludedDirs());
-        assertThat(restored.filter().excludedFileNames()).containsExactlyElementsOf(original.filter().excludedFileNames());
-        assertThat(restored.filter().patterns()).containsExactlyElementsOf(original.filter().patterns());
+        assertThat(restored.filter().excludedDirs()).containsExactlyInAnyOrderElementsOf(original.filter().excludedDirs());
+        assertThat(restored.filter().excludedFileNames()).containsExactlyInAnyOrderElementsOf(original.filter().excludedFileNames());
+        assertThat(restored.filter().patterns()).containsExactlyInAnyOrderElementsOf(original.filter().patterns());
         assertThat(restored.log().level()).isEqualTo(original.log().level());
         assertThat(restored.log().errorEnabled()).isEqualTo(original.log().errorEnabled());
         assertThat(restored.prompt().systemPrompt()).isEqualTo(original.prompt().systemPrompt());
@@ -47,7 +48,7 @@ class ConfigJsonExporterTest {
         AppConfig config = new AppConfig(
                 ModelLimitConfig.defaults(),
                 PathConfig.defaults(),
-                new FilterConfig(List.of(), List.of(), List.of()),
+                new FilterConfig(Set.of(), Set.of(), Set.of()),
                 LogConfig.defaults(),
                 PromptConfig.defaults(),
                 false
