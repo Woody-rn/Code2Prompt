@@ -17,10 +17,8 @@ class ConfigPortImpl implements ConfigPort {
 
     private static final Logger log = LoggerFactory.getLogger(ConfigPortImpl.class);
 
-    private static final Path CONFIG_DIR = Path.of(
-            System.getProperty("user.home"), ".code2prompt", "config"
-    );
-    private static final Path CONFIG_FILE = CONFIG_DIR.resolve("app.properties");
+    private static final Path CONFIG_DIR = Code2PromptPaths.CONFIG_DIR;
+    private static final Path CONFIG_FILE = Code2PromptPaths.CONFIG_FILE;
 
     @Override
     public AppConfig load() {

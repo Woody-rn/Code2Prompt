@@ -2,6 +2,7 @@ package ru.npepub.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.Code2PromptPaths;
 import ru.npepub.di.api.C2PComponent;
 
 import javax.net.ssl.*;
@@ -17,18 +18,16 @@ import java.security.SecureRandom;
  * Manages SSL/TLS certificates. Auto-generates self-signed certificate on first run.
  * Certificate stored at ~/.code2prompt/keystore.jks.
  */
-
 @C2PComponent
 class CertificateManager {
-    private static final Logger log = LoggerFactory.getLogger(CertificateManager.class);
 
-    private static final Path USER_HOME = Paths.get(System.getProperty("user.home"));
-    private static final Path C2P_DIR = USER_HOME.resolve(".code2prompt");
-    private static final Path KEYSTORE_PATH = C2P_DIR.resolve("keystore.jks");
+    private static final Logger log = LoggerFactory.getLogger(CertificateManager.class);
     private static final String KEYSTORE_PASSWORD = "code2prompt2025";
 
+    private static final Path KEYSTORE_PATH = Code2PromptPaths.KEYSTORE_FILE;
+
     public Path ensureCertificate() throws Exception {
-        Files.createDirectories(C2P_DIR);
+        Files.createDirectories(Code2PromptPaths.HOME_DIR);
 
         if (!Files.exists(KEYSTORE_PATH)) {
             log.info("🔐 Generating self-signed certificate...");

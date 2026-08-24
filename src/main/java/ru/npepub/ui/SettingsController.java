@@ -202,7 +202,7 @@ public class SettingsController {
     @FXML
     private void onOpenLogs() {
         try {
-            Path logDir = Path.of(System.getProperty("user.home"), ".code2prompt", "logs");
+            Path logDir = Code2PromptPaths.LOG_DIR;
             java.awt.Desktop.getDesktop().open(logDir.toFile());
         } catch (IOException e) {
             log.error("Failed to open logs folder", e);

@@ -2,6 +2,7 @@ package ru.npepub.ui.coordinator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.Code2PromptPaths;
 import ru.npepub.di.api.C2PComponent;
 
 import java.io.IOException;
@@ -21,14 +22,14 @@ public class ProjectHistoryStore {
 
     private static final Logger log = LoggerFactory.getLogger(ProjectHistoryStore.class);
 
-    private static final Path HISTORY_DIR = Path.of(
-            System.getProperty("user.home"), ".code2prompt"
-    );
-    private static final Path HISTORY_FILE = HISTORY_DIR.resolve("history.properties");
+    private static final Path HISTORY_DIR = Code2PromptPaths.HOME_DIR;
+    private static final Path HISTORY_FILE = Code2PromptPaths.HISTORY_FILE;
 
     private static final int MAX_RECENT = 10;
 
-    /** Adds a path to the top of recent projects. Trims to max size. */
+    /**
+     * Adds a path to the top of recent projects. Trims to max size.
+     */
     public void add(String path) {
         if (path == null || path.isBlank()) return;
 
@@ -44,7 +45,9 @@ public class ProjectHistoryStore {
         log.debug("Added recent project: {}", path);
     }
 
-    /** Returns an immutable copy of all recent project paths. */
+    /**
+     * Returns an immutable copy of all recent project paths.
+     */
     public List<String> getAll() {
         if (!Files.exists(HISTORY_FILE)) {
             return List.of();
