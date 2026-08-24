@@ -14,15 +14,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Writes chunks to txt files on disk.
  */
-
 @C2PComponent
 class OutputWriterImpl implements OutputWriter {
 
     private static final Logger log = LoggerFactory.getLogger(OutputWriterImpl.class);
+    private static final String FILE_PREFIX = "code2prompt_part";
 
     @C2PInject
     private ChunkFormatter formatter;
@@ -34,14 +35,13 @@ class OutputWriterImpl implements OutputWriter {
         log.info("Writing {} chunks to {}", chunks.size(), outputDir);
 
         createDirectories(outputDir);
+        cleanOldChunks(outputDir);
 
         List<Path> createdFiles = new ArrayList<>();
         for (Chunk chunk : chunks) {
             Path outputFile = pathResolver.resolve(outputDir, chunk.index());
             writeToFile(outputFile, chunk);
-
             log.info("Written: {} ({} symbols)", outputFile.getFileName(), chunk.totalSize());
-
             createdFiles.add(outputFile);
         }
 
@@ -49,12 +49,32 @@ class OutputWriterImpl implements OutputWriter {
         return createdFiles;
     }
 
-
     private void createDirectories(Path outputDir) {
         try {
             Files.createDirectories(outputDir);
         } catch (IOException e) {
             throw new RuntimeException("Failed to create output directory: " + outputDir, e);
+        }
+    }
+
+    /**
+     * Deletes all old chunk files from the output directory before writing new ones.
+     * Only files matching the chunk prefix are removed; other files are untouched.
+     */
+    private void cleanOldChunks(Path outputDir) {
+        try (Stream<Path> files = Files.list(outputDir)) {
+            files.filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().startsWith(FILE_PREFIX))
+                    .forEach(p -> {
+                        try {
+                            Files.deleteIfExists(p);
+                            log.debug("Deleted old chunk: {}", p.getFileName());
+                        } catch (IOException e) {
+                            log.warn("Failed to delete old chunk: {}", p, e);
+                        }
+                    });
+        } catch (IOException e) {
+            log.warn("Failed to clean output directory: {}", outputDir, e);
         }
     }
 
@@ -66,5 +86,4 @@ class OutputWriterImpl implements OutputWriter {
             throw new RuntimeException("Failed to write file: " + filePath, e);
         }
     }
-
 }
