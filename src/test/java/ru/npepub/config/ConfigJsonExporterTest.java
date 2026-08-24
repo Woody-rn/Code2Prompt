@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +39,7 @@ class ConfigJsonExporterTest {
         assertThat(restored.prompt().finalPartTemplate()).isEqualTo(original.prompt().finalPartTemplate());
         assertThat(restored.prompt().fileSeparator()).isEqualTo(original.prompt().fileSeparator());
         assertThat(restored.prompt().customTemplates()).containsAllEntriesOf(original.prompt().customTemplates());
+        assertThat(restored.oneFilePerChunk()).isEqualTo(original.oneFilePerChunk());
         assertThat(restored.debugMode()).isEqualTo(original.debugMode());
     }
 
@@ -51,6 +51,7 @@ class ConfigJsonExporterTest {
                 new FilterConfig(Set.of(), Set.of(), Set.of()),
                 LogConfig.defaults(),
                 PromptConfig.defaults(),
+                false,
                 false
         );
 
@@ -81,6 +82,7 @@ class ConfigJsonExporterTest {
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
                 prompt,
+                false,
                 false
         );
 
@@ -101,6 +103,7 @@ class ConfigJsonExporterTest {
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
                 prompt,
+                false,
                 false
         );
 
@@ -124,6 +127,7 @@ class ConfigJsonExporterTest {
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
                 prompt,
+                false,
                 false
         );
 

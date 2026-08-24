@@ -52,6 +52,7 @@ public class ProjectHistoryStore {
                 config.filter(),
                 config.log(),
                 config.prompt(),
+                config.oneFilePerChunk(),
                 config.debugMode()
         );
     }

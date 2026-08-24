@@ -33,6 +33,7 @@
                         <TextField fx:id="defaultOutputPathField" HBox.hgrow="ALWAYS"/>
                         <Button text="%settings.browse" onAction="#onBrowseOutput"/>
                     </HBox>
+                    <CheckBox fx:id="oneFilePerChunkCheckBox" text="%settings.oneFilePerChunk"/>
                 </VBox>
 
                 <VBox spacing="5">

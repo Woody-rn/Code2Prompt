@@ -85,6 +85,7 @@ public class TaskTemplateManager {
                         config.prompt().finalPartTemplate(),
                         config.prompt().fileSeparator(),
                         templates),
+                config.oneFilePerChunk(),
                 config.debugMode()
         );
     }

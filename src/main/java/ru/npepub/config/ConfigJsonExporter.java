@@ -42,6 +42,7 @@ public class ConfigJsonExporter {
         sb.append("    \"fileSeparator\": \"").append(esc(c.prompt().fileSeparator())).append("\",\n");
         sb.append("    \"customTemplates\": ").append(toJsonMap(c.prompt().customTemplates())).append("\n");
         sb.append("  },\n");
+        sb.append("  \"oneFilePerChunk\": ").append(c.oneFilePerChunk()).append(",\n");
         sb.append("  \"debugMode\": ").append(c.debugMode()).append("\n");
         sb.append("}");
         return sb.toString();
@@ -77,6 +78,7 @@ public class ConfigJsonExporter {
                         extractString(json, "fileSeparator", PromptConfig.defaults().fileSeparator()),
                         extractMap(json, "customTemplates")
                 ),
+                extractBoolean(json, "oneFilePerChunk", false),
                 extractBoolean(json, "debugMode", false)
         );
     }

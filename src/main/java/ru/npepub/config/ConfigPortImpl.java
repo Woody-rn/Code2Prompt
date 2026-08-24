@@ -74,6 +74,7 @@ class ConfigPortImpl implements ConfigPort {
                 c.prompt().customTemplates().entrySet().stream()
                         .map(e -> escTemplate(e.getKey()) + "::" + escTemplate(e.getValue()))
                         .collect(Collectors.joining(";;")));
+        p.setProperty("output.oneFilePerChunk", String.valueOf(c.oneFilePerChunk()));
         p.setProperty("debug.mode", String.valueOf(c.debugMode()));
         return p;
     }
@@ -85,6 +86,7 @@ class ConfigPortImpl implements ConfigPort {
                 loadFilter(p),
                 loadLog(p),
                 loadPrompt(p),
+                Boolean.parseBoolean(p.getProperty("output.oneFilePerChunk", "false")),
                 Boolean.parseBoolean(p.getProperty("debug.mode", "false"))
         );
     }
@@ -114,14 +116,6 @@ class ConfigPortImpl implements ConfigPort {
         Set<String> files = loadSet(p, "filter.excluded.files", FilterConfig.defaults().excludedFileNames());
         Set<String> patterns = loadSet(p, "filter.patterns", FilterConfig.defaults().patterns());
         return new FilterConfig(dirs, files, patterns);
-    }
-
-    private Set<String> loadSet(Properties p, String key, Set<String> defaults) {
-        String value = p.getProperty(key, "");
-        if (value.isEmpty()) return defaults;
-        return Arrays.stream(value.split(";"))
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toSet());
     }
 
     private LogConfig loadLog(Properties p) {
@@ -164,9 +158,11 @@ class ConfigPortImpl implements ConfigPort {
         return s.replace("\\::", "::").replace("\\\\", "\\");
     }
 
-    private List<String> loadList(Properties p, String key, List<String> defaults) {
+    private Set<String> loadSet(Properties p, String key, Set<String> defaults) {
         String value = p.getProperty(key, "");
         if (value.isEmpty()) return defaults;
-        return Arrays.stream(value.split(";")).filter(s -> !s.isEmpty()).toList();
+        return Arrays.stream(value.split(";"))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toSet());
     }
 }

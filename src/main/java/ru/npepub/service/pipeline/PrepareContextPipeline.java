@@ -23,9 +23,12 @@ public class PrepareContextPipeline {
 
     private static final Logger log = LoggerFactory.getLogger(PrepareContextPipeline.class);
 
-    @C2PInject private FileScanner scanner;
-    @C2PInject private FileAggregator aggregator;
-    @C2PInject private OutputWriter writer;
+    @C2PInject
+    private FileScanner scanner;
+    @C2PInject
+    private FileAggregator aggregator;
+    @C2PInject
+    private OutputWriter writer;
 
     /**
      * Scans the source directory and returns found files.
@@ -40,10 +43,11 @@ public class PrepareContextPipeline {
     /**
      * Aggregates files into chunks respecting the symbol limit.
      */
-    public List<Chunk> aggregate(PrepareRequest request, List<FileInfo> files) {
+    public List<Chunk> aggregate(PrepareRequest request, List<FileInfo> files, boolean oneFilePerChunk) {
         int limit = Integer.parseInt(request.limitText());
-        log.info("Aggregating {} files with limit {}", files.size(), limit);
-        List<Chunk> chunks = aggregator.aggregate(files, limit);
+        log.info("Aggregating {} files with limit {}, oneFilePerChunk={}",
+                files.size(), limit, oneFilePerChunk);
+        List<Chunk> chunks = aggregator.aggregate(files, limit, oneFilePerChunk);
         log.info("Created {} chunks", chunks.size());
         return chunks;
     }

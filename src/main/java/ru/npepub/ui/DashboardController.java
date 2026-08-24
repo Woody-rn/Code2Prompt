@@ -272,6 +272,7 @@ public class DashboardController {
 
         pipelineRunner.run(
                 request,
+                config.oneFilePerChunk(),
                 this::setStatusBar,
                 this::addResultCard,
                 () -> {
@@ -422,6 +423,7 @@ public class DashboardController {
                     new PromptConfig(prompt, freshConfig.prompt().partPrefixTemplate(),
                             freshConfig.prompt().finalPartTemplate(), freshConfig.prompt().fileSeparator(),
                             freshConfig.prompt().customTemplates()),
+                    freshConfig.oneFilePerChunk(),
                     freshConfig.debugMode()
             );
             configPort.save(config);
@@ -444,7 +446,9 @@ public class DashboardController {
     private void disableDebugMode() {
         config = new AppConfig(
                 config.aiModel(), config.paths(), config.filter(), config.log(),
-                config.prompt(), false
+                config.prompt(),
+                config.oneFilePerChunk(),
+                false
         );
         configPort.save(config);
     }

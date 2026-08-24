@@ -24,20 +24,35 @@ public class SettingsController {
 
     private static final Logger log = LoggerFactory.getLogger(SettingsController.class);
 
-    @FXML private ComboBox<String> modelCombo;
-    @FXML private TextField maxSymbolsField;
-    @FXML private TextField safetyMarginField;
-    @FXML private TextField defaultOutputPathField;
-    @FXML private ComboBox<String> devLogLevelCombo;
-    @FXML private CheckBox debugModeCheckBox;
-    @FXML private ListView<String> excludedPatternsList;
-    @FXML private TextField newPatternField;
-    @FXML private TextField partPrefixField;
-    @FXML private TextField finalPartField;
-    @FXML private TextField fileSeparatorField;
+    @FXML
+    private ComboBox<String> modelCombo;
+    @FXML
+    private TextField maxSymbolsField;
+    @FXML
+    private TextField safetyMarginField;
+    @FXML
+    private TextField defaultOutputPathField;
+    @FXML
+    private ComboBox<String> devLogLevelCombo;
+    @FXML
+    private CheckBox debugModeCheckBox;
+    @FXML
+    private CheckBox oneFilePerChunkCheckBox;
+    @FXML
+    private ListView<String> excludedPatternsList;
+    @FXML
+    private TextField newPatternField;
+    @FXML
+    private TextField partPrefixField;
+    @FXML
+    private TextField finalPartField;
+    @FXML
+    private TextField fileSeparatorField;
 
-    @C2PInject private ConfigPort configPort;
-    @C2PInject private ConfigJsonExporter jsonExporter;
+    @C2PInject
+    private ConfigPort configPort;
+    @C2PInject
+    private ConfigJsonExporter jsonExporter;
 
     private AppConfig config;
     private ObservableList<String> excludedPatterns;
@@ -66,10 +81,11 @@ public class SettingsController {
         });
 
         maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int)(config.aiModel().safetyMargin() * 100)));
+        safetyMarginField.setText(String.valueOf((int) (config.aiModel().safetyMargin() * 100)));
         defaultOutputPathField.setText(config.paths().outputPath().toString());
 
         debugModeCheckBox.setSelected(config.debugMode());
+        oneFilePerChunkCheckBox.setSelected(config.oneFilePerChunk());
 
         devLogLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
         devLogLevelCombo.setValue(config.log().level().name());
@@ -131,10 +147,11 @@ public class SettingsController {
         AppConfig defaults = AppConfig.defaults();
         modelCombo.setValue(defaults.aiModel().name());
         maxSymbolsField.setText(String.valueOf(defaults.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int)(defaults.aiModel().safetyMargin() * 100)));
+        safetyMarginField.setText(String.valueOf((int) (defaults.aiModel().safetyMargin() * 100)));
         defaultOutputPathField.setText(defaults.paths().outputPath().toString());
         devLogLevelCombo.setValue(defaults.log().level().name());
         debugModeCheckBox.setSelected(defaults.debugMode());
+        oneFilePerChunkCheckBox.setSelected(defaults.oneFilePerChunk());
         excludedPatterns.setAll(
                 mergeDefaults(
                         defaults.filter().excludedDirs(),
@@ -195,10 +212,11 @@ public class SettingsController {
     private void applyConfig(AppConfig config) {
         modelCombo.setValue(config.aiModel().name());
         maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int)(config.aiModel().safetyMargin() * 100)));
+        safetyMarginField.setText(String.valueOf((int) (config.aiModel().safetyMargin() * 100)));
         defaultOutputPathField.setText(config.paths().outputPath().toString());
         devLogLevelCombo.setValue(config.log().level().name());
         debugModeCheckBox.setSelected(config.debugMode());
+        oneFilePerChunkCheckBox.setSelected(config.oneFilePerChunk());
         excludedPatterns.setAll(
                 mergeDefaults(
                         config.filter().excludedDirs(),
@@ -211,7 +229,9 @@ public class SettingsController {
         fileSeparatorField.setText(config.prompt().fileSeparator());
     }
 
-    /** Returns updated config from the form values. */
+    /**
+     * Returns updated config from the form values.
+     */
     public AppConfig getUpdatedConfig() {
         Set<String> dirs = new HashSet<>();
         Set<String> files = new HashSet<>();
@@ -250,7 +270,8 @@ public class SettingsController {
                         fileSeparatorField.getText(),
                         config.prompt().customTemplates()
                 ),
-                config.debugMode()
+                oneFilePerChunkCheckBox.isSelected(),
+                debugModeCheckBox.isSelected()
         );
     }
 }

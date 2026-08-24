@@ -9,9 +9,12 @@ public record AppConfig(
         FilterConfig filter,
         LogConfig log,
         PromptConfig prompt,
+        boolean oneFilePerChunk,
         boolean debugMode
 ) {
-    /** Convenience accessor for effective model limit. */
+    /**
+     * Convenience accessor for effective model limit.
+     */
     public int effectiveLimit() {
         return aiModel.effectiveLimit();
     }
@@ -23,6 +26,7 @@ public record AppConfig(
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
                 PromptConfig.defaults(),
+                false,
                 false
         );
     }

@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * Splits files into chunks by symbol limit.
- * Large files are split into multiple parts.
+ * Supports per-file mode where each file becomes a single chunk.
  */
 @C2PComponent
 class FileAggregatorImpl implements FileAggregator {
@@ -22,14 +22,49 @@ class FileAggregatorImpl implements FileAggregator {
     private static final int HEADER_BASE_SIZE = 80;
 
     @Override
-    public List<Chunk> aggregate(List<FileInfo> files, int symbolLimit) {
-        log.info("Aggregating {} files with limit {} symbols", files.size(), symbolLimit);
+    public List<Chunk> aggregate(List<FileInfo> files, int symbolLimit, boolean oneFilePerChunk) {
+        log.info("Aggregating {} files with limit {} symbols, oneFilePerChunk={}",
+                files.size(), symbolLimit, oneFilePerChunk);
 
         if (files.isEmpty()) {
             log.info("No files to aggregate");
             return List.of();
         }
 
+        if (oneFilePerChunk) {
+            return aggregateEachFileSeparately(files, symbolLimit);
+        }
+
+        return aggregateByLimit(files, symbolLimit);
+    }
+
+    private List<Chunk> aggregateEachFileSeparately(List<FileInfo> files, int symbolLimit) {
+        List<Chunk> chunks = new ArrayList<>();
+        int chunkIndex = 1;
+
+        for (FileInfo file : files) {
+            int headerSize = estimateHeaderSize(file);
+            int totalFileSize = file.size() + headerSize;
+
+            if (totalFileSize > symbolLimit) {
+                log.info("File '{}' ({} symbols) exceeds limit, splitting into parts",
+                        file.relativePath(), totalFileSize);
+
+                List<FileInfo> parts = splitFile(file, symbolLimit, headerSize);
+                for (FileInfo part : parts) {
+                    chunks.add(new Chunk(chunkIndex++, List.of(part),
+                            part.size() + estimateHeaderSize(part)));
+                }
+            } else {
+                chunks.add(new Chunk(chunkIndex++, List.of(file), totalFileSize));
+            }
+        }
+
+        logAggregationResult(chunks);
+        return chunks;
+    }
+
+    private List<Chunk> aggregateByLimit(List<FileInfo> files, int symbolLimit) {
         List<Chunk> chunks = new ArrayList<>();
         List<FileInfo> currentFiles = new ArrayList<>();
         int currentSize = 0;
@@ -40,25 +75,21 @@ class FileAggregatorImpl implements FileAggregator {
             int totalFileSize = file.size() + headerSize;
 
             if (totalFileSize > symbolLimit) {
-                // Файл больше лимита — разбиваем на части
                 log.info("File '{}' ({} symbols) exceeds limit, splitting into parts",
                         file.relativePath(), totalFileSize);
 
-                // Сначала закрываем текущий чанк, если есть файлы
                 if (!currentFiles.isEmpty()) {
                     chunks.add(new Chunk(chunkIndex++, List.copyOf(currentFiles), currentSize));
                     currentFiles.clear();
                     currentSize = 0;
                 }
 
-                // Разбиваем большой файл на части
                 List<FileInfo> parts = splitFile(file, symbolLimit, headerSize);
                 for (FileInfo part : parts) {
                     int partSize = part.size() + estimateHeaderSize(part);
                     currentFiles.add(part);
                     currentSize += partSize;
 
-                    // Если чанк заполнен — закрываем
                     if (currentSize >= symbolLimit * 0.9) {
                         chunks.add(new Chunk(chunkIndex++, List.copyOf(currentFiles), currentSize));
                         currentFiles.clear();
@@ -86,13 +117,10 @@ class FileAggregatorImpl implements FileAggregator {
         return chunks;
     }
 
-    /**
-     * Splits a large file into parts that fit within the symbol limit.
-     */
     private List<FileInfo> splitFile(FileInfo file, int symbolLimit, int headerSize) {
         List<FileInfo> parts = new ArrayList<>();
         String content = file.content();
-        int partLimit = symbolLimit - headerSize - 100;  // запас на заголовок и пометки
+        int partLimit = symbolLimit - headerSize - 100;
         int totalParts = (int) Math.ceil((double) content.length() / partLimit);
 
         for (int i = 0; i < totalParts; i++) {

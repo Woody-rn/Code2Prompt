@@ -27,7 +27,7 @@ class FileAggregatorImplTest {
         FileInfo file1 = fileInfo("User.java", "class User {}", 13);
         FileInfo file2 = fileInfo("Order.java", "class Order {}", 15);
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2), 1000);
+        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2), 1000, false);
 
         assertThat(chunks).hasSize(1);
         assertThat(chunks.getFirst().files()).containsExactly(file1, file2);
@@ -39,7 +39,7 @@ class FileAggregatorImplTest {
         FileInfo file2 = fileInfo("b.java", "b", 1);
         FileInfo file3 = fileInfo("c.java", "c", 1);
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2, file3), 180);
+        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2, file3), 180, false);
 
         assertThat(chunks).hasSize(2);
         assertThat(chunks.get(0).files()).containsExactly(file1, file2);
@@ -48,7 +48,7 @@ class FileAggregatorImplTest {
 
     @Test
     void shouldReturnEmptyListForEmptyInput() {
-        List<Chunk> chunks = aggregator.aggregate(List.of(), 1000);
+        List<Chunk> chunks = aggregator.aggregate(List.of(), 1000, false);
         assertThat(chunks).isEmpty();
     }
 
@@ -57,8 +57,7 @@ class FileAggregatorImplTest {
         FileInfo f1 = fileInfo("a.java", "a", 1);
         FileInfo f2 = fileInfo("b.java", "b", 1);
 
-        // Каждый файл с заголовком ~87 символов, лимит 90 — только один влезает
-        List<Chunk> chunks = aggregator.aggregate(List.of(f1, f2), 90);
+        List<Chunk> chunks = aggregator.aggregate(List.of(f1, f2), 90, false);
 
         assertThat(chunks).hasSize(2);
         assertThat(chunks.get(0).index()).isEqualTo(1);
@@ -70,7 +69,7 @@ class FileAggregatorImplTest {
         String bigContent = "x".repeat(1000);
         FileInfo bigFile = fileInfo("Big.java", bigContent, bigContent.length());
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(bigFile), 300);
+        List<Chunk> chunks = aggregator.aggregate(List.of(bigFile), 300, false);
 
         assertThat(chunks).isNotEmpty();
         for (Chunk chunk : chunks) {
@@ -86,11 +85,37 @@ class FileAggregatorImplTest {
         FileInfo small = fileInfo("small.java", "x", 1);
         FileInfo big = fileInfo("big.java", "y".repeat(1000), 1000);
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(small, big), 500);
+        List<Chunk> chunks = aggregator.aggregate(List.of(small, big), 500, false);
 
         assertThat(chunks).isNotEmpty();
-        // small должен быть в первом чанке, big разбит в следующих
-        assertThat(chunks.getFirst().files().stream().anyMatch(f -> f.relativePath().toString().equals("small.java"))).isTrue();
+        assertThat(chunks.getFirst().files().stream()
+                .anyMatch(f -> f.relativePath().toString().equals("small.java"))).isTrue();
+    }
+
+    @Test
+    void shouldCreateOneChunkPerFileWhenOneFilePerChunkEnabled() {
+        FileInfo file1 = fileInfo("a.java", "aaa", 3);
+        FileInfo file2 = fileInfo("b.java", "bbb", 3);
+
+        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2), 1000, true);
+
+        assertThat(chunks).hasSize(2);
+        assertThat(chunks.get(0).files()).containsExactly(file1);
+        assertThat(chunks.get(1).files()).containsExactly(file2);
+    }
+
+    @Test
+    void shouldSplitLargeFileWhenOneFilePerChunkEnabled() {
+        String bigContent = "x".repeat(1000);
+        FileInfo bigFile = fileInfo("Big.java", bigContent, bigContent.length());
+
+        List<Chunk> chunks = aggregator.aggregate(List.of(bigFile), 300, true);
+
+        assertThat(chunks).isNotEmpty();
+        for (Chunk chunk : chunks) {
+            assertThat(chunk.files()).hasSize(1);
+            assertThat(chunk.files().getFirst().isSplit()).isTrue();
+        }
     }
 
     private FileInfo fileInfo(String path, String content, int size) {

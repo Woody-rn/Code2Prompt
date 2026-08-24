@@ -30,8 +30,11 @@ public class ScanPipelineRunner {
     private final TaskRunner taskRunner = new TaskRunner();
     private List<Path> lastResults;
 
-    /** Runs the pipeline for the given request. */
+    /**
+     * Runs the pipeline for the given request.
+     */
     public void run(PrepareRequest request,
+                    boolean oneFilePerChunk,
                     Consumer<String> onProgress,
                     Consumer<Path> onEachResult,
                     Runnable onComplete,
@@ -39,24 +42,30 @@ public class ScanPipelineRunner {
                     Consumer<String> onStatus) {
 
         taskRunner.run(
-                (progressCallback, cancelled) -> executePipeline(request, progressCallback, cancelled, onFilesScanned, onStatus),
+                (progressCallback, cancelled) -> executePipeline(request, oneFilePerChunk,
+                        progressCallback, cancelled, onFilesScanned, onStatus),
                 onProgress,
                 onEachResult,
                 onComplete
         );
     }
 
-    /** Cancels the running pipeline. */
+    /**
+     * Cancels the running pipeline.
+     */
     public void cancel() {
         taskRunner.cancel();
     }
 
-    /** Returns the paths of the last successful run. */
+    /**
+     * Returns the paths of the last successful run.
+     */
     public List<Path> getLastResults() {
         return lastResults != null ? List.copyOf(lastResults) : List.of();
     }
 
     private List<Path> executePipeline(PrepareRequest request,
+                                       boolean oneFilePerChunk,
                                        Consumer<String> onProgress,
                                        AtomicBoolean cancelled,
                                        Consumer<List<FileInfo>> onFilesScanned,
@@ -66,7 +75,7 @@ public class ScanPipelineRunner {
         Platform.runLater(() -> onFilesScanned.accept(files));
 
         onProgress.accept("Разбивка на части...");
-        List<Chunk> chunks = pipeline.aggregate(request, files);
+        List<Chunk> chunks = pipeline.aggregate(request, files, oneFilePerChunk);
         if (cancelled.get()) return List.of();
 
         onProgress.accept("Запись файлов...");
