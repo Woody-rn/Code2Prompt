@@ -2,123 +2,106 @@ package ru.npepub.filter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import ru.npepub.di.ContainerDI;
-import ru.npepub.model.Chunk;
-import ru.npepub.model.FileInfo;
-import ru.npepub.service.FileAggregator;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FileAggregatorImplTest {
+class FileFilterIntegrationTest {
 
-    private FileAggregator aggregator;
+    private FileFilter filter;
 
     @BeforeEach
     void setUp() {
+        System.setProperty("user.home", System.getProperty("java.io.tmpdir") + "/c2p-test");
         ContainerDI container = new ContainerDI();
-        aggregator = container.get(FileAggregator.class);
+        filter = container.get(FileFilter.class);
     }
 
     @Test
-    void shouldReturnSingleChunkWhenAllFilesFit() {
-        FileInfo file1 = fileInfo("User.java", "class User {}", 13);
-        FileInfo file2 = fileInfo("Order.java", "class Order {}", 15);
+    void shouldIncludeRegularJavaFile(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("src/main/java/User.java");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "class User {}");
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2), 1000, false);
-
-        assertThat(chunks).hasSize(1);
-        assertThat(chunks.getFirst().files()).containsExactly(file1, file2);
+        assertThat(filter.shouldInclude(file)).isTrue();
     }
 
     @Test
-    void shouldSplitIntoMultipleChunksWhenLimitExceeded() {
-        FileInfo file1 = fileInfo("a.java", "a", 1);
-        FileInfo file2 = fileInfo("b.java", "b", 1);
-        FileInfo file3 = fileInfo("c.java", "c", 1);
+    void shouldExcludeBuildDirectory(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("build/classes/App.class");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "binary");
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2, file3), 180, false);
-
-        assertThat(chunks).hasSize(2);
-        assertThat(chunks.get(0).files()).containsExactly(file1, file2);
-        assertThat(chunks.get(1).files()).containsExactly(file3);
+        assertThat(filter.shouldInclude(file)).isFalse();
     }
 
     @Test
-    void shouldReturnEmptyListForEmptyInput() {
-        List<Chunk> chunks = aggregator.aggregate(List.of(), 1000, false);
-        assertThat(chunks).isEmpty();
+    void shouldExcludeGitDirectory(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve(".git/config");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, "[core]");
+
+        assertThat(filter.shouldInclude(file)).isFalse();
     }
 
     @Test
-    void shouldAssignCorrectChunkIndexes() {
-        FileInfo f1 = fileInfo("a.java", "a", 1);
-        FileInfo f2 = fileInfo("b.java", "b", 1);
+    void shouldExcludeEnvFile(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve(".env");
+        Files.writeString(file, "SECRET=123");
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(f1, f2), 90, false);
-
-        assertThat(chunks).hasSize(2);
-        assertThat(chunks.get(0).index()).isEqualTo(1);
-        assertThat(chunks.get(1).index()).isEqualTo(2);
+        assertThat(filter.shouldInclude(file)).isFalse();
     }
 
     @Test
-    void shouldSplitLargeFileIntoParts() {
-        String bigContent = "x".repeat(1000);
-        FileInfo bigFile = fileInfo("Big.java", bigContent, bigContent.length());
+    void shouldExcludeCredentialsJson(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("credentials.json");
+        Files.writeString(file, "{}");
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(bigFile), 300, false);
-
-        assertThat(chunks).isNotEmpty();
-        for (Chunk chunk : chunks) {
-            for (FileInfo file : chunk.files()) {
-                assertThat(file.isSplit()).isTrue();
-                assertThat(file.relativePath().toString()).isEqualTo("Big.java");
-            }
-        }
+        assertThat(filter.shouldInclude(file)).isFalse();
     }
 
     @Test
-    void shouldNotMixSplitFileWithOtherFiles() {
-        FileInfo small = fileInfo("small.java", "x", 1);
-        FileInfo big = fileInfo("big.java", "y".repeat(1000), 1000);
+    void shouldExcludeBinaryFile(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("image.jpg");
+        byte[] bytes = new byte[]{0x00, 0x01, 0x02};
+        Files.write(file, bytes);
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(small, big), 500, false);
-
-        assertThat(chunks).isNotEmpty();
-        assertThat(chunks.getFirst().files().stream()
-                .anyMatch(f -> f.relativePath().toString().equals("small.java"))).isTrue();
+        assertThat(filter.shouldInclude(file)).isFalse();
     }
 
     @Test
-    void shouldCreateOneChunkPerFileWhenOneFilePerChunkEnabled() {
-        FileInfo file1 = fileInfo("a.java", "aaa", 3);
-        FileInfo file2 = fileInfo("b.java", "bbb", 3);
+    void shouldIncludeYamlFile(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("config.yaml");
+        Files.writeString(file, "key: value");
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(file1, file2), 1000, true);
-
-        assertThat(chunks).hasSize(2);
-        assertThat(chunks.get(0).files()).containsExactly(file1);
-        assertThat(chunks.get(1).files()).containsExactly(file2);
+        assertThat(filter.shouldInclude(file)).isTrue();
     }
 
     @Test
-    void shouldSplitLargeFileWhenOneFilePerChunkEnabled() {
-        String bigContent = "x".repeat(1000);
-        FileInfo bigFile = fileInfo("Big.java", bigContent, bigContent.length());
+    void shouldExcludeClassFileByPattern(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("User.class");
+        Files.writeString(file, "binary");
 
-        List<Chunk> chunks = aggregator.aggregate(List.of(bigFile), 300, true);
-
-        assertThat(chunks).isNotEmpty();
-        for (Chunk chunk : chunks) {
-            assertThat(chunk.files()).hasSize(1);
-            assertThat(chunk.files().getFirst().isSplit()).isTrue();
-        }
+        assertThat(filter.shouldInclude(file)).isFalse();
     }
 
-    private FileInfo fileInfo(String path, String content, int size) {
-        return new FileInfo(Path.of(path), content, size, false, 0, 0);
+    @Test
+    void shouldExcludeJarFileByPattern(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("lib.jar");
+        Files.writeString(file, "binary");
+
+        assertThat(filter.shouldInclude(file)).isFalse();
+    }
+
+    @Test
+    void shouldIncludeJavaFileWhenClassPatternExists(@TempDir Path tempDir) throws Exception {
+        Path file = tempDir.resolve("User.java");
+        Files.writeString(file, "class User {}");
+
+        assertThat(filter.shouldInclude(file)).isTrue();
     }
 }
