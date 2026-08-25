@@ -1,4 +1,4 @@
-package ru.npepub.ui;
+package ru.npepub.ui.controller;
 
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -11,7 +11,7 @@ import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.model.FileInfo;
-import ru.npepub.ui.model.FileNode;
+import ru.npepub.ui.component.FileNode;
 
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;

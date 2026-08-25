@@ -1,4 +1,4 @@
-package ru.npepub.ui.model;
+package ru.npepub.ui.component;
 
 import java.nio.file.Path;
 

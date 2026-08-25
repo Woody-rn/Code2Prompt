@@ -1,4 +1,4 @@
-package ru.npepub.ui;
+package ru.npepub.ui.controller;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

@@ -1,10 +1,11 @@
-package ru.npepub.ui;
+package ru.npepub.ui.component;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.api.C2PComponent;
+import ru.npepub.ui.controller.ChunkCardController;
 
 import java.io.IOException;
 import java.nio.file.Files;

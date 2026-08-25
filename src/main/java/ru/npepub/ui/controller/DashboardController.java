@@ -1,4 +1,4 @@
-package ru.npepub.ui;
+package ru.npepub.ui.controller;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -18,6 +18,7 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
 import ru.npepub.model.ProjectInfo;
+import ru.npepub.ui.component.ResultCardFactory;
 import ru.npepub.update.VersionChecker;
 import ru.npepub.ui.coordinator.*;
 import ru.npepub.ui.log.LogWindowPort;

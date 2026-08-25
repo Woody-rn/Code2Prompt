@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <VBox xmlns:fx="http://javafx.com/fxml"
-      fx:controller="ru.npepub.ui.FileTreeController"
+      fx:controller="ru.npepub.ui.controller.FileTreeController"
       VBox.vgrow="ALWAYS">
 
     <HBox spacing="2" alignment="CENTER_LEFT">

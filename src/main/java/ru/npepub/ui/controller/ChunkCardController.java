@@ -1,4 +1,4 @@
-package ru.npepub.ui;
+package ru.npepub.ui.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
