@@ -23,7 +23,6 @@ class FileScannerImplTest {
     void setUp() {
         ContainerDI container = new ContainerDI();
         scanner = container.get(FileScanner.class);
-        System.out.println(scanner);
     }
 
     @Test
