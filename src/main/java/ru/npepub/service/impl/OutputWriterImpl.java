@@ -31,7 +31,7 @@ class OutputWriterImpl implements OutputWriter {
     private PathResolver pathResolver;
 
     @Override
-    public List<Path> write(List<Chunk> chunks, Path outputDir) {
+    public List<Path> write(List<Chunk> chunks, Path outputDir, String separator) {
         log.info("Writing {} chunks to {}", chunks.size(), outputDir);
 
         createDirectories(outputDir);
@@ -40,7 +40,7 @@ class OutputWriterImpl implements OutputWriter {
         List<Path> createdFiles = new ArrayList<>();
         for (Chunk chunk : chunks) {
             Path outputFile = pathResolver.resolve(outputDir, chunk.index());
-            writeToFile(outputFile, chunk);
+            writeToFile(outputFile, chunk, separator);
             log.info("Written: {} ({} symbols)", outputFile.getFileName(), chunk.totalSize());
             createdFiles.add(outputFile);
         }
@@ -78,8 +78,8 @@ class OutputWriterImpl implements OutputWriter {
         }
     }
 
-    private void writeToFile(Path filePath, Chunk chunk) {
-        String formatted = formatter.format(chunk);
+    private void writeToFile(Path filePath, Chunk chunk, String separator) {
+        String formatted = formatter.format(chunk, separator);
         try {
             Files.writeString(filePath, formatted);
         } catch (IOException e) {

@@ -2,6 +2,7 @@ package ru.npepub.service.pipeline;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
@@ -23,16 +24,12 @@ public class PrepareContextPipeline {
 
     private static final Logger log = LoggerFactory.getLogger(PrepareContextPipeline.class);
 
-    @C2PInject
-    private FileScanner scanner;
-    @C2PInject
-    private FileAggregator aggregator;
-    @C2PInject
-    private OutputWriter writer;
+    @C2PInject private FileScanner scanner;
+    @C2PInject private FileAggregator aggregator;
+    @C2PInject private OutputWriter writer;
+    @C2PInject private ConfigPort configPort;
 
-    /**
-     * Scans the source directory and returns found files.
-     */
+    /** Scans the source directory and returns found files. */
     public List<FileInfo> scan(PrepareRequest request) {
         log.info("Scanning: {}", request.sourcePath());
         List<FileInfo> files = scanner.scan(Path.of(request.sourcePath()));
@@ -40,9 +37,7 @@ public class PrepareContextPipeline {
         return files;
     }
 
-    /**
-     * Aggregates files into chunks respecting the symbol limit.
-     */
+    /** Aggregates files into chunks respecting the symbol limit. */
     public List<Chunk> aggregate(PrepareRequest request, List<FileInfo> files, boolean oneFilePerChunk) {
         int limit = Integer.parseInt(request.limitText());
         log.info("Aggregating {} files with limit {}, oneFilePerChunk={}",
@@ -52,12 +47,11 @@ public class PrepareContextPipeline {
         return chunks;
     }
 
-    /**
-     * Writes chunks to txt files in the output directory.
-     */
+    /** Writes chunks to txt files in the output directory. */
     public List<Path> write(PrepareRequest request, List<Chunk> chunks) {
+        String separator = configPort.load().prompt().fileSeparator();
         log.info("Writing {} chunks to {}", chunks.size(), request.outputPath());
-        List<Path> result = writer.write(chunks, Path.of(request.outputPath()));
+        List<Path> result = writer.write(chunks, Path.of(request.outputPath()), separator);
         log.info("Written {} files", result.size());
         return result;
     }

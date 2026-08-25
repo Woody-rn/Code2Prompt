@@ -29,7 +29,7 @@ class OutputWriterImplTest {
         FileInfo file = fileInfo("User.java", "class User {}");
         Chunk chunk = new Chunk(1, List.of(file), file.size());
 
-        List<Path> paths = writer.write(List.of(chunk), outputDir);
+        List<Path> paths = writer.write(List.of(chunk), outputDir, "====");
 
         assertThat(paths).hasSize(1);
         assertThat(paths.getFirst().getFileName().toString()).isEqualTo("code2prompt_part1.txt");
@@ -43,7 +43,7 @@ class OutputWriterImplTest {
         Chunk chunk1 = new Chunk(1, List.of(file1), file1.size());
         Chunk chunk2 = new Chunk(2, List.of(file2), file2.size());
 
-        List<Path> paths = writer.write(List.of(chunk1, chunk2), outputDir);
+        List<Path> paths = writer.write(List.of(chunk1, chunk2), outputDir, "====");
 
         assertThat(paths).hasSize(2);
         assertThat(paths.get(0).getFileName().toString()).isEqualTo("code2prompt_part1.txt");
@@ -57,7 +57,7 @@ class OutputWriterImplTest {
         FileInfo file = fileInfo("src/main/User.java", "class User {}");
         Chunk chunk = new Chunk(1, List.of(file), file.size());
 
-        writer.write(List.of(chunk), outputDir);
+        writer.write(List.of(chunk), outputDir, "====");
 
         String content = Files.readString(outputDir.resolve("code2prompt_part1.txt"));
         String normalizedContent = content.replace("\\", "/");
@@ -74,7 +74,7 @@ class OutputWriterImplTest {
         FileInfo file = fileInfo("test.java", "test");
         Chunk chunk = new Chunk(1, List.of(file), file.size());
 
-        writer.write(List.of(chunk), outputDir);
+        writer.write(List.of(chunk), outputDir, "====");
 
         assertThat(outputDir).exists();
         assertThat(outputDir.resolve("code2prompt_part1.txt")).exists();
@@ -82,7 +82,7 @@ class OutputWriterImplTest {
 
     @Test
     void shouldReturnEmptyListForEmptyChunks(@TempDir Path outputDir) {
-        List<Path> paths = writer.write(List.of(), outputDir);
+        List<Path> paths = writer.write(List.of(), outputDir, "====");
 
         assertThat(paths).isEmpty();
     }

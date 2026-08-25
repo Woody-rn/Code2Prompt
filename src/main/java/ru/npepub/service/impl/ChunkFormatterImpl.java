@@ -7,30 +7,20 @@ import ru.npepub.service.ChunkFormatter;
 
 /**
  * Formats chunks with separators and relative file paths.
- * <p>
- * Output format:
- * <pre>
- * ========================================
- * File: src/main/java/com/example/User.java
- * ========================================
- * [file content]
- * </pre>
  * Split files include part markers: [ЧАСТЬ 1/3], [ПРОДОЛЖЕНИЕ 2/3], [ОКОНЧАНИЕ 3/3].
  */
 @C2PComponent
 class ChunkFormatterImpl implements ChunkFormatter {
 
-    private static final String SEPARATOR = "=".repeat(40);
-
     @Override
-    public String format(Chunk chunk) {
+    public String format(Chunk chunk, String separator) {
         StringBuilder sb = new StringBuilder();
 
         for (FileInfo file : chunk.files()) {
-            sb.append(SEPARATOR).append("\n");
+            sb.append(separator).append("\n");
             sb.append("File: ").append(file.relativePath());
             appendSplitMarker(file, sb);
-            sb.append("\n").append(SEPARATOR).append("\n");
+            sb.append("\n").append(separator).append("\n");
             sb.append(file.content()).append("\n");
         }
 

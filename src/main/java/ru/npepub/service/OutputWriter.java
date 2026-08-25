@@ -13,7 +13,8 @@ public interface OutputWriter {
     /**
      * @param chunks      chunks to write
      * @param outputDir   directory for output files
+     * @param separator   separator to use between files
      * @return list of created file paths
      */
-    List<Path> write(List<Chunk> chunks, Path outputDir);
+    List<Path> write(List<Chunk> chunks, Path outputDir, String separator);
 }
