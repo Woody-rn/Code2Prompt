@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
+import ru.npepub.filter.ConfigurableFilter;
 import ru.npepub.filter.FileFilter;
 import ru.npepub.model.FileInfo;
 import ru.npepub.service.FileScanner;
@@ -30,6 +31,10 @@ class FileScannerImpl implements FileScanner {
     public List<FileInfo> scan(Path rootDir) {
         validateDirectory(rootDir);
         log.info("Scanning directory: {}", rootDir);
+
+        if (fileFilter instanceof ConfigurableFilter configurable) {
+            configurable.reloadConfig();
+        }
 
         try (Stream<Path> stream = Files.walk(rootDir)) {
             List<FileInfo> files = stream

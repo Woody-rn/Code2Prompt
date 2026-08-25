@@ -3,7 +3,6 @@ package ru.npepub.server;
 import com.sun.net.httpserver.HttpExchange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.config.ConfigPort;
 import ru.npepub.config.PromptConfig;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
@@ -23,19 +22,25 @@ class ContextRequestHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ContextRequestHandler.class);
 
-    @C2PInject private JsonResponseHelper jsonHelper;
-    @C2PInject private ConfigPort configPort;
+    @C2PInject
+    private JsonResponseHelper jsonHelper;
 
     private List<Path> contextFiles;
     private ProjectInfo projectInfo;
+    private PromptConfig promptConfig = PromptConfig.defaults();
 
-    /** Updates the context files and project info. */
-    public void updateContext(List<Path> files, ProjectInfo projectInfo) {
+    /**
+     * Updates the context files and project info.
+     */
+    public void updateContext(List<Path> files, ProjectInfo projectInfo, PromptConfig promptConfig) {
         this.contextFiles = files;
         this.projectInfo = projectInfo;
+        this.promptConfig = promptConfig;
     }
 
-    /** Main request handler. Routes to appropriate handler based on path. */
+    /**
+     * Main request handler. Routes to appropriate handler based on path.
+     */
     public void handleRequest(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();
@@ -81,18 +86,16 @@ class ContextRequestHandler {
         }
 
         String content = Files.readString(contextFiles.get(index));
-        PromptConfig prompt = configPort.load().prompt();
         int total = contextFiles.size();
         int partNumber = index + 1;
         boolean isLast = partNumber == total;
 
         String prefix = isLast
-                ? resolveTemplate(prompt.finalPartTemplate(), partNumber, total)
-                : resolveTemplate(prompt.partPrefixTemplate(), partNumber, total);
+                ? resolveTemplate(promptConfig.finalPartTemplate(), partNumber, total)
+                : resolveTemplate(promptConfig.partPrefixTemplate(), partNumber, total);
 
-        // System prompt добавляется только к последней части, перед содержимым
-        if (isLast && !prompt.systemPrompt().isBlank()) {
-            prefix = prefix + "\n" + prompt.systemPrompt() + "\n\n";
+        if (isLast && !promptConfig.systemPrompt().isBlank()) {
+            prefix = prefix + "\n" + promptConfig.systemPrompt() + "\n\n";
         }
 
         String fullContent = prefix + content;
