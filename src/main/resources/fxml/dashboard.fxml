@@ -25,14 +25,14 @@
         <VBox spacing="10" styleClass="content-panel">
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="%source.label" styleClass="field-label"/>
-                <ComboBox fx:id="sourcePathField" HBox.hgrow="ALWAYS" editable="true" promptText="%source.prompt"/>
+                <ComboBox fx:id="sourcePathField" editable="true" promptText="%source.prompt" prefWidth="370"/>
                 <Button text="%browse.button" onAction="#onBrowseSource"/>
                 <Button text="%open.folder.button" onAction="#onOpenSourceFolder"/>
             </HBox>
 
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Label text="%output.label" styleClass="field-label"/>
-                <TextField fx:id="outputPathField" HBox.hgrow="ALWAYS" promptText="%output.prompt"/>
+                <TextField fx:id="outputPathField" promptText="%output.prompt" prefWidth="370"/>
                 <Button text="%browse.button" onAction="#onBrowseOutput"/>
                 <Button text="%open.folder.button" onAction="#onOpenOutputFolder"/>
             </HBox>

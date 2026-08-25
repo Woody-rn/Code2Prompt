@@ -26,6 +26,7 @@
     -fx-cursor: hand;
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
+    -fx-min-width: 40px;
 }
 
 .button:pressed {
