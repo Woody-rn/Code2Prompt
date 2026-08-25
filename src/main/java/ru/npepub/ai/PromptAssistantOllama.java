@@ -1,6 +1,5 @@
 package ru.npepub.ai;
 
-import ch.qos.logback.core.encoder.JsonEscapeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.config.ConfigPort;
@@ -14,7 +13,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 /**
- * Implementation of AssistantPort using Ollama REST API.
+ * Implementation of PromptAssistant using Ollama REST API.
  */
 @C2PComponent
 class PromptAssistantOllama implements PromptAssistant {
@@ -25,24 +24,27 @@ class PromptAssistantOllama implements PromptAssistant {
     private ConfigPort configPort;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(50))
+            .connectTimeout(Duration.ofSeconds(5))
             .build();
 
     @Override
     public String improve(String text) {
-        String prompt = "Улучши этот промпт для AI-модели. Сделай его подробнее, конкретнее и эффективнее.\n\n" + text;
+        String prompt = "Перепиши этот промпт для AI-модели. Сделай его подробнее, конкретнее и эффективнее. " +
+                "Верни ТОЛЬКО готовый текст промпта, без объяснений и комментариев.\n\n" + text;
         return generate(prompt);
     }
 
     @Override
     public String expand(String text) {
-        String prompt = "Разверни эту короткую фразу в полноценный промпт для анализа кода проекта.\n\n" + text;
+        String prompt = "Разверни эту короткую фразу в полноценный промпт для анализа кода проекта. " +
+                "Верни ТОЛЬКО готовый текст промпта, без объяснений и комментариев.\n\n" + text;
         return generate(prompt);
     }
 
     @Override
     public String generateName(String text) {
-        String prompt = "Придумай короткое имя (2-4 слова) для этого шаблона промпта:\n\n" + text;
+        String prompt = "Придумай короткое имя (2-4 слова) для этого шаблона промпта. " +
+                "Верни ТОЛЬКО имя, без пояснений.\n\n" + text;
         return generate(prompt);
     }
 
@@ -54,7 +56,7 @@ class PromptAssistantOllama implements PromptAssistant {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(config.endpoint() + "/api/tags"))
-                    .timeout(Duration.ofMinutes(5))
+                    .timeout(Duration.ofSeconds(2))
                     .GET()
                     .build();
 
@@ -78,11 +80,10 @@ class PromptAssistantOllama implements PromptAssistant {
                     config.model(),
                     escapeJson(prompt)
             );
-            System.out.println("JSON to Ollama: " + json);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(config.endpoint() + "/api/generate"))
-                    .timeout(Duration.ofSeconds(600))
+                    .timeout(Duration.ofMinutes(5))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
@@ -93,8 +94,6 @@ class PromptAssistantOllama implements PromptAssistant {
                 log.warn("Ollama returned status {}", response.statusCode());
                 return "";
             }
-
-            System.out.println("Ollama response: " + response.body());
 
             return extractResponse(response.body());
         } catch (Exception e) {
