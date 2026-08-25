@@ -19,6 +19,10 @@ class FileFilterIntegrationTest {
         System.setProperty("user.home", System.getProperty("java.io.tmpdir") + "/c2p-test");
         ContainerDI container = new ContainerDI();
         filter = container.get(FileFilter.class);
+
+        if (filter instanceof ru.npepub.filter.ConfigurableFilter configurable) {
+            configurable.reloadConfig();
+        }
     }
 
     @Test
