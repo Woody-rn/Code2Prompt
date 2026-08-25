@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.ai.PromptAssistant;
 import ru.npepub.config.*;
 import ru.npepub.di.ContainerDI;
 import ru.npepub.di.api.C2PInject;
@@ -64,11 +65,13 @@ public class DashboardController {
     @C2PInject private TaskTemplateManager templateManager;
     @C2PInject private HelpService helpService;
     @C2PInject private VersionChecker versionChecker;
+    @C2PInject private PromptAssistant promptAssistant;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
     private PrepareRequest lastRequest;
     private ResourceBundle messages;
+    private boolean updatingPrompt = false;
 
     @FXML
     public void initialize() {
@@ -131,6 +134,7 @@ public class DashboardController {
         }
 
         taskCombo.setOnAction(e -> {
+            if (updatingPrompt) return;
             String selected = taskCombo.getValue();
             if (selected == null || selected.equals(messages.getString("task.custom"))) {
                 promptField.clear();
@@ -140,11 +144,14 @@ public class DashboardController {
 
             String prompt = templateManager.getPromptForTask(selected, messages);
             if (prompt != null) {
+                updatingPrompt = true;
                 promptField.setText(prompt);
+                updatingPrompt = false;
             }
         });
 
         promptField.textProperty().addListener((obs, old, val) -> {
+            if (updatingPrompt) return;
             Platform.runLater(() -> {
                 String selected = taskCombo.getValue();
                 String expectedPrompt = templateManager.getPromptForTask(selected, messages);
@@ -179,7 +186,9 @@ public class DashboardController {
         if (selected == null || templateManager.isBuiltIn(selected, messages)) return;
         String text = templateManager.getCustomTemplates().get(selected);
         if (text != null) {
+            updatingPrompt = true;
             promptField.setText(text);
+            updatingPrompt = false;
         }
     }
 
@@ -465,5 +474,76 @@ public class DashboardController {
     private void updateOutputPathWithProjectName() {
         outputPathField.setText(ProjectPathResolver.resolveOutputPath(
                 projectInfo, config.paths().outputPath().toString()));
+    }
+
+    @FXML
+    private void onImprovePrompt() {
+        executeAssistant(promptAssistant::improve, "Введите промпт", "Промпт улучшен", "Не удалось улучшить промпт");
+    }
+
+    @FXML
+    private void onExpandPrompt() {
+        executeAssistant(promptAssistant::expand, "Введите короткую фразу", "Промпт развёрнут", "Не удалось развернуть промпт");
+    }
+
+    @FXML
+    private void onGenerateTemplateName() {
+        String text = promptField.getText();
+        if (text == null || text.isBlank()) {
+            setStatusBar("Введите промпт");
+            return;
+        }
+        if (!promptAssistant.isAvailable()) {
+            setStatusBar("Локальная модель недоступна", true);
+            return;
+        }
+
+        setStatusBar("Модель думает...");
+
+        new Thread(() -> {
+            String name = promptAssistant.generateName(text);
+            Platform.runLater(() -> {
+                if (!name.isBlank()) {
+                    templateManager.saveOrUpdateTemplate(name, text);
+                    buildTaskCombo();
+                    taskCombo.setValue(name);
+                    setStatusBar("Шаблон сохранён: " + name);
+                } else {
+                    setStatusBar("Не удалось придумать имя", true);
+                }
+            });
+        }).start();
+    }
+
+    private void executeAssistant(java.util.function.Function<String, String> operation,
+                                  String emptyTextWarning,
+                                  String successMessage,
+                                  String failureMessage) {
+        String text = promptField.getText();
+        if (text == null || text.isBlank()) {
+            setStatusBar(emptyTextWarning);
+            return;
+        }
+        if (!promptAssistant.isAvailable()) {
+            setStatusBar("Локальная модель недоступна", true);
+            return;
+        }
+
+        setStatusBar("Модель думает...");
+
+        new Thread(() -> {
+            String result = operation.apply(text);
+            Platform.runLater(() -> {
+                if (!result.isBlank()) {
+                    updatingPrompt = true;
+                    promptField.setText(result);
+                    promptField.positionCaret(0);
+                    updatingPrompt = false;
+                    setStatusBar(successMessage);
+                } else {
+                    setStatusBar(failureMessage, true);
+                }
+            });
+        }).start();
     }
 }

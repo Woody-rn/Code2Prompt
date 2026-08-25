@@ -9,6 +9,6 @@ public record AssistantConfig(
         boolean enabled
 ) {
     public static AssistantConfig defaults() {
-        return new AssistantConfig("http://localhost:11434", "qwen3.5:latest", false);
+        return new AssistantConfig("http://localhost:11434", "qwen3.5:latest", true);
     }
 }

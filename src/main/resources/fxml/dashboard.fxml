@@ -87,6 +87,21 @@
                             <Tooltip text="%prompt.apply.tooltip"/>
                         </tooltip>
                     </Button>
+                    <Button text="✨" onAction="#onImprovePrompt" styleClass="template-button">
+                        <tooltip>
+                            <Tooltip text="Улучшить промпт"/>
+                        </tooltip>
+                    </Button>
+                    <Button text="🔍" onAction="#onExpandPrompt" styleClass="template-button">
+                        <tooltip>
+                            <Tooltip text="Развернуть короткую фразу"/>
+                        </tooltip>
+                    </Button>
+                    <Button text="📝" onAction="#onGenerateTemplateName" styleClass="template-button">
+                        <tooltip>
+                            <Tooltip text="Придумать имя для шаблона"/>
+                        </tooltip>
+                    </Button>
                 </HBox>
                 <TextArea fx:id="promptField" prefRowCount="4" wrapText="true" promptText="%prompt.placeholder"/>
             </VBox>

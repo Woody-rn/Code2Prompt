@@ -1,5 +1,6 @@
 package ru.npepub.ai;
 
+import ch.qos.logback.core.encoder.JsonEscapeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.config.ConfigPort;
@@ -24,7 +25,7 @@ class PromptAssistantOllama implements PromptAssistant {
     private ConfigPort configPort;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
+            .connectTimeout(Duration.ofSeconds(50))
             .build();
 
     @Override
@@ -53,7 +54,7 @@ class PromptAssistantOllama implements PromptAssistant {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(config.endpoint() + "/api/tags"))
-                    .timeout(Duration.ofSeconds(2))
+                    .timeout(Duration.ofMinutes(5))
                     .GET()
                     .build();
 
@@ -77,10 +78,11 @@ class PromptAssistantOllama implements PromptAssistant {
                     config.model(),
                     escapeJson(prompt)
             );
+            System.out.println("JSON to Ollama: " + json);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(config.endpoint() + "/api/generate"))
-                    .timeout(Duration.ofSeconds(60))
+                    .timeout(Duration.ofSeconds(600))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
@@ -91,6 +93,8 @@ class PromptAssistantOllama implements PromptAssistant {
                 log.warn("Ollama returned status {}", response.statusCode());
                 return "";
             }
+
+            System.out.println("Ollama response: " + response.body());
 
             return extractResponse(response.body());
         } catch (Exception e) {
@@ -103,11 +107,22 @@ class PromptAssistantOllama implements PromptAssistant {
         int idx = json.indexOf("\"response\"");
         if (idx == -1) return "";
         int start = json.indexOf("\"", idx + 11) + 1;
-        int end = json.indexOf("\"", start);
-        if (end == -1) return "";
+
+        int end = start;
+        while (end < json.length()) {
+            if (json.charAt(end) == '"' && (end == start || json.charAt(end - 1) != '\\')) {
+                break;
+            }
+            end++;
+        }
+        if (end >= json.length()) return "";
+
         return json.substring(start, end)
                 .replace("\\n", "\n")
-                .replace("\\\"", "\"");
+                .replace("\\\"", "\"")
+                .replace("\\u003e", ">")
+                .replace("\\u003c", "<")
+                .replace("\\u0026", "&");
     }
 
     private String escapeJson(String text) {
