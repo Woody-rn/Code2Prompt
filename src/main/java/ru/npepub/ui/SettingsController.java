@@ -106,7 +106,10 @@ public class SettingsController {
 
     private List<String> mergeExclusions() {
         List<String> all = new ArrayList<>();
-        config.filter().excludedDirs().stream().sorted().forEach(d -> all.add(d + "/"));
+        config.filter().excludedDirs().stream().sorted().forEach(d -> {
+            String name = d.endsWith("/") ? d : d + "/";
+            all.add(name);
+        });
         config.filter().excludedFileNames().stream().sorted().forEach(all::add);
         config.filter().patterns().stream().sorted().forEach(all::add);
         return all;
@@ -114,7 +117,10 @@ public class SettingsController {
 
     private List<String> mergeDefaults(Set<String> dirs, Set<String> files, Set<String> patterns) {
         List<String> all = new ArrayList<>();
-        dirs.stream().sorted().forEach(d -> all.add(d + "/"));
+        dirs.stream().sorted().forEach(d -> {
+            String name = d.endsWith("/") ? d : d + "/";
+            all.add(name);
+        });
         files.stream().sorted().forEach(all::add);
         patterns.stream().sorted().forEach(all::add);
         return all;
