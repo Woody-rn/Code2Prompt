@@ -2,6 +2,7 @@ package ru.npepub.ui.coordinator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.Code2PromptPaths;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.model.ProjectInfo;
@@ -26,7 +27,7 @@ public class ContextServerLauncher {
     /** Starts the server serving chunk files from the output directory. */
     public void start(Path outputDir, ProjectInfo projectInfo) throws Exception {
         List<Path> files = Files.list(outputDir)
-                .filter(f -> f.getFileName().toString().startsWith("code2prompt_part"))
+                .filter(f -> f.getFileName().toString().startsWith(Code2PromptPaths.CHUNK_FILE_PREFIX))
                 .sorted()
                 .collect(Collectors.toList());
 

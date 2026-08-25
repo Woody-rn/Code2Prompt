@@ -2,6 +2,8 @@ package ru.npepub.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.ConfigPort;
+import ru.npepub.config.FilterConfig;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.filter.ConfigurableFilter;
@@ -16,16 +18,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/**
- * Recursively scans a directory and reads text files as UTF-8 strings.
- */
 @C2PComponent
 class FileScannerImpl implements FileScanner {
 
     private static final Logger log = LoggerFactory.getLogger(FileScannerImpl.class);
 
-    @C2PInject
-    private FileFilter fileFilter;
+    @C2PInject private FileFilter fileFilter;
+    @C2PInject private ConfigPort configPort;
 
     @Override
     public List<FileInfo> scan(Path rootDir) {
@@ -33,7 +32,8 @@ class FileScannerImpl implements FileScanner {
         log.info("Scanning directory: {}", rootDir);
 
         if (fileFilter instanceof ConfigurableFilter configurable) {
-            configurable.reloadConfig();
+            FilterConfig filterConfig = configPort.load().filter();
+            configurable.reloadConfig(filterConfig);
         }
 
         try (Stream<Path> stream = Files.walk(rootDir)) {

@@ -1,5 +1,6 @@
 package ru.npepub.filter.impl;
 
+import ru.npepub.config.FilterConfig;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.di.api.C2PPrimary;
@@ -9,9 +10,6 @@ import ru.npepub.filter.FileFilter;
 import java.nio.file.Path;
 import java.util.List;
 
-/**
- * Combines all file filters. Returns true only if all filters pass.
- */
 @C2PComponent
 @C2PPrimary
 class CompositeFileFilter implements FileFilter, ConfigurableFilter {
@@ -30,10 +28,10 @@ class CompositeFileFilter implements FileFilter, ConfigurableFilter {
     }
 
     @Override
-    public void reloadConfig() {
+    public void reloadConfig(FilterConfig config) {
         for (FileFilter filter : filters) {
             if (filter instanceof ConfigurableFilter configurable) {
-                configurable.reloadConfig();
+                configurable.reloadConfig(config);
             }
         }
     }

@@ -2,6 +2,7 @@ package ru.npepub.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.config.Code2PromptPaths;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.model.Chunk;
@@ -64,7 +65,7 @@ class OutputWriterImpl implements OutputWriter {
     private void cleanOldChunks(Path outputDir) {
         try (Stream<Path> files = Files.list(outputDir)) {
             files.filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().startsWith(FILE_PREFIX))
+                    .filter(p -> p.getFileName().toString().startsWith(Code2PromptPaths.CHUNK_FILE_PREFIX))
                     .forEach(p -> {
                         try {
                             Files.deleteIfExists(p);

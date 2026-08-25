@@ -3,6 +3,7 @@ package ru.npepub.filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import ru.npepub.config.FilterConfig;
 import ru.npepub.di.ContainerDI;
 
 import java.nio.file.Files;
@@ -20,8 +21,8 @@ class FileFilterIntegrationTest {
         ContainerDI container = new ContainerDI();
         filter = container.get(FileFilter.class);
 
-        if (filter instanceof ru.npepub.filter.ConfigurableFilter configurable) {
-            configurable.reloadConfig();
+        if (filter instanceof ConfigurableFilter configurable) {
+            configurable.reloadConfig(FilterConfig.defaults());
         }
     }
 

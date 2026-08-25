@@ -13,6 +13,7 @@ public final class Code2PromptPaths {
     public static final Path HISTORY_FILE = HOME_DIR.resolve("history.properties");
     public static final Path LOG_DIR = HOME_DIR.resolve("logs");
     public static final Path KEYSTORE_FILE = HOME_DIR.resolve("keystore.jks");
+    public static final String CHUNK_FILE_PREFIX = "code2prompt_part";
 
     private Code2PromptPaths() {
     }

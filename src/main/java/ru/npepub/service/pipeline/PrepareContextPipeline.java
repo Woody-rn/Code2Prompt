@@ -2,7 +2,6 @@ package ru.npepub.service.pipeline;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
@@ -27,7 +26,6 @@ public class PrepareContextPipeline {
     @C2PInject private FileScanner scanner;
     @C2PInject private FileAggregator aggregator;
     @C2PInject private OutputWriter writer;
-    @C2PInject private ConfigPort configPort;
 
     /** Scans the source directory and returns found files. */
     public List<FileInfo> scan(PrepareRequest request) {
@@ -48,8 +46,7 @@ public class PrepareContextPipeline {
     }
 
     /** Writes chunks to txt files in the output directory. */
-    public List<Path> write(PrepareRequest request, List<Chunk> chunks) {
-        String separator = configPort.load().prompt().fileSeparator();
+    public List<Path> write(PrepareRequest request, List<Chunk> chunks, String separator) {
         log.info("Writing {} chunks to {}", chunks.size(), request.outputPath());
         List<Path> result = writer.write(chunks, Path.of(request.outputPath()), separator);
         log.info("Written {} files", result.size());
