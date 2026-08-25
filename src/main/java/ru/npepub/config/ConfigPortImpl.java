@@ -2,6 +2,7 @@ package ru.npepub.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.ai.AssistantConfig;
 import ru.npepub.di.api.C2PComponent;
 
 import java.io.IOException;
@@ -72,6 +73,9 @@ class ConfigPortImpl implements ConfigPort {
                         .collect(Collectors.joining(";;")));
         p.setProperty("output.oneFilePerChunk", String.valueOf(c.oneFilePerChunk()));
         p.setProperty("debug.mode", String.valueOf(c.debugMode()));
+        p.setProperty("assistant.endpoint", c.assistant().endpoint());
+        p.setProperty("assistant.model", c.assistant().model());
+        p.setProperty("assistant.enabled", String.valueOf(c.assistant().enabled()));
         return p;
     }
 
@@ -82,8 +86,18 @@ class ConfigPortImpl implements ConfigPort {
                 loadFilter(p),
                 loadLog(p),
                 loadPrompt(p),
+                loadAssistantConfig(p),
                 Boolean.parseBoolean(p.getProperty("output.oneFilePerChunk", "false")),
                 Boolean.parseBoolean(p.getProperty("debug.mode", "false"))
+        );
+    }
+
+    private AssistantConfig loadAssistantConfig(Properties p) {
+        return new AssistantConfig(
+                p.getProperty("assistant.endpoint", AssistantConfig.defaults().endpoint()),
+                p.getProperty("assistant.model", AssistantConfig.defaults().model()),
+                Boolean.parseBoolean(p.getProperty("assistant.enabled",
+                        String.valueOf(AssistantConfig.defaults().enabled())))
         );
     }
 

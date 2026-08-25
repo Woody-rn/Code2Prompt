@@ -2,6 +2,7 @@ package ru.npepub.config;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.npepub.ai.AssistantConfig;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,6 +40,9 @@ class ConfigJsonExporterTest {
         assertThat(restored.prompt().finalPartTemplate()).isEqualTo(original.prompt().finalPartTemplate());
         assertThat(restored.prompt().fileSeparator()).isEqualTo(original.prompt().fileSeparator());
         assertThat(restored.prompt().customTemplates()).containsAllEntriesOf(original.prompt().customTemplates());
+        assertThat(restored.assistant().endpoint()).isEqualTo(original.assistant().endpoint());
+        assertThat(restored.assistant().model()).isEqualTo(original.assistant().model());
+        assertThat(restored.assistant().enabled()).isEqualTo(original.assistant().enabled());
         assertThat(restored.oneFilePerChunk()).isEqualTo(original.oneFilePerChunk());
         assertThat(restored.debugMode()).isEqualTo(original.debugMode());
     }
@@ -51,6 +55,7 @@ class ConfigJsonExporterTest {
                 new FilterConfig(Set.of(), Set.of(), Set.of()),
                 LogConfig.defaults(),
                 PromptConfig.defaults(),
+                AssistantConfig.defaults(),
                 false,
                 false
         );
@@ -82,6 +87,7 @@ class ConfigJsonExporterTest {
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
                 prompt,
+                AssistantConfig.defaults(),
                 false,
                 false
         );
@@ -103,6 +109,7 @@ class ConfigJsonExporterTest {
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
                 prompt,
+                AssistantConfig.defaults(),
                 false,
                 false
         );
@@ -127,6 +134,7 @@ class ConfigJsonExporterTest {
                 FilterConfig.defaults(),
                 LogConfig.defaults(),
                 prompt,
+                AssistantConfig.defaults(),
                 false,
                 false
         );

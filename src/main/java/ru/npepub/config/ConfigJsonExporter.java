@@ -1,5 +1,6 @@
 package ru.npepub.config;
 
+import ru.npepub.ai.AssistantConfig;
 import ru.npepub.di.api.C2PComponent;
 
 import java.nio.file.Path;
@@ -42,6 +43,11 @@ public class ConfigJsonExporter {
         sb.append("    \"fileSeparator\": \"").append(esc(c.prompt().fileSeparator())).append("\",\n");
         sb.append("    \"customTemplates\": ").append(toJsonMap(c.prompt().customTemplates())).append("\n");
         sb.append("  },\n");
+        sb.append("  \"assistant\": {\n");
+        sb.append("    \"endpoint\": \"").append(esc(c.assistant().endpoint())).append("\",\n");
+        sb.append("    \"model\": \"").append(esc(c.assistant().model())).append("\",\n");
+        sb.append("    \"enabled\": ").append(c.assistant().enabled()).append("\n");
+        sb.append("  },\n");
         sb.append("  \"oneFilePerChunk\": ").append(c.oneFilePerChunk()).append(",\n");
         sb.append("  \"debugMode\": ").append(c.debugMode()).append("\n");
         sb.append("}");
@@ -76,6 +82,11 @@ public class ConfigJsonExporter {
                         extractString(json, "finalPartTemplate", PromptConfig.defaults().finalPartTemplate()),
                         extractString(json, "fileSeparator", PromptConfig.defaults().fileSeparator()),
                         extractMap(json, "customTemplates")
+                ),
+                new AssistantConfig(
+                        extractString(json, "endpoint", AssistantConfig.defaults().endpoint()),
+                        extractString(json, "model", AssistantConfig.defaults().model()),
+                        extractBoolean(json, "enabled", false)
                 ),
                 extractBoolean(json, "oneFilePerChunk", false),
                 extractBoolean(json, "debugMode", false)

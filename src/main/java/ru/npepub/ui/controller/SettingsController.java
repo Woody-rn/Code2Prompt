@@ -8,6 +8,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.npepub.ai.AssistantConfig;
 import ru.npepub.config.*;
 import ru.npepub.di.api.C2PInject;
 
@@ -273,6 +274,11 @@ public class SettingsController {
                         finalPartField.getText(),
                         fileSeparatorField.getText(),
                         config.prompt().customTemplates()
+                ),
+                new AssistantConfig(
+                        config.assistant().endpoint(),
+                        config.assistant().model(),
+                        config.assistant().enabled()
                 ),
                 oneFilePerChunkCheckBox.isSelected(),
                 debugModeCheckBox.isSelected()
