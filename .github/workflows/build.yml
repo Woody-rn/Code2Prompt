@@ -1,9 +1,11 @@
-name: Build and Release
+name: Build and Release JavaFX Desktop
 
 on:
   push:
     tags:
       - 'v*'
+    branches:
+      - javafx-desktop
 
 jobs:
   build:
