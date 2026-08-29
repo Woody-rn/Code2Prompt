@@ -243,6 +243,9 @@
     -fx-font-size: 12px;
     -fx-background-radius: 8px;
     -fx-padding: 6px 10px;
+    -fx-show-delay: 0ms;
+    -fx-show-duration: 5000ms;
+    -fx-hide-delay: 200ms;
 }
 
 .content-panel {
