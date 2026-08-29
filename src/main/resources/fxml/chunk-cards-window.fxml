@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ru.npepub.ui.controller.ChunkCardWindowController"
+      prefWidth="500" prefHeight="500"
+      spacing="10"
+      styleClass="root">
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="%results.label" styleClass="section-label"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="✕" onAction="#onClose" styleClass="small-button"/>
+    </HBox>
+
+    <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" styleClass="results-scroll">
+        <VBox fx:id="chunkCardBox" spacing="5"/>
+    </ScrollPane>
+
+</VBox>

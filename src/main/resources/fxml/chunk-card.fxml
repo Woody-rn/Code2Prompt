@@ -8,11 +8,21 @@
       spacing="10" alignment="CENTER_LEFT"
       styleClass="result-card">
 
-    <Label fx:id="fileNameLabel" text="code2prompt_part1.txt" style="-fx-font-weight: bold;"/>
+    <Label fx:id="fileNameLabel" text="code2prompt_part1.txt"
+           style="-fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
     <Label fx:id="sizeLabel" text="95 234 симв."/>
-    <Region HBox.hgrow="ALWAYS"/>
-    <Button fx:id="openButton" text="%chunk.open" onAction="#onOpen" styleClass="card-button"/>
-    <Button fx:id="copyButton" text="%chunk.copy" onAction="#onCopy" styleClass="card-button"/>
+    <Button fx:id="openButton" onAction="#onOpen" styleClass="card-button">
+        📂
+        <tooltip>
+            <Tooltip text="%chunk.open"/>
+        </tooltip>
+    </Button>
+    <Button fx:id="copyButton" onAction="#onCopy" styleClass="card-button">
+        📋
+        <tooltip>
+            <Tooltip text="%chunk.copy"/>
+        </tooltip>
+    </Button>
     <Label fx:id="copiedLabel" text="%chunk.copied" visible="false" style="-fx-text-fill: green;"/>
 
 </HBox>

@@ -74,8 +74,15 @@ class LogWindowManager implements LogWindowPort {
         logStage.setX(mainStage.getX() + mainStage.getWidth());
         logStage.setY(mainStage.getY());
         logStage.setHeight(mainStage.getHeight());
-        mainStage.xProperty().addListener((obs, o, n) -> logStage.setX(n.doubleValue() + mainStage.getWidth()));
-        mainStage.yProperty().addListener((obs, o, n) -> logStage.setY(n.doubleValue()));
-        mainStage.heightProperty().addListener((obs, o, n) -> logStage.setHeight(n.doubleValue()));
+
+        mainStage.xProperty().addListener((obs, o, n) -> {
+            if (logStage != null) logStage.setX(n.doubleValue() + mainStage.getWidth());
+        });
+        mainStage.yProperty().addListener((obs, o, n) -> {
+            if (logStage != null) logStage.setY(n.doubleValue());
+        });
+        mainStage.heightProperty().addListener((obs, o, n) -> {
+            if (logStage != null) logStage.setHeight(n.doubleValue());
+        });
     }
 }

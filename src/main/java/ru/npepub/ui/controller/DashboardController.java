@@ -19,7 +19,6 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
 import ru.npepub.model.ProjectInfo;
-import ru.npepub.ui.component.ResultCardFactory;
 import ru.npepub.update.VersionChecker;
 import ru.npepub.ui.coordinator.*;
 import ru.npepub.ui.log.LogWindowPort;
@@ -44,10 +43,8 @@ public class DashboardController {
     @FXML private ComboBox<String> sourcePathField;
     @FXML private TextField outputPathField;
     @FXML private ProgressBar progressBar;
-    @FXML private VBox resultsBox;
     @FXML private Label statusLabel;
-    @FXML private Button startButton;
-    @FXML private Button stopButton;
+    @FXML private Button startStopButton;
     @FXML private Button serverButton;
     @FXML private FileTreeController fileTreeController;
     @FXML private TextArea promptField;
@@ -61,17 +58,18 @@ public class DashboardController {
     @C2PInject private ScanPipelineRunner pipelineRunner;
     @C2PInject private ContextServerLauncher serverLauncher;
     @C2PInject private ProjectHistoryStore projectHistory;
-    @C2PInject private ResultCardFactory resultCardFactory;
     @C2PInject private TaskTemplateManager templateManager;
     @C2PInject private HelpService helpService;
     @C2PInject private VersionChecker versionChecker;
     @C2PInject private PromptAssistant promptAssistant;
+    @C2PInject private ChunkCardWindowManager chunkCardWindow;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
     private PrepareRequest lastRequest;
     private ResourceBundle messages;
     private boolean updatingPrompt = false;
+    private boolean running = false;
 
     @FXML
     public void initialize() {
@@ -248,7 +246,14 @@ public class DashboardController {
     private void onOpenOutputFolder() { openFolder(outputPathField.getText()); }
 
     @FXML
-    private void onStart() {
+    private void onStartStop() {
+        if (running) {
+            pipelineRunner.cancel();
+            setStatusBar(messages.getString("status.cancelling"));
+            setRunning(false);
+            return;
+        }
+
         String sourcePath = sourcePathField.getEditor().getText();
         sourcePathField.setValue(sourcePath);
         projectInfo = ProjectInfo.from(sourcePath);
@@ -267,27 +272,21 @@ public class DashboardController {
         );
     }
 
-    @FXML
-    private void onStop() {
-        pipelineRunner.cancel();
-        setStatusBar(messages.getString("status.cancelling"));
-    }
-
     private void startScanTask(PrepareRequest request) {
         stopServerIfRunning();
-        toggleButtons(true);
+        setRunning(true);
         progressBar.setVisible(true);
-        resultsBox.getChildren().clear();
         fileTreeController.clear();
+        chunkCardWindow.clear();
 
         pipelineRunner.run(
                 request,
                 config.oneFilePerChunk(),
                 this::setStatusBar,
-                this::addResultCard,
+                this::addChunkCard,
                 () -> {
                     progressBar.setVisible(false);
-                    toggleButtons(false);
+                    setRunning(false);
                     lastRequest = request;
                 },
                 files -> fileTreeController.populate(files, projectInfo.name(), Path.of(request.sourcePath())),
@@ -295,8 +294,24 @@ public class DashboardController {
         );
     }
 
-    private void addResultCard(Path file) {
-        resultsBox.getChildren().add(resultCardFactory.create(file));
+    private void addChunkCard(Path file) {
+        chunkCardWindow.addChunkCard(file);
+    }
+
+    private void setRunning(boolean running) {
+        this.running = running;
+        if (running) {
+            startStopButton.setText(messages.getString("stop.button"));
+            startStopButton.getStyleClass().setAll("stop-button");
+        } else {
+            startStopButton.setText(messages.getString("start.button"));
+            startStopButton.getStyleClass().setAll("start-button");
+        }
+    }
+
+    @FXML
+    private void onToggleChunkCardsWindow() {
+        chunkCardWindow.toggle(getMainStage());
     }
 
     @FXML
@@ -398,11 +413,6 @@ public class DashboardController {
 
         alert.getDialogPane().setContent(textArea);
         alert.showAndWait();
-    }
-
-    private void toggleButtons(boolean running) {
-        startButton.setVisible(!running);
-        stopButton.setVisible(running);
     }
 
     private File chooseDirectory(String title, String initialPath) {
