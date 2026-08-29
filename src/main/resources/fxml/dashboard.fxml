@@ -101,7 +101,7 @@
                         </tooltip>
                     </Button>
                 </HBox>
-                <TextArea fx:id="promptField" prefRowCount="4" wrapText="true" promptText="%prompt.placeholder"/>
+                <TextArea fx:id="promptField" prefRowCount="20" wrapText="true" promptText="%prompt.placeholder"/>
             </VBox>
         </VBox>
 

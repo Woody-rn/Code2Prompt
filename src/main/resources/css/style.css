@@ -14,7 +14,7 @@
     -fx-border-color: #dfe6e9;
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
-    -fx-padding: 8px 12px;
+    -fx-padding: 3px 12px;
     -fx-font-size: 13px;
 }
 
@@ -27,6 +27,7 @@
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
     -fx-min-width: 40px;
+    -fx-padding: 4px 16px;
 }
 
 .button:pressed {
@@ -41,8 +42,7 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 12px;
-    -fx-padding: 8px 28px;
-    -fx-min-height: 36px;
+    -fx-padding: 4px 28px;
 }
 
 .start-button:hover {
@@ -59,8 +59,7 @@
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 12px;
-    -fx-padding: 8px 28px;
-    -fx-min-height: 36px;
+    -fx-padding: 4px 28px;
 }
 
 .stop-button:hover {
@@ -101,9 +100,8 @@
     -fx-background-color: #b2bec3;
     -fx-text-fill: #2d3436;
     -fx-background-radius: 10px;
-    -fx-padding: 8px 16px;
+    -fx-padding: 4px 16px;
     -fx-font-weight: 500;
-    -fx-min-height: 36px;
 }
 
 .settings-button:hover {
@@ -213,12 +211,11 @@
     -fx-background-color: #b2bec3;
     -fx-text-fill: #2d3436;
     -fx-background-radius: 10px;
-    -fx-padding: 8px 16px;
+    -fx-padding: 4px 16px;
     -fx-font-weight: 500;
     -fx-border-color: #e74c3c;
     -fx-border-width: 2px;
     -fx-border-radius: 10px;
-    -fx-min-height: 36px;
 }
 
 .server-button-off:hover {
@@ -229,12 +226,11 @@
     -fx-background-color: #b2bec3;
     -fx-text-fill: #2d3436;
     -fx-background-radius: 10px;
-    -fx-padding: 8px 16px;
+    -fx-padding: 4px 16px;
     -fx-font-weight: 500;
     -fx-border-color: #27ae60;
     -fx-border-width: 2px;
     -fx-border-radius: 10px;
-    -fx-min-height: 36px;
 }
 
 .server-button-on:hover {
