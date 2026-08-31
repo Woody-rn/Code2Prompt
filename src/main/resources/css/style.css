@@ -323,8 +323,3 @@
     -fx-background-color: #1e8449;
     -fx-translate-y: 1px;
 }
-
-.prompt-section.applied {
-    -fx-border-color: #27ae60;
-    -fx-border-width: 2px;
-}

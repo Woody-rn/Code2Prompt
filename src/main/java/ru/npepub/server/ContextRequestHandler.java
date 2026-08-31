@@ -22,25 +22,25 @@ class ContextRequestHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ContextRequestHandler.class);
 
-    @C2PInject
-    private JsonResponseHelper jsonHelper;
+    @C2PInject private JsonResponseHelper jsonHelper;
 
     private List<Path> contextFiles;
     private ProjectInfo projectInfo;
     private PromptConfig promptConfig = PromptConfig.defaults();
 
-    /**
-     * Updates the context files and project info.
-     */
+    /** Updates the context files and project info. */
     public void updateContext(List<Path> files, ProjectInfo projectInfo, PromptConfig promptConfig) {
         this.contextFiles = files;
         this.projectInfo = projectInfo;
         this.promptConfig = promptConfig;
     }
 
-    /**
-     * Main request handler. Routes to appropriate handler based on path.
-     */
+    /** Updates only the prompt config. */
+    public void updatePrompt(PromptConfig promptConfig) {
+        this.promptConfig = promptConfig;
+    }
+
+    /** Main request handler. Routes to appropriate handler based on path. */
     public void handleRequest(HttpExchange exchange) throws IOException {
         String path = exchange.getRequestURI().getPath();
         String method = exchange.getRequestMethod();

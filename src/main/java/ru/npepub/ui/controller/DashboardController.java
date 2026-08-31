@@ -70,6 +70,7 @@ public class DashboardController {
     private ResourceBundle messages;
     private boolean updatingPrompt = false;
     private boolean running = false;
+    private Timer saveTimer;
 
     @FXML
     public void initialize() {
@@ -85,7 +86,9 @@ public class DashboardController {
         setupDragAndDrop();
         fileTreeController.setStatusConsumer(this::setStatusBar);
 
+        updatingPrompt = true;
         promptField.setText(config.prompt().systemPrompt());
+        updatingPrompt = false;
         buildTaskCombo();
 
         if (config.debugMode()) {
@@ -135,7 +138,9 @@ public class DashboardController {
             if (updatingPrompt) return;
             String selected = taskCombo.getValue();
             if (selected == null || selected.equals(messages.getString("task.custom"))) {
+                updatingPrompt = true;
                 promptField.clear();
+                updatingPrompt = false;
                 return;
             }
             if (selected.equals("──────────")) return;
@@ -150,6 +155,7 @@ public class DashboardController {
 
         promptField.textProperty().addListener((obs, old, val) -> {
             if (updatingPrompt) return;
+            schedulePromptSave();
             Platform.runLater(() -> {
                 String selected = taskCombo.getValue();
                 String expectedPrompt = templateManager.getPromptForTask(selected, messages);
@@ -158,6 +164,19 @@ public class DashboardController {
                 }
             });
         });
+    }
+
+    private void schedulePromptSave() {
+        if (saveTimer != null) {
+            saveTimer.cancel();
+        }
+        saveTimer = new Timer(true);
+        saveTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                Platform.runLater(() -> savePromptToConfig());
+            }
+        }, 500);
     }
 
     @FXML
@@ -205,7 +224,9 @@ public class DashboardController {
                 templateManager.deleteTemplate(selected);
                 buildTaskCombo();
                 taskCombo.setValue(messages.getString("task.custom"));
+                updatingPrompt = true;
                 promptField.clear();
+                updatingPrompt = false;
             }
         });
     }
@@ -258,8 +279,6 @@ public class DashboardController {
         sourcePathField.setValue(sourcePath);
         projectInfo = ProjectInfo.from(sourcePath);
         updateOutputPathWithProjectName();
-
-        savePromptToConfig();
 
         PrepareRequest request = prepareRequest();
         requestValidator.validate(request).ifPresentOrElse(
@@ -321,7 +340,6 @@ public class DashboardController {
             updateServerUI(false);
             setStatusBar(messages.getString("status.server.stopped"));
         } else if (lastRequest != null && projectInfo != null) {
-            savePromptToConfig();
             try {
                 serverLauncher.start(Path.of(lastRequest.outputPath()), projectInfo);
                 updateServerUI(true);
@@ -381,16 +399,6 @@ public class DashboardController {
     }
 
     @FXML
-    private void onApplyPrompt() {
-        savePromptToConfig();
-        promptSection.getStyleClass().add("applied");
-        PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
-        pause.setOnFinished(e -> promptSection.getStyleClass().remove("applied"));
-        pause.play();
-        setStatusBar(messages.getString("status.prompt.applied"));
-    }
-
-    @FXML
     private void onOpenInBrowser() {
         try {
             java.awt.Desktop.getDesktop().browse(java.net.URI.create("https://localhost:9090/project"));
@@ -446,6 +454,11 @@ public class DashboardController {
                     freshConfig.prompt().customTemplates()
             ));
             configPort.save(config);
+
+            if (serverLauncher.isRunning()) {
+                serverLauncher.updatePrompt(config.prompt());
+            }
+
             log.debug("Prompt saved to config");
         }
     }

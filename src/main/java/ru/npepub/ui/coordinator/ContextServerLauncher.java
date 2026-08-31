@@ -3,6 +3,7 @@ package ru.npepub.ui.coordinator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.config.Code2PromptPaths;
+import ru.npepub.config.PromptConfig;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
 import ru.npepub.model.ProjectInfo;
@@ -42,5 +43,10 @@ public class ContextServerLauncher {
     /** Returns whether the server is currently running. */
     public boolean isRunning() {
         return contextServer.isRunning();
+    }
+
+    /** Updates prompt config on the running server. */
+    public void updatePrompt(PromptConfig promptConfig) {
+        contextServer.updatePrompt(promptConfig);
     }
 }

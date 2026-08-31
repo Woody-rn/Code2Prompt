@@ -67,4 +67,10 @@ class HttpsContextServer implements ContextServer {
     public boolean isRunning() {
         return server != null;
     }
+
+
+    @Override
+    public void updatePrompt(PromptConfig promptConfig) {
+        requestHandler.updatePrompt(promptConfig);
+    }
 }

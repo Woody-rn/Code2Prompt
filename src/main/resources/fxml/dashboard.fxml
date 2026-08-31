@@ -80,11 +80,6 @@
                             <Tooltip text="%template.delete.tooltip"/>
                         </tooltip>
                     </Button>
-                    <Button text="%prompt.apply.button" onAction="#onApplyPrompt" styleClass="apply-button">
-                        <tooltip>
-                            <Tooltip text="%prompt.apply.tooltip"/>
-                        </tooltip>
-                    </Button>
                     <Button text="✨" onAction="#onImprovePrompt" styleClass="template-button">
                         <tooltip>
                             <Tooltip text="%prompt.improve.tooltip"/>

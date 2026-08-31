@@ -1,5 +1,6 @@
 package ru.npepub.server;
 
+import ru.npepub.config.PromptConfig;
 import ru.npepub.model.ProjectInfo;
 
 import java.nio.file.Path;
@@ -32,4 +33,7 @@ public interface ContextServer {
      * @return true if the server is currently running
      */
     public boolean isRunning();
+
+    /** Updates prompt config on the fly. */
+    void updatePrompt(PromptConfig promptConfig);
 }
