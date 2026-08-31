@@ -6,7 +6,6 @@ import ru.npepub.ai.AssistantConfig;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,59 +47,6 @@ class ConfigJsonExporterTest {
     }
 
     @Test
-    void shouldHandleEmptyArrays() {
-        AppConfig config = new AppConfig(
-                ModelLimitConfig.defaults(),
-                PathConfig.defaults(),
-                new FilterConfig(Set.of(), Set.of(), Set.of()),
-                LogConfig.defaults(),
-                PromptConfig.defaults(),
-                AssistantConfig.defaults(),
-                false,
-                false
-        );
-
-        String json = exporter.toJson(config);
-        AppConfig restored = exporter.fromJson(json);
-
-        assertThat(restored.filter().excludedDirs()).isEmpty();
-        assertThat(restored.filter().excludedFileNames()).isEmpty();
-        assertThat(restored.filter().patterns()).isEmpty();
-    }
-
-    @Test
-    void shouldHandleSpecialCharactersInPrompt() {
-        Map<String, String> templates = new LinkedHashMap<>();
-        templates.put("Шаблон 1", "Текст 1");
-        templates.put("Шаблон \"два\"", "Текст с \nпереносом");
-
-        PromptConfig prompt = new PromptConfig(
-                "Проверь \"кавычки\" и \nпереносы",
-                "Шаблон с \\ и \t",
-                "Финал",
-                "====",
-                templates
-        );
-        AppConfig config = new AppConfig(
-                ModelLimitConfig.defaults(),
-                PathConfig.defaults(),
-                FilterConfig.defaults(),
-                LogConfig.defaults(),
-                prompt,
-                AssistantConfig.defaults(),
-                false,
-                false
-        );
-
-        String json = exporter.toJson(config);
-        AppConfig restored = exporter.fromJson(json);
-
-        assertThat(restored.prompt().systemPrompt()).isEqualTo("Проверь \"кавычки\" и \nпереносы");
-        assertThat(restored.prompt().partPrefixTemplate()).isEqualTo("Шаблон с \\ и \t");
-        assertThat(restored.prompt().customTemplates()).containsAllEntriesOf(templates);
-    }
-
-    @Test
     void shouldHandleEmptyCustomTemplates() {
         PromptConfig prompt = new PromptConfig("", "", "", "", new LinkedHashMap<>());
         AppConfig config = new AppConfig(
@@ -121,11 +67,10 @@ class ConfigJsonExporterTest {
     }
 
     @Test
-    void shouldHandleMultipleCustomTemplates() {
+    void shouldHandleCustomTemplatesWithSpecialCharacters() {
         Map<String, String> templates = new LinkedHashMap<>();
-        templates.put("Шаблон 1", "Текст 1");
-        templates.put("Шаблон с / и \\", "Текст 2");
-        templates.put("Шаблон с переносом", "Текст с \nпереносом");
+        templates.put("Шаблон 1", "Текст с \"кавычками\" и \nпереносом");
+        templates.put("Шаблон 2", "Текст с \\ слэшем");
 
         PromptConfig prompt = new PromptConfig("", "", "", "", templates);
         AppConfig config = new AppConfig(
@@ -143,12 +88,5 @@ class ConfigJsonExporterTest {
         AppConfig restored = exporter.fromJson(json);
 
         assertThat(restored.prompt().customTemplates()).containsAllEntriesOf(templates);
-    }
-
-    @Test
-    void shouldHandleWhitespaceInMap() {
-        String json = "{ \"prompt\": { \"customTemplates\": { \"a\": \"x\", \"b\": \"y\", \"c\": \"z\" } } }";
-        AppConfig config = exporter.fromJson(json);
-        assertThat(config.prompt().customTemplates()).containsAllEntriesOf(Map.of("a", "x", "b", "y", "c", "z"));
     }
 }

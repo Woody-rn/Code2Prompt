@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import ru.npepub.config.ConfigPort;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,6 +28,8 @@ class PromptAssistantOllama implements PromptAssistant {
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .build();
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public String improve(String text) {
@@ -95,33 +99,12 @@ class PromptAssistantOllama implements PromptAssistant {
                 return "";
             }
 
-            return extractResponse(response.body());
+            JsonNode node = mapper.readTree(response.body());
+            return node.get("response").asString();
         } catch (Exception e) {
             log.error("Failed to generate assistant response", e);
             return "";
         }
-    }
-
-    private String extractResponse(String json) {
-        int idx = json.indexOf("\"response\"");
-        if (idx == -1) return "";
-        int start = json.indexOf("\"", idx + 11) + 1;
-
-        int end = start;
-        while (end < json.length()) {
-            if (json.charAt(end) == '"' && (end == start || json.charAt(end - 1) != '\\')) {
-                break;
-            }
-            end++;
-        }
-        if (end >= json.length()) return "";
-
-        return json.substring(start, end)
-                .replace("\\n", "\n")
-                .replace("\\\"", "\"")
-                .replace("\\u003e", ">")
-                .replace("\\u003c", "<")
-                .replace("\\u0026", "&");
     }
 
     private String escapeJson(String text) {

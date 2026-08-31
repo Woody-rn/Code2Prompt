@@ -3,6 +3,8 @@ package ru.npepub.update;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.api.C2PComponent;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +23,8 @@ import java.util.Properties;
 public class VersionChecker {
 
     private static final Logger log = LoggerFactory.getLogger(VersionChecker.class);
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public record UpdateInfo(String version, String url, boolean updateAvailable) {}
 
@@ -51,16 +55,14 @@ public class VersionChecker {
                 return new UpdateInfo(null, null, false);
             }
 
-            Optional<String> latestVersion = extractVersion(response.body());
-            Optional<String> url = extractUrl(response.body());
+            JsonNode node = mapper.readTree(response.body());
+            String latestVersion = node.get("tag_name").asString();
+            String url = node.get("html_url").asString();
 
-            if (latestVersion.isEmpty() || url.isEmpty()) {
-                log.warn("Failed to parse GitHub API response");
-                return new UpdateInfo(null, null, false);
-            }
+            latestVersion = latestVersion.startsWith("v") ? latestVersion.substring(1) : latestVersion;
 
-            boolean available = compareVersions(latestVersion.get(), currentVersion.get()) > 0;
-            return new UpdateInfo(latestVersion.get(), url.get(), available);
+            boolean available = compareVersions(latestVersion, currentVersion.get()) > 0;
+            return new UpdateInfo(latestVersion, url, available);
         } catch (IOException | InterruptedException e) {
             log.warn("Failed to check for updates: {}", e.getMessage());
             return new UpdateInfo(null, null, false);
@@ -85,23 +87,6 @@ public class VersionChecker {
             log.warn("Failed to read version.properties", e);
             return Optional.empty();
         }
-    }
-
-    private Optional<String> extractVersion(String json) {
-        int idx = json.indexOf("\"tag_name\"");
-        if (idx == -1) return Optional.empty();
-        int start = json.indexOf("\"", idx + 11) + 1;
-        int end = json.indexOf("\"", start);
-        String tag = json.substring(start, end);
-        return Optional.of(tag.startsWith("v") ? tag.substring(1) : tag);
-    }
-
-    private Optional<String> extractUrl(String json) {
-        int idx = json.indexOf("\"html_url\"");
-        if (idx == -1) return Optional.empty();
-        int start = json.indexOf("\"", idx + 11) + 1;
-        int end = json.indexOf("\"", start);
-        return Optional.of(json.substring(start, end));
     }
 
     private int compareVersions(String v1, String v2) {
