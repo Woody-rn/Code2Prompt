@@ -1,6 +1,5 @@
 package ru.npepub.ui.controller;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -9,7 +8,6 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.ai.PromptAssistant;
@@ -31,6 +29,9 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main dashboard controller.
@@ -50,6 +51,8 @@ public class DashboardController {
     @FXML private TextArea promptField;
     @FXML private ComboBox<String> taskCombo;
     @FXML private VBox promptSection;
+    @FXML private Label aiStatusIndicator;
+    @FXML private Label aiModelLabel;
 
     @C2PInject private ConfigPort configPort;
     @C2PInject private ContainerDI container;
@@ -71,6 +74,8 @@ public class DashboardController {
     private boolean updatingPrompt = false;
     private boolean running = false;
     private Timer saveTimer;
+    private ScheduledExecutorService aiScheduler;
+    private boolean aiPolling = false;
 
     @FXML
     public void initialize() {
@@ -91,15 +96,63 @@ public class DashboardController {
         updatingPrompt = false;
         buildTaskCombo();
 
+        checkAiAvailability();
+
         if (config.debugMode()) {
             Platform.runLater(() -> logWindowManager.show(getMainStage()));
         }
 
         Platform.runLater(() -> {
             Stage stage = getMainStage();
-            if (stage != null) stage.setOnCloseRequest(event -> serverLauncher.stop());
+            if (stage != null) {
+                stage.setOnCloseRequest(event -> {
+                    stopAiPolling();
+                    serverLauncher.stop();
+                });
+            }
             checkForUpdates();
         });
+    }
+
+    private void checkAiAvailability() {
+        new Thread(() -> {
+            boolean available = promptAssistant.isAvailable();
+            Platform.runLater(() -> updateAiIndicator(available));
+        }).start();
+    }
+
+    private void checkAiAvailabilityNow() {
+        checkAiAvailability();
+    }
+
+    private void updateAiIndicator(boolean available) {
+        if (available) {
+            aiStatusIndicator.getStyleClass().setAll("ai-status-on");
+            aiModelLabel.setText(config.assistant().model());
+            stopAiPolling();
+        } else {
+            aiStatusIndicator.getStyleClass().setAll("ai-status-off");
+            aiModelLabel.setText(messages.getString("ai.model.unavailable"));
+            startAiPolling();
+        }
+    }
+
+    private void startAiPolling() {
+        if (aiPolling) return;
+        aiPolling = true;
+        aiScheduler = Executors.newSingleThreadScheduledExecutor();
+        aiScheduler.scheduleAtFixedRate(
+                this::checkAiAvailability,
+                5, 5, TimeUnit.SECONDS
+        );
+    }
+
+    private void stopAiPolling() {
+        if (aiScheduler != null) {
+            aiScheduler.shutdown();
+            aiScheduler = null;
+        }
+        aiPolling = false;
     }
 
     private void checkForUpdates() {
@@ -376,6 +429,7 @@ public class DashboardController {
                 logWindowManager.toggle(config.debugMode(), getMainStage());
                 sourcePathField.getItems().setAll(projectHistory.getAll());
                 buildTaskCombo();
+                checkAiAvailability();
                 setStatusBar(messages.getString("status.saved"));
             }
         } catch (IOException e) {
@@ -501,6 +555,9 @@ public class DashboardController {
             setStatusBar("Введите промпт");
             return;
         }
+
+        checkAiAvailabilityNow();
+
         if (!promptAssistant.isAvailable()) {
             setStatusBar("Локальная модель недоступна", true);
             return;
@@ -532,6 +589,9 @@ public class DashboardController {
             setStatusBar(emptyTextWarning);
             return;
         }
+
+        checkAiAvailabilityNow();
+
         if (!promptAssistant.isAvailable()) {
             setStatusBar("Локальная модель недоступна", true);
             return;

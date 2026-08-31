@@ -343,3 +343,18 @@
     -fx-background-color: #e8e2f5;
     -fx-text-fill: #3a2d5a;
 }
+
+.ai-status-on {
+    -fx-text-fill: #27ae60;
+    -fx-font-size: 14px;
+}
+
+.ai-status-off {
+    -fx-text-fill: #e74c3c;
+    -fx-font-size: 14px;
+}
+
+.ai-model-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6a5688;
+}

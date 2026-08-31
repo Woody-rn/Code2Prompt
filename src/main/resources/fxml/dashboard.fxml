@@ -76,7 +76,7 @@
                         </tooltip>
                     </Button>
 
-                    <HBox spacing="5" styleClass="ai-buttons-group" alignment="CENTER_LEFT">
+                    <HBox fx:id="aiButtonsGroup" styleClass="ai-buttons-group" alignment="CENTER_LEFT" spacing="5">
                         <Button text="✨" onAction="#onImprovePrompt" styleClass="template-button">
                             <tooltip>
                                 <Tooltip text="%prompt.improve.tooltip"/>
@@ -92,6 +92,8 @@
                                 <Tooltip text="%prompt.name.tooltip"/>
                             </tooltip>
                         </Button>
+                        <Label fx:id="aiStatusIndicator" text="●" styleClass="ai-status-off"/>
+                        <Label fx:id="aiModelLabel" text="" styleClass="ai-model-label"/>
                     </HBox>
                 </HBox>
                 <TextArea fx:id="promptField" prefRowCount="20" wrapText="true" promptText="%prompt.placeholder"/>
