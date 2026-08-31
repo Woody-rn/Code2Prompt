@@ -138,9 +138,6 @@ public class DashboardController {
             if (updatingPrompt) return;
             String selected = taskCombo.getValue();
             if (selected == null || selected.equals(messages.getString("task.custom"))) {
-                updatingPrompt = true;
-                promptField.clear();
-                updatingPrompt = false;
                 return;
             }
             if (selected.equals("──────────")) return;
@@ -195,18 +192,6 @@ public class DashboardController {
             buildTaskCombo();
             taskCombo.setValue(name);
         });
-    }
-
-    @FXML
-    private void onEditTemplate() {
-        String selected = taskCombo.getValue();
-        if (selected == null || templateManager.isBuiltIn(selected, messages)) return;
-        String text = templateManager.getCustomTemplates().get(selected);
-        if (text != null) {
-            updatingPrompt = true;
-            promptField.setText(text);
-            updatingPrompt = false;
-        }
     }
 
     @FXML

@@ -70,11 +70,6 @@
                             <Tooltip text="%template.save.tooltip"/>
                         </tooltip>
                     </Button>
-                    <Button text="✏️" onAction="#onEditTemplate" styleClass="template-button">
-                        <tooltip>
-                            <Tooltip text="%template.edit.tooltip"/>
-                        </tooltip>
-                    </Button>
                     <Button text="🗑" onAction="#onDeleteTemplate" styleClass="template-button">
                         <tooltip>
                             <Tooltip text="%template.delete.tooltip"/>
