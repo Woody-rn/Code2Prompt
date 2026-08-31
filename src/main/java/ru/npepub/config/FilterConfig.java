@@ -13,11 +13,11 @@ public record FilterConfig(
     public static FilterConfig defaults() {
         return new FilterConfig(
                 Set.of(".git/", ".gradle/", ".idea/", "build/", "target/",
-                        "node_modules/", "__pycache__/", ".svn/", "out/", "dist/"),
+                        "out/", "dist/", ".mvn/"),
                 Set.of(".env", ".env.local", ".env.production",
                         "credentials.json", "secrets.yaml", "secrets.yml",
                         "key.pem", "id_rsa", "id_ed25519"),
-                Set.of("*.class", "*.jar", "*.war", "*.lock")
+                Set.of("*.class", "*.jar", "*.war")
         );
     }
 }
