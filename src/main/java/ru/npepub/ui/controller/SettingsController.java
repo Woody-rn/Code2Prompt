@@ -49,6 +49,12 @@ public class SettingsController {
     private TextField finalPartField;
     @FXML
     private TextField fileSeparatorField;
+    @FXML
+    private CheckBox assistantEnabledCheckBox;
+    @FXML
+    private TextField assistantEndpointField;
+    @FXML
+    private TextField assistantModelField;
 
     @C2PInject
     private ConfigPort configPort;
@@ -73,25 +79,15 @@ public class SettingsController {
         config = configPort.load();
 
         modelCombo.getItems().addAll(MODEL_LIMITS.keySet());
-        modelCombo.setValue(config.aiModel().name());
-
         modelCombo.setOnAction(e -> {
             String selected = modelCombo.getValue();
             Integer limit = MODEL_LIMITS.get(selected);
             if (limit != null) maxSymbolsField.setText(String.valueOf(limit));
         });
 
-        maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int) (config.aiModel().safetyMargin() * 100)));
-        defaultOutputPathField.setText(config.paths().outputPath().toString());
-
-        debugModeCheckBox.setSelected(config.debugMode());
-        oneFilePerChunkCheckBox.setSelected(config.oneFilePerChunk());
-
         devLogLevelCombo.getItems().addAll("DEBUG", "INFO", "WARN", "OFF");
-        devLogLevelCombo.setValue(config.log().level().name());
 
-        excludedPatterns = FXCollections.observableArrayList(mergeExclusions());
+        excludedPatterns = FXCollections.observableArrayList();
         excludedPatternsList.setItems(excludedPatterns);
         excludedPatternsList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
@@ -100,12 +96,27 @@ public class SettingsController {
             }
         });
 
+        fillForm(config);
+    }
+
+    private void fillForm(AppConfig config) {
+        modelCombo.setValue(config.aiModel().name());
+        maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
+        safetyMarginField.setText(String.valueOf((int) (config.aiModel().safetyMargin() * 100)));
+        defaultOutputPathField.setText(config.paths().outputPath().toString());
+        devLogLevelCombo.setValue(config.log().level().name());
+        debugModeCheckBox.setSelected(config.debugMode());
+        oneFilePerChunkCheckBox.setSelected(config.oneFilePerChunk());
+        excludedPatterns.setAll(mergeExclusions(config));
         partPrefixField.setText(config.prompt().partPrefixTemplate());
         finalPartField.setText(config.prompt().finalPartTemplate());
         fileSeparatorField.setText(config.prompt().fileSeparator());
+        assistantEnabledCheckBox.setSelected(config.assistant().enabled());
+        assistantEndpointField.setText(config.assistant().endpoint());
+        assistantModelField.setText(config.assistant().model());
     }
 
-    private List<String> mergeExclusions() {
+    private List<String> mergeExclusions(AppConfig config) {
         List<String> all = new ArrayList<>();
         config.filter().excludedDirs().stream().sorted().forEach(d -> {
             String name = d.endsWith("/") ? d : d + "/";
@@ -113,17 +124,6 @@ public class SettingsController {
         });
         config.filter().excludedFileNames().stream().sorted().forEach(all::add);
         config.filter().patterns().stream().sorted().forEach(all::add);
-        return all;
-    }
-
-    private List<String> mergeDefaults(Set<String> dirs, Set<String> files, Set<String> patterns) {
-        List<String> all = new ArrayList<>();
-        dirs.stream().sorted().forEach(d -> {
-            String name = d.endsWith("/") ? d : d + "/";
-            all.add(name);
-        });
-        files.stream().sorted().forEach(all::add);
-        patterns.stream().sorted().forEach(all::add);
         return all;
     }
 
@@ -151,24 +151,7 @@ public class SettingsController {
 
     @FXML
     private void onResetToDefaults() {
-        AppConfig defaults = AppConfig.defaults();
-        modelCombo.setValue(defaults.aiModel().name());
-        maxSymbolsField.setText(String.valueOf(defaults.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int) (defaults.aiModel().safetyMargin() * 100)));
-        defaultOutputPathField.setText(defaults.paths().outputPath().toString());
-        devLogLevelCombo.setValue(defaults.log().level().name());
-        debugModeCheckBox.setSelected(defaults.debugMode());
-        oneFilePerChunkCheckBox.setSelected(defaults.oneFilePerChunk());
-        excludedPatterns.setAll(
-                mergeDefaults(
-                        defaults.filter().excludedDirs(),
-                        defaults.filter().excludedFileNames(),
-                        defaults.filter().patterns()
-                )
-        );
-        partPrefixField.setText(defaults.prompt().partPrefixTemplate());
-        finalPartField.setText(defaults.prompt().finalPartTemplate());
-        fileSeparatorField.setText(defaults.prompt().fileSeparator());
+        fillForm(AppConfig.defaults());
     }
 
     @FXML
@@ -195,7 +178,9 @@ public class SettingsController {
         if (file == null) return;
         try {
             String json = Files.readString(file.toPath());
-            applyConfig(jsonExporter.fromJson(json));
+            AppConfig imported = jsonExporter.fromJson(json);
+            this.config = imported;
+            fillForm(imported);
         } catch (Exception e) {
             log.error("Failed to import config", e);
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -214,26 +199,6 @@ public class SettingsController {
         } catch (IOException e) {
             log.error("Failed to open logs folder", e);
         }
-    }
-
-    private void applyConfig(AppConfig config) {
-        modelCombo.setValue(config.aiModel().name());
-        maxSymbolsField.setText(String.valueOf(config.aiModel().maxSymbols()));
-        safetyMarginField.setText(String.valueOf((int) (config.aiModel().safetyMargin() * 100)));
-        defaultOutputPathField.setText(config.paths().outputPath().toString());
-        devLogLevelCombo.setValue(config.log().level().name());
-        debugModeCheckBox.setSelected(config.debugMode());
-        oneFilePerChunkCheckBox.setSelected(config.oneFilePerChunk());
-        excludedPatterns.setAll(
-                mergeDefaults(
-                        config.filter().excludedDirs(),
-                        config.filter().excludedFileNames(),
-                        config.filter().patterns()
-                )
-        );
-        partPrefixField.setText(config.prompt().partPrefixTemplate());
-        finalPartField.setText(config.prompt().finalPartTemplate());
-        fileSeparatorField.setText(config.prompt().fileSeparator());
     }
 
     /**
@@ -276,9 +241,9 @@ public class SettingsController {
                         config.prompt().customTemplates()
                 ),
                 new AssistantConfig(
-                        config.assistant().endpoint(),
-                        config.assistant().model(),
-                        config.assistant().enabled()
+                        assistantEndpointField.getText(),
+                        assistantModelField.getText(),
+                        assistantEnabledCheckBox.isSelected()
                 ),
                 oneFilePerChunkCheckBox.isSelected(),
                 debugModeCheckBox.isSelected()

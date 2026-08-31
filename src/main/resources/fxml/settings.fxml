@@ -4,87 +4,104 @@
 <?import javafx.scene.layout.*?>
 <DialogPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="ru.npepub.ui.controller.SettingsController"
-            prefWidth="750" minWidth="650" prefHeight="540" minHeight="600"
+            prefWidth="650" prefHeight="600" minWidth="600" minHeight="450"
             stylesheets="@../css/style.css">
 
     <content>
-        <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <VBox spacing="10">
+            <TabPane VBox.vgrow="ALWAYS">
 
-            <VBox spacing="15" HBox.hgrow="ALWAYS" minWidth="300" VBox.vgrow="ALWAYS">
+                <Tab text="%settings.tab.general" closable="false">
+                    <VBox spacing="15" styleClass="root">
+                        <HBox spacing="10">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="%settings.model.label" style="-fx-font-weight: bold;"/>
+                                <ComboBox fx:id="modelCombo" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="%settings.limit.label" style="-fx-font-weight: bold;"/>
+                                <TextField fx:id="maxSymbolsField"/>
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="%settings.margin.label" style="-fx-font-weight: bold;"/>
+                                <TextField fx:id="safetyMarginField"/>
+                            </VBox>
+                        </HBox>
 
-                <HBox spacing="10">
-                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label text="%settings.model.label" style="-fx-font-weight: bold;"/>
-                        <ComboBox fx:id="modelCombo" maxWidth="Infinity"/>
+                        <VBox spacing="5">
+                            <Label text="%settings.output.label" style="-fx-font-weight: bold;"/>
+                            <HBox spacing="10">
+                                <TextField fx:id="defaultOutputPathField" HBox.hgrow="ALWAYS"/>
+                                <Button text="%settings.browse" onAction="#onBrowseOutput"/>
+                            </HBox>
+                            <CheckBox fx:id="oneFilePerChunkCheckBox" text="%settings.oneFilePerChunk"/>
+                        </VBox>
+
+                        <VBox spacing="5">
+                            <Label text="%settings.logging.label" style="-fx-font-weight: bold;"/>
+                            <HBox spacing="15" alignment="CENTER_LEFT">
+                                <CheckBox fx:id="debugModeCheckBox" text="%settings.debug"/>
+                                <Label text="%settings.log.level"/>
+                                <ComboBox fx:id="devLogLevelCombo" prefWidth="120"/>
+                                <Button text="%settings.open.logs" onAction="#onOpenLogs" styleClass="settings-button"/>
+                            </HBox>
+                        </VBox>
                     </VBox>
-                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label text="%settings.limit.label" style="-fx-font-weight: bold;"/>
-                        <TextField fx:id="maxSymbolsField"/>
+                </Tab>
+
+                <Tab text="%settings.tab.filters" closable="false">
+                    <VBox spacing="10" styleClass="root" VBox.vgrow="ALWAYS">
+                        <Label text="%settings.excluded.label" style="-fx-font-weight: bold;"/>
+                        <ListView fx:id="excludedPatternsList" VBox.vgrow="ALWAYS"/>
+                        <HBox spacing="5">
+                            <TextField fx:id="newPatternField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.prompt"/>
+                            <Button text="➕" onAction="#onAddPattern"/>
+                        </HBox>
                     </VBox>
-                    <VBox spacing="5" HBox.hgrow="ALWAYS">
-                        <Label text="%settings.margin.label" style="-fx-font-weight: bold;"/>
-                        <TextField fx:id="safetyMarginField"/>
+                </Tab>
+
+                <Tab text="%settings.tab.prompt" closable="false">
+                    <VBox spacing="10" styleClass="root">
+                        <VBox spacing="5">
+                            <Label text="%settings.prompt.part.prefix"/>
+                            <TextField fx:id="partPrefixField"/>
+                            <Label text="%settings.prompt.part.hint"
+                                   style="-fx-font-size: 10px; -fx-text-fill: #888;"/>
+                        </VBox>
+                        <VBox spacing="5">
+                            <Label text="%settings.prompt.final"/>
+                            <TextField fx:id="finalPartField"/>
+                        </VBox>
+                        <VBox spacing="5">
+                            <Label text="%settings.prompt.separator"/>
+                            <TextField fx:id="fileSeparatorField"/>
+                        </VBox>
                     </VBox>
-                </HBox>
+                </Tab>
 
-                <VBox spacing="5">
-                    <Label text="%settings.output.label" style="-fx-font-weight: bold;"/>
-                    <HBox spacing="10">
-                        <TextField fx:id="defaultOutputPathField" HBox.hgrow="ALWAYS"/>
-                        <Button text="%settings.browse" onAction="#onBrowseOutput"/>
-                    </HBox>
-                    <CheckBox fx:id="oneFilePerChunkCheckBox" text="%settings.oneFilePerChunk"/>
-                </VBox>
-
-                <VBox spacing="5">
-                    <Label text="%settings.logging.label" style="-fx-font-weight: bold;"/>
-                    <HBox spacing="15" alignment="CENTER_LEFT">
-                        <CheckBox fx:id="debugModeCheckBox" text="%settings.debug"/>
-                        <Label text="%settings.log.level"/>
-                        <ComboBox fx:id="devLogLevelCombo" prefWidth="120"/>
-                        <Button text="%settings.open.logs" onAction="#onOpenLogs" styleClass="settings-button"/>
-                    </HBox>
-                </VBox>
-
-                <VBox spacing="5">
-                    <Label text="%settings.prompt.section" style="-fx-font-weight: bold;"/>
-
-                    <VBox spacing="5">
-                        <Label text="%settings.prompt.part.prefix"/>
-                        <TextField fx:id="partPrefixField"/>
-                        <Label text="%settings.prompt.part.hint"
-                               style="-fx-font-size: 10px; -fx-text-fill: #888;"/>
+                <Tab text="%settings.tab.assistant" closable="false">
+                    <VBox spacing="10" styleClass="root">
+                        <CheckBox fx:id="assistantEnabledCheckBox" text="%settings.assistant.enabled"/>
+                        <VBox spacing="5">
+                            <Label text="%settings.assistant.endpoint"/>
+                            <TextField fx:id="assistantEndpointField"/>
+                        </VBox>
+                        <VBox spacing="5">
+                            <Label text="%settings.assistant.model"/>
+                            <TextField fx:id="assistantModelField"/>
+                        </VBox>
                     </VBox>
+                </Tab>
 
-                    <VBox spacing="5">
-                        <Label text="%settings.prompt.final"/>
-                        <TextField fx:id="finalPartField"/>
-                    </VBox>
+            </TabPane>
 
-                    <VBox spacing="5">
-                        <Label text="%settings.prompt.separator"/>
-                        <TextField fx:id="fileSeparatorField"/>
-                    </VBox>
-                </VBox>
-
-                <HBox spacing="10">
-                    <Button text="📤 Экспорт" onAction="#onExportConfig"/>
-                    <Button text="📥 Импорт" onAction="#onImportConfig"/>
-                    <Button text="%settings.reset.all" onAction="#onResetToDefaults"/>
-                </HBox>
-
-            </VBox>
-
-            <VBox spacing="5" prefWidth="300" VBox.vgrow="ALWAYS">
-                <Label text="%settings.excluded.label" style="-fx-font-weight: bold;"/>
-                <ListView fx:id="excludedPatternsList" VBox.vgrow="ALWAYS"/>
-                <HBox spacing="5">
-                    <TextField fx:id="newPatternField" HBox.hgrow="ALWAYS" promptText="%settings.excluded.prompt"/>
-                    <Button text="➕" onAction="#onAddPattern"/>
-                </HBox>
-            </VBox>
-
-        </HBox>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="📤 Экспорт" onAction="#onExportConfig" styleClass="settings-button"/>
+                <Button text="📥 Импорт" onAction="#onImportConfig" styleClass="settings-button"/>
+                <Button text="%settings.reset.button" onAction="#onResetToDefaults" styleClass="settings-button"/>
+            </HBox>
+        </VBox>
     </content>
 
     <ButtonType text="%settings.save" buttonData="OK_DONE"/>
