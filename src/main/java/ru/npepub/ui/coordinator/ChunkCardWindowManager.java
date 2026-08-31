@@ -81,7 +81,7 @@ public class ChunkCardWindowManager {
             controller = loader.getController();
 
             stage = new Stage();
-            stage.setTitle(bundle.getString("results.label"));
+            stage.setTitle(bundle.getString("chunk.results.label"));
             stage.setScene(new Scene(root));
             stage.getScene().getStylesheets().add(
                     Objects.requireNonNull(getClass().getResource("/css/style.css")).toExternalForm());

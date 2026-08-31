@@ -10,7 +10,7 @@
       styleClass="root">
 
     <HBox spacing="10" alignment="CENTER_LEFT">
-        <Label text="%results.label" styleClass="section-label"/>
+        <Label text="%chunk.results.label" styleClass="section-label"/>
         <Region HBox.hgrow="ALWAYS"/>
         <Button text="✕" onAction="#onClose" styleClass="small-button"/>
     </HBox>

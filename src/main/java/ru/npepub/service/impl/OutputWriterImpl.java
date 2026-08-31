@@ -24,7 +24,6 @@ import java.util.stream.Stream;
 class OutputWriterImpl implements OutputWriter {
 
     private static final Logger log = LoggerFactory.getLogger(OutputWriterImpl.class);
-    private static final String FILE_PREFIX = "code2prompt_part";
 
     @C2PInject
     private ChunkFormatter formatter;
