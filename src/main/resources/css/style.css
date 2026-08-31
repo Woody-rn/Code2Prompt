@@ -323,3 +323,23 @@
     -fx-background-color: #1e8449;
     -fx-translate-y: 1px;
 }
+
+.ai-buttons-group {
+    -fx-border-color: #b8a8d0;
+    -fx-border-radius: 10px;
+    -fx-background-color: #f5f2fa;
+    -fx-background-radius: 10px;
+    -fx-padding: 5px;
+}
+
+.ai-buttons-group .template-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #5a4a7a;
+    -fx-font-size: 14px;
+}
+
+.ai-buttons-group .template-button:hover {
+    -fx-background-color: #e8e2f5;
+    -fx-text-fill: #3a2d5a;
+}

@@ -80,21 +80,24 @@
                             <Tooltip text="%template.delete.tooltip"/>
                         </tooltip>
                     </Button>
-                    <Button text="✨" onAction="#onImprovePrompt" styleClass="template-button">
-                        <tooltip>
-                            <Tooltip text="%prompt.improve.tooltip"/>
-                        </tooltip>
-                    </Button>
-                    <Button text="🔍" onAction="#onExpandPrompt" styleClass="template-button">
-                        <tooltip>
-                            <Tooltip text="%prompt.expand.tooltip"/>
-                        </tooltip>
-                    </Button>
-                    <Button text="📝" onAction="#onGenerateTemplateName" styleClass="template-button">
-                        <tooltip>
-                            <Tooltip text="%prompt.name.tooltip"/>
-                        </tooltip>
-                    </Button>
+
+                    <HBox spacing="5" styleClass="ai-buttons-group" alignment="CENTER_LEFT">
+                        <Button text="✨" onAction="#onImprovePrompt" styleClass="template-button">
+                            <tooltip>
+                                <Tooltip text="%prompt.improve.tooltip"/>
+                            </tooltip>
+                        </Button>
+                        <Button text="🔍" onAction="#onExpandPrompt" styleClass="template-button">
+                            <tooltip>
+                                <Tooltip text="%prompt.expand.tooltip"/>
+                            </tooltip>
+                        </Button>
+                        <Button text="📝" onAction="#onGenerateTemplateName" styleClass="template-button">
+                            <tooltip>
+                                <Tooltip text="%prompt.name.tooltip"/>
+                            </tooltip>
+                        </Button>
+                    </HBox>
                 </HBox>
                 <TextArea fx:id="promptField" prefRowCount="20" wrapText="true" promptText="%prompt.placeholder"/>
             </VBox>
