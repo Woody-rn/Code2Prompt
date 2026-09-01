@@ -19,10 +19,11 @@ class RequestValidatorImpl implements RequestValidator {
 
     @Override
     public Optional<ValidationError> validate(PrepareRequest request) {
-        for (InputValidator validator : validators) {
-            Optional<ValidationError> error = validator.validate(request);
-            if (error.isPresent()) return error;
-        }
-        return Optional.empty();
+
+        return validators.stream()
+                .flatMap(validator ->
+                        validator.validate(request)
+                        .stream())
+                .findFirst();
     }
 }
