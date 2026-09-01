@@ -11,11 +11,34 @@ import ru.npepub.model.ProjectInfo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Handles all HTTP requests for the context server.
- * Routes: /context, /context/parts, /project
+ * Routes and handles HTTP requests for the built-in HTTPS server.
+ *
+ * <p>Provides three endpoints for the browser extension and debugging:</p>
+ * <ul>
+ *   <li><b>GET /context</b> — returns concatenated content of all chunk files as plain text.
+ *       Used for quick preview in browser. Not consumed by the extension.</li>
+ *   <li><b>GET /context/parts?id=N</b> — returns a single chunk (N is zero-based index)
+ *       as JSON: {@code {index, total, content}}. The content includes prompt prefix
+ *       resolved from {@link PromptConfig} templates. Consumed by the extension.</li>
+ *   <li><b>GET /project</b> — returns project name as JSON: {@code {name}}.
+ *       Consumed by the extension to display current project.</li>
+ * </ul>
+ *
+ * <p>State management:</p>
+ * <ul>
+ *   <li>{@link #updateContext} — called after each scan to refresh files and project info.</li>
+ *   <li>{@link #updatePrompt} — called when user edits prompt in UI without rescanning.</li>
+ * </ul>
+ *
+ * <p>Thread safety: state fields are updated from JavaFX thread,
+ * but read from the HTTP server thread. This is acceptable because
+ * the server is stopped before each new scan, and prompt updates
+ * happen between requests.</p>
  */
 @C2PComponent
 class ContextRequestHandler {
@@ -70,7 +93,7 @@ class ContextRequestHandler {
         for (Path file : contextFiles) {
             sb.append(Files.readString(file)).append("\n\n");
         }
-        jsonHelper.sendJson(exchange, sb.toString());
+        jsonHelper.sendRawString(exchange, sb.toString(), 200);
     }
 
     private void handleParts(HttpExchange exchange) throws IOException {
@@ -100,29 +123,34 @@ class ContextRequestHandler {
 
         String fullContent = prefix + content;
 
-        String json = String.format(
-                "{\"index\":%d,\"total\":%d,\"content\":\"%s\"}",
-                partNumber, total, jsonHelper.escapeJson(fullContent)
-        );
-        jsonHelper.sendJson(exchange, json);
-    }
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("index", partNumber);
+        response.put("total", total);
+        response.put("content", fullContent);
 
-    private int parseIndexFromQuery(String query) {
-        if (query == null || !query.startsWith("id=")) return 0;
-        try {
-            String idValue = query.substring(3);
-            int ampIndex = idValue.indexOf('&');
-            if (ampIndex > 0) idValue = idValue.substring(0, ampIndex);
-            return Integer.parseInt(idValue);
-        } catch (NumberFormatException e) {
-            return -1;
-        }
+        jsonHelper.sendJson(exchange, response);
     }
 
     private void handleProject(HttpExchange exchange) throws IOException {
-        String json = "{\"name\":\"" +
-                (projectInfo != null ? projectInfo.name() : "") + "\"}";
-        jsonHelper.sendJson(exchange, json);
+        String name = projectInfo != null ? projectInfo.name() : "";
+        jsonHelper.sendJson(exchange, Map.of("name", name));
+    }
+
+    private int parseIndexFromQuery(String query) {
+        if (query == null) return 0;
+
+        try {
+            String[] params = query.split("&");
+            for (String param : params) {
+                String[] keyValue = param.split("=", 2);
+                if (keyValue[0].equals("id") && keyValue.length > 1) {
+                    return Integer.parseInt(keyValue[1]);
+                }
+            }
+            return 0;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     private String resolveTemplate(String template, int part, int total) {
