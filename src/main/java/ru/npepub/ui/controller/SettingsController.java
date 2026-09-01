@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import ru.npepub.ai.AssistantConfig;
 import ru.npepub.config.*;
 import ru.npepub.di.api.C2PInject;
+import ru.npepub.ui.util.UiResources;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class SettingsController {
 
     @FXML
     public void initialize() {
-        messages = ResourceBundle.getBundle("messages");
+        messages = UiResources.getBundle();
         config = configPort.load();
 
         modelCombo.getItems().addAll(MODEL_LIMITS.keySet());

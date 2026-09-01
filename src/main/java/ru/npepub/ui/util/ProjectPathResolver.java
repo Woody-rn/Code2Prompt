@@ -7,9 +7,11 @@ import java.io.File;
 /**
  * Resolves output path with project name subfolder.
  */
-public class ProjectPathResolver {
+public final class ProjectPathResolver {
 
     public static String resolveOutputPath(ProjectInfo project, String baseOutputPath) {
         return baseOutputPath + File.separator + project.name();
     }
+
+    private ProjectPathResolver(){}
 }

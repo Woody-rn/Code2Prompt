@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.ui.controller.ChunkCardController;
+import ru.npepub.ui.util.UiResources;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,7 +26,7 @@ public class ResultCardFactory {
      */
     public Node create(Path file) {
         try {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+            ResourceBundle bundle = UiResources.getBundle();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/chunk-card.fxml"), bundle);
             Node card = loader.load();
             loader.<ChunkCardController>getController().setFile(file, Files.readString(file).length());

@@ -17,6 +17,7 @@ import ru.npepub.di.api.C2PInject;
 import ru.npepub.dto.PrepareRequest;
 import ru.npepub.dto.ValidationError;
 import ru.npepub.model.ProjectInfo;
+import ru.npepub.ui.util.UiResources;
 import ru.npepub.update.VersionChecker;
 import ru.npepub.ui.coordinator.*;
 import ru.npepub.ui.log.LogWindowPort;
@@ -79,7 +80,7 @@ public class DashboardController {
 
     @FXML
     public void initialize() {
-        messages = ResourceBundle.getBundle("messages");
+        messages = UiResources.getBundle();
         config = configPort.load();
         outputPathField.setText(config.paths().outputPath().toString());
         logWindowManager.setOnClosed(this::disableDebugMode);

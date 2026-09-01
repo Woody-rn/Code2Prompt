@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.ContainerDI;
+import ru.npepub.ui.util.UiResources;
 
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -33,7 +34,7 @@ public class Code2PromptApplication extends Application {
     public void start(Stage primaryStage) throws Exception {
         log.info("Starting Code2Prompt");
 
-        ResourceBundle bundle = ResourceBundle.getBundle("messages");
+        ResourceBundle bundle = UiResources.getBundle();
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/dashboard.fxml"), bundle);
         loader.setControllerFactory(container::createController);
@@ -42,7 +43,7 @@ public class Code2PromptApplication extends Application {
         primaryStage.setTitle(bundle.getString("app.title"));
 
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/css/style.css")).toExternalForm());
+        scene.getStylesheets().add(UiResources.getStylesheetPath());
         primaryStage.setScene(scene);
 
         primaryStage.getIcons().add(new javafx.scene.image.Image(

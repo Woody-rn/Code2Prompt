@@ -8,12 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.ui.controller.ChunkCardWindowController;
+import ru.npepub.ui.util.StageBinder;
+import ru.npepub.ui.util.UiResources;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.ResourceBundle;
 
 /**
@@ -74,7 +75,7 @@ public class ChunkCardWindowManager {
 
     private void createWindow(Stage mainStage) {
         try {
-            ResourceBundle bundle = ResourceBundle.getBundle("messages");
+            ResourceBundle bundle = UiResources.getBundle();
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/fxml/chunk-cards-window.fxml"), bundle);
             Parent root = loader.load();
@@ -83,11 +84,10 @@ public class ChunkCardWindowManager {
             stage = new Stage();
             stage.setTitle(bundle.getString("chunk.results.label"));
             stage.setScene(new Scene(root));
-            stage.getScene().getStylesheets().add(
-                    Objects.requireNonNull(getClass().getResource("/css/style.css")).toExternalForm());
+            stage.getScene().getStylesheets().add(UiResources.getStylesheetPath());
 
             if (mainStage != null) {
-                bindToMainStage(mainStage);
+                StageBinder.bind(stage, mainStage);
             }
 
             log.info("Chunk cards window created");
@@ -102,21 +102,5 @@ public class ChunkCardWindowManager {
             controller.addChunkCard(file);
         }
         pendingFiles.clear();
-    }
-
-    private void bindToMainStage(Stage mainStage) {
-        stage.setX(mainStage.getX() + mainStage.getWidth());
-        stage.setY(mainStage.getY());
-        stage.setHeight(mainStage.getHeight());
-
-        mainStage.xProperty().addListener((obs, o, n) -> {
-            if (stage != null) stage.setX(n.doubleValue() + mainStage.getWidth());
-        });
-        mainStage.yProperty().addListener((obs, o, n) -> {
-            if (stage != null) stage.setY(n.doubleValue());
-        });
-        mainStage.heightProperty().addListener((obs, o, n) -> {
-            if (stage != null) stage.setHeight(n.doubleValue());
-        });
     }
 }

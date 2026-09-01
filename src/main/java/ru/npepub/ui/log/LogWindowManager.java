@@ -5,6 +5,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import ru.npepub.di.api.C2PComponent;
+import ru.npepub.ui.util.StageBinder;
 
 /**
  * Manages a separate window that displays real-time logs.
@@ -40,7 +41,7 @@ class LogWindowManager implements LogWindowPort {
             }
         });
 
-        bindToMainStage(mainStage);
+        StageBinder.bind(logStage, mainStage);
         logStage.show();
     }
 
@@ -68,21 +69,5 @@ class LogWindowManager implements LogWindowPort {
     @Override
     public void setOnClosed(Runnable onClosed) {
         this.onClosed = onClosed;
-    }
-
-    private void bindToMainStage(Stage mainStage) {
-        logStage.setX(mainStage.getX() + mainStage.getWidth());
-        logStage.setY(mainStage.getY());
-        logStage.setHeight(mainStage.getHeight());
-
-        mainStage.xProperty().addListener((obs, o, n) -> {
-            if (logStage != null) logStage.setX(n.doubleValue() + mainStage.getWidth());
-        });
-        mainStage.yProperty().addListener((obs, o, n) -> {
-            if (logStage != null) logStage.setY(n.doubleValue());
-        });
-        mainStage.heightProperty().addListener((obs, o, n) -> {
-            if (logStage != null) logStage.setHeight(n.doubleValue());
-        });
     }
 }
