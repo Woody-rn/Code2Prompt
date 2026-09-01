@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Controller for the settings dialog.
@@ -97,7 +98,25 @@ public class SettingsController {
             }
         });
 
+        setupNumericFields();
+
         fillForm(config);
+    }
+
+    /**
+     * Restricts input to valid numeric formats.
+     * maxSymbolsField accepts up to 7 digits (max 9,999,999 — fits in int).
+     * safetyMarginField accepts 0-100 (percent).
+     */
+    private void setupNumericFields() {
+        Pattern digits = Pattern.compile("\\d{0,7}");
+        Pattern percent = Pattern.compile("\\d{0,2}|100");
+
+        maxSymbolsField.setTextFormatter(new TextFormatter<>(change ->
+                digits.matcher(change.getControlNewText()).matches() ? change : null));
+
+        safetyMarginField.setTextFormatter(new TextFormatter<>(change ->
+                percent.matcher(change.getControlNewText()).matches() ? change : null));
     }
 
     private void fillForm(AppConfig config) {
