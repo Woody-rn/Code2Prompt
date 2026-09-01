@@ -20,6 +20,8 @@ class FileAggregatorImpl implements FileAggregator {
     private static final Logger log = LoggerFactory.getLogger(FileAggregatorImpl.class);
 
     private static final int HEADER_BASE_SIZE = 80;
+    private static final int CHUNK_FILL_THRESHOLD = 95;
+    private static final int SPLIT_SAFETY_MARGIN = 100;
 
     @Override
     public List<Chunk> aggregate(List<FileInfo> files, int symbolLimit, boolean oneFilePerChunk) {
@@ -31,39 +33,35 @@ class FileAggregatorImpl implements FileAggregator {
             return List.of();
         }
 
-        if (oneFilePerChunk) {
-            return aggregateEachFileSeparately(files, symbolLimit);
-        }
-
-        return aggregateByLimit(files, symbolLimit);
-    }
-
-    private List<Chunk> aggregateEachFileSeparately(List<FileInfo> files, int symbolLimit) {
-        List<Chunk> chunks = new ArrayList<>();
-        int chunkIndex = 1;
-
-        for (FileInfo file : files) {
-            int headerSize = estimateHeaderSize(file);
-            int totalFileSize = file.size() + headerSize;
-
-            if (totalFileSize > symbolLimit) {
-                log.info("File '{}' ({} symbols) exceeds limit, splitting into parts",
-                        file.relativePath(), totalFileSize);
-
-                List<FileInfo> parts = splitFile(file, symbolLimit, headerSize);
-                for (FileInfo part : parts) {
-                    chunks.add(new Chunk(chunkIndex++, List.of(part),
-                            part.size() + estimateHeaderSize(part)));
-                }
-            } else {
-                chunks.add(new Chunk(chunkIndex++, List.of(file), totalFileSize));
-            }
-        }
+        List<Chunk> chunks = oneFilePerChunk
+                ? aggregatePerFile(files, symbolLimit)
+                : aggregateByLimit(files, symbolLimit);
 
         logAggregationResult(chunks);
         return chunks;
     }
 
+    /**
+     * Each file goes into its own chunk. Large files are split.
+     */
+    private List<Chunk> aggregatePerFile(List<FileInfo> files, int symbolLimit) {
+        List<Chunk> chunks = new ArrayList<>();
+        int chunkIndex = 1;
+
+        for (FileInfo file : files) {
+            List<FileInfo> parts = splitIfNeeded(file, symbolLimit);
+            for (FileInfo part : parts) {
+                chunks.add(createChunk(chunkIndex++, List.of(part)));
+            }
+        }
+
+        return chunks;
+    }
+
+    /**
+     * Files are packed into chunks until the limit is reached.
+     * Files exceeding the limit are split across multiple chunks.
+     */
     private List<Chunk> aggregateByLimit(List<FileInfo> files, int symbolLimit) {
         List<Chunk> chunks = new ArrayList<>();
         List<FileInfo> currentFiles = new ArrayList<>();
@@ -71,80 +69,82 @@ class FileAggregatorImpl implements FileAggregator {
         int chunkIndex = 1;
 
         for (FileInfo file : files) {
-            int headerSize = estimateHeaderSize(file);
-            int totalFileSize = file.size() + headerSize;
+            List<FileInfo> parts = splitIfNeeded(file, symbolLimit);
 
-            if (totalFileSize > symbolLimit) {
-                log.info("File '{}' ({} symbols) exceeds limit, splitting into parts",
-                        file.relativePath(), totalFileSize);
+            for (FileInfo part : parts) {
+                int partSize = calculateTotalSize(part);
 
-                if (!currentFiles.isEmpty()) {
-                    chunks.add(new Chunk(chunkIndex++, List.copyOf(currentFiles), currentSize));
-                    currentFiles.clear();
+                if (!currentFiles.isEmpty() && currentSize + partSize > symbolLimit) {
+                    chunks.add(createChunk(chunkIndex++, List.copyOf(currentFiles)));
+                    currentFiles = new ArrayList<>();
                     currentSize = 0;
                 }
 
-                List<FileInfo> parts = splitFile(file, symbolLimit, headerSize);
-                for (FileInfo part : parts) {
-                    int partSize = part.size() + estimateHeaderSize(part);
-                    currentFiles.add(part);
-                    currentSize += partSize;
+                currentFiles.add(part);
+                currentSize += partSize;
 
-                    if (currentSize >= symbolLimit * 0.9) {
-                        chunks.add(new Chunk(chunkIndex++, List.copyOf(currentFiles), currentSize));
-                        currentFiles.clear();
-                        currentSize = 0;
-                    }
+                if (currentSize >= symbolLimit * CHUNK_FILL_THRESHOLD / 100) {
+                    chunks.add(createChunk(chunkIndex++, List.copyOf(currentFiles)));
+                    currentFiles = new ArrayList<>();
+                    currentSize = 0;
                 }
-                continue;
             }
-
-            if (!canFitInCurrentChunk(currentFiles, currentSize, totalFileSize, symbolLimit)) {
-                chunks.add(new Chunk(chunkIndex++, List.copyOf(currentFiles), currentSize));
-                currentFiles.clear();
-                currentSize = 0;
-            }
-
-            currentFiles.add(file);
-            currentSize += totalFileSize;
         }
 
         if (!currentFiles.isEmpty()) {
-            chunks.add(new Chunk(chunkIndex, List.copyOf(currentFiles), currentSize));
+            chunks.add(createChunk(chunkIndex, List.copyOf(currentFiles)));
         }
 
-        logAggregationResult(chunks);
         return chunks;
     }
 
-    private List<FileInfo> splitFile(FileInfo file, int symbolLimit, int headerSize) {
-        int partLimit = symbolLimit - headerSize - 100;
-        if (partLimit <= 0) {
-            log.warn("Part limit is too small for file: {}", file.relativePath());
+    /**
+     * Splits file into parts if it exceeds the limit, otherwise returns single-element list.
+     */
+    private List<FileInfo> splitIfNeeded(FileInfo file, int symbolLimit) {
+        if (calculateTotalSize(file) <= symbolLimit) {
             return List.of(file);
         }
 
-        List<FileInfo> parts = new ArrayList<>();
+        int partLimit = calculatePartLimit(symbolLimit);
+        if (partLimit <= 0) {
+            log.warn("Symbol limit {} is too small to split file: {}",
+                    symbolLimit, file.relativePath());
+            throw new IllegalArgumentException(
+                    "Symbol limit too small for file: " + file.relativePath());
+        }
+
+        return splitIntoParts(file, partLimit);
+    }
+
+    private List<FileInfo> splitIntoParts(FileInfo file, int partLimit) {
         String content = file.content();
         int totalParts = (int) Math.ceil((double) content.length() / partLimit);
+        List<FileInfo> parts = new ArrayList<>(totalParts);
 
         for (int i = 0; i < totalParts; i++) {
             int start = i * partLimit;
             int end = Math.min(start + partLimit, content.length());
-            String partContent = content.substring(start, end);
-            parts.add(FileInfo.split(file, partContent, i + 1, totalParts));
+            parts.add(FileInfo.split(file, content.substring(start, end), i + 1, totalParts));
         }
 
         log.debug("Split '{}' into {} parts", file.relativePath(), totalParts);
         return parts;
     }
 
-    private boolean canFitInCurrentChunk(List<FileInfo> currentFiles,
-                                         int currentSize,
-                                         int totalFileSize,
-                                         int symbolLimit) {
-        if (currentFiles.isEmpty()) return true;
-        return currentSize + totalFileSize <= symbolLimit;
+    private Chunk createChunk(int index, List<FileInfo> files) {
+        int totalSize = files.stream()
+                .mapToInt(this::calculateTotalSize)
+                .sum();
+        return new Chunk(index, files, totalSize);
+    }
+
+    private int calculateTotalSize(FileInfo file) {
+        return file.size() + estimateHeaderSize(file);
+    }
+
+    private int calculatePartLimit(int symbolLimit) {
+        return symbolLimit - HEADER_BASE_SIZE - SPLIT_SAFETY_MARGIN;
     }
 
     private int estimateHeaderSize(FileInfo file) {
@@ -153,9 +153,11 @@ class FileAggregatorImpl implements FileAggregator {
 
     private void logAggregationResult(List<Chunk> chunks) {
         log.info("Aggregation complete. {} chunks created", chunks.size());
-        for (Chunk chunk : chunks) {
-            log.debug("Chunk {}: {} files, {} symbols",
-                    chunk.index(), chunk.files().size(), chunk.totalSize());
+        if (log.isDebugEnabled()) {
+            for (Chunk chunk : chunks) {
+                log.debug("Chunk {}: {} files, {} symbols",
+                        chunk.index(), chunk.files().size(), chunk.totalSize());
+            }
         }
     }
 }
