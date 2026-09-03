@@ -1,4 +1,4 @@
-package ru.npepub.ui.coordinator;
+package ru.npepub.ui.window;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

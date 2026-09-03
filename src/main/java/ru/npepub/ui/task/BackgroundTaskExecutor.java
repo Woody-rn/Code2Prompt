@@ -10,31 +10,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 /**
- * Runs a pipeline in a background thread with cancellation support.
+ * Runs a background task in a separate thread with cancellation support.
  * Reports progress via UI callbacks on the JavaFX thread.
  */
-public class TaskRunner {
+public class BackgroundTaskExecutor {
 
-    private static final Logger log = LoggerFactory.getLogger(TaskRunner.class);
+    private static final Logger log = LoggerFactory.getLogger(BackgroundTaskExecutor.class);
 
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
     /**
-     * Runs the given action in a background thread.
+     * Runs the given task in a background thread.
      *
-     * @param action        the blocking action with progress and cancellation support
+     * @param task          the task to execute
      * @param onProgress    called with progress messages (JavaFX thread)
      * @param onEachResult  called for each result path (JavaFX thread)
      * @param onComplete    called when finished or cancelled (JavaFX thread)
      */
-    public void run(TaskAction action,
+    public void run(BackgroundTask task,
                     Consumer<String> onProgress,
                     Consumer<Path> onEachResult,
                     Runnable onComplete) {
         cancelled.set(false);
         new Thread(() -> {
             try {
-                List<Path> results = action.execute(
+                List<Path> results = task.execute(
                         msg -> Platform.runLater(() -> onProgress.accept(msg)),
                         cancelled
                 );
@@ -60,12 +60,5 @@ public class TaskRunner {
      */
     public void cancel() {
         cancelled.set(true);
-    }
-
-    /**
-     * A background action with progress reporting and cancellation support.
-     */
-    public interface TaskAction {
-        List<Path> execute(Consumer<String> onProgress, AtomicBoolean cancelled) throws Exception;
     }
 }

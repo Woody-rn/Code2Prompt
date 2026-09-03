@@ -1,4 +1,4 @@
-package ru.npepub.ui.coordinator;
+package ru.npepub.ui.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package ru.npepub.ui.coordinator;
+package ru.npepub.ui.service;
 
 import javafx.application.Platform;
 import org.slf4j.Logger;
@@ -10,7 +10,8 @@ import ru.npepub.dto.PrepareRequest;
 import ru.npepub.model.Chunk;
 import ru.npepub.model.FileInfo;
 import ru.npepub.service.pipeline.PrepareContextPipeline;
-import ru.npepub.ui.task.TaskRunner;
+import ru.npepub.ui.task.BackgroundTask;
+import ru.npepub.ui.task.BackgroundTaskExecutor;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -28,7 +29,7 @@ public class ScanPipelineRunner {
     @C2PInject private PrepareContextPipeline pipeline;
     @C2PInject private ConfigPort configPort;
 
-    private final TaskRunner taskRunner = new TaskRunner();
+    private final BackgroundTaskExecutor taskRunner = new BackgroundTaskExecutor();
     private List<Path> lastResults;
 
     public void run(PrepareRequest request,
@@ -39,21 +40,15 @@ public class ScanPipelineRunner {
                     Consumer<List<FileInfo>> onFilesScanned,
                     Consumer<String> onStatus) {
 
-        taskRunner.run(
-                (progressCallback, cancelled) -> executePipeline(request, oneFilePerChunk,
-                        progressCallback, cancelled, onFilesScanned, onStatus),
-                onProgress,
-                onEachResult,
-                onComplete
-        );
+        BackgroundTask task = (progressCallback, cancelled) ->
+                executePipeline(request, oneFilePerChunk, progressCallback,
+                        cancelled, onFilesScanned, onStatus);
+
+        taskRunner.run(task, onProgress, onEachResult, onComplete);
     }
 
     public void cancel() {
         taskRunner.cancel();
-    }
-
-    public List<Path> getLastResults() {
-        return lastResults != null ? List.copyOf(lastResults) : List.of();
     }
 
     private List<Path> executePipeline(PrepareRequest request,

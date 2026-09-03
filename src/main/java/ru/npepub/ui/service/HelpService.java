@@ -1,4 +1,4 @@
-package ru.npepub.ui.coordinator;
+package ru.npepub.ui.service;
 
 import ru.npepub.di.api.C2PComponent;
 
