@@ -22,6 +22,7 @@ import ru.npepub.ui.service.HelpService;
 import ru.npepub.ui.service.ProjectHistoryStore;
 import ru.npepub.ui.service.TaskTemplateManager;
 import ru.npepub.ui.service.ScanPipelineRunner;
+import ru.npepub.ui.state.PromptState;
 import ru.npepub.ui.util.UiResources;
 import ru.npepub.ui.window.ChunkCardWindowManager;
 import ru.npepub.update.VersionChecker;
@@ -72,14 +73,13 @@ public class DashboardController {
     @C2PInject private VersionChecker versionChecker;
     @C2PInject private PromptAssistant promptAssistant;
     @C2PInject private ChunkCardWindowManager chunkCardWindow;
+    @C2PInject private PromptState promptState;
 
     private AppConfig config;
     private ProjectInfo projectInfo;
     private PrepareRequest lastRequest;
     private ResourceBundle messages;
-    private boolean updatingPrompt = false;
     private boolean running = false;
-    private Timer saveTimer;
     private ScheduledExecutorService aiScheduler;
     private boolean aiPolling = false;
 
@@ -97,9 +97,11 @@ public class DashboardController {
         setupDragAndDrop();
         fileTreeController.setStatusConsumer(this::setStatusBar);
 
-        updatingPrompt = true;
-        promptField.setText(config.prompt().systemPrompt());
-        updatingPrompt = false;
+        promptState.subscribe(this::savePromptToConfig);
+        promptState.subscribe(this::syncTaskCombo);
+        promptState.set(config.prompt().systemPrompt());
+        promptField.setText(promptState.get());
+
         buildTaskCombo();
 
         checkAiAvailability();
@@ -194,7 +196,6 @@ public class DashboardController {
         }
 
         taskCombo.setOnAction(e -> {
-            if (updatingPrompt) return;
             String selected = taskCombo.getValue();
             if (selected == null || selected.equals(messages.getString("task.custom"))) {
                 return;
@@ -203,36 +204,21 @@ public class DashboardController {
 
             String prompt = templateManager.getPromptForTask(selected, messages);
             if (prompt != null) {
-                updatingPrompt = true;
+                promptState.set(prompt);
                 promptField.setText(prompt);
-                updatingPrompt = false;
+                promptField.positionCaret(0);
             }
         });
 
-        promptField.textProperty().addListener((obs, old, val) -> {
-            if (updatingPrompt) return;
-            schedulePromptSave();
-            Platform.runLater(() -> {
-                String selected = taskCombo.getValue();
-                String expectedPrompt = templateManager.getPromptForTask(selected, messages);
-                if (expectedPrompt == null || !expectedPrompt.equals(val)) {
-                    taskCombo.setValue(messages.getString("task.custom"));
-                }
-            });
-        });
+        promptField.textProperty().addListener((obs, old, val) -> promptState.set(val));
     }
 
-    private void schedulePromptSave() {
-        if (saveTimer != null) {
-            saveTimer.cancel();
+    private void syncTaskCombo(String prompt) {
+        String selected = taskCombo.getValue();
+        String expectedPrompt = templateManager.getPromptForTask(selected, messages);
+        if (expectedPrompt == null || !expectedPrompt.equals(prompt)) {
+            taskCombo.setValue(messages.getString("task.custom"));
         }
-        saveTimer = new Timer(true);
-        saveTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(() -> savePromptToConfig());
-            }
-        }, 500);
     }
 
     @FXML
@@ -268,9 +254,8 @@ public class DashboardController {
                 templateManager.deleteTemplate(selected);
                 buildTaskCombo();
                 taskCombo.setValue(messages.getString("task.custom"));
-                updatingPrompt = true;
+                promptState.set("");
                 promptField.clear();
-                updatingPrompt = false;
             }
         });
     }
@@ -435,6 +420,11 @@ public class DashboardController {
                 logWindowManager.toggle(config.debugMode(), getMainStage());
                 sourcePathField.getItems().setAll(projectHistory.getAll());
                 buildTaskCombo();
+
+                // Синхронизируем promptState с новым конфигом
+                promptState.set(config.prompt().systemPrompt());
+                promptField.setText(promptState.get());
+
                 checkAiAvailability();
                 setStatusBar(messages.getString("status.saved"));
             }
@@ -487,8 +477,7 @@ public class DashboardController {
         }
     }
 
-    private void savePromptToConfig() {
-        String prompt = promptField.getText();
+    private void savePromptToConfig(String prompt) {
         AppConfig freshConfig = configPort.load();
         if (prompt != null && !prompt.equals(freshConfig.prompt().systemPrompt())) {
             config = freshConfig.withPrompt(new PromptConfig(
@@ -609,10 +598,9 @@ public class DashboardController {
             String result = operation.apply(text);
             Platform.runLater(() -> {
                 if (!result.isBlank()) {
-                    updatingPrompt = true;
+                    promptState.set(result);
                     promptField.setText(result);
                     promptField.positionCaret(0);
-                    updatingPrompt = false;
                     setStatusBar(successMessage);
                 } else {
                     setStatusBar(failureMessage, true);
