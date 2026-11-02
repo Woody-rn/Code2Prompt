@@ -54,7 +54,7 @@ class FileScannerImplTest {
         List<FileInfo> files = scanner.scan(tempDir);
 
         assertThat(files).hasSize(1);
-        FileInfo file = files.get(0);
+        FileInfo file = files.getFirst();
         assertThat(file.relativePath().toString()).isEqualTo("Main.java");
         assertThat(file.content()).isEqualTo("class Main {}");
         assertThat(file.size()).isEqualTo("class Main {}".length());
@@ -83,5 +83,33 @@ class FileScannerImplTest {
         assertThatThrownBy(() -> scanner.scan(file))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Not a directory");
+    }
+
+    @Test
+    void shouldSkipExcludedDirectoriesDuringScan(@TempDir Path tempDir) throws Exception {
+        Files.createDirectories(tempDir.resolve("src"));
+        Files.writeString(tempDir.resolve("src/Main.java"), "class Main {}");
+
+        Files.createDirectories(tempDir.resolve("build/classes"));
+        Files.writeString(tempDir.resolve("build/classes/App.class"), "binary");
+
+        Files.createDirectories(tempDir.resolve(".git"));
+        Files.writeString(tempDir.resolve(".git/config"), "[core]");
+
+        Files.createDirectories(tempDir.resolve("module-a/build"));
+        Files.writeString(tempDir.resolve("module-a/build/out.txt"), "junk");
+
+        List<FileInfo> files = scanner.scan(tempDir);
+
+        List<String> relativePaths = files.stream()
+                .map(f -> f.relativePath().toString().replace("\\", "/"))
+                .toList();
+
+        assertThat(relativePaths).containsExactly("src/Main.java");
+        assertThat(relativePaths).doesNotContain(
+                "build/classes/App.class",
+                ".git/config",
+                "module-a/build/out.txt"
+        );
     }
 }

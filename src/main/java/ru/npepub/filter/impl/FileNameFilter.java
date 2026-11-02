@@ -2,6 +2,7 @@ package ru.npepub.filter.impl;
 
 import ru.npepub.config.FilterConfig;
 import ru.npepub.di.api.C2PComponent;
+import ru.npepub.exception.FilterMisuseException;
 import ru.npepub.filter.ConfigurableFilter;
 import ru.npepub.filter.FileFilter;
 
@@ -15,8 +16,12 @@ class FileNameFilter implements FileFilter, ConfigurableFilter {
 
     @Override
     public boolean shouldInclude(Path filePath) {
-        String fileName = filePath.getFileName().toString();
-        return !excludedFileNames.contains(fileName);
+        Path fileName = filePath.getFileName();
+        if (fileName == null) {
+            throw new FilterMisuseException(
+                    "FileFilter called with non-file path: " + filePath);
+        }
+        return !excludedFileNames.contains(fileName.toString());
     }
 
     @Override

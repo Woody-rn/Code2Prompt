@@ -36,24 +36,6 @@ class FileFilterIntegrationTest {
     }
 
     @Test
-    void shouldExcludeBuildDirectory(@TempDir Path tempDir) throws Exception {
-        Path file = tempDir.resolve("build/classes/App.class");
-        Files.createDirectories(file.getParent());
-        Files.writeString(file, "binary");
-
-        assertThat(filter.shouldInclude(file)).isFalse();
-    }
-
-    @Test
-    void shouldExcludeGitDirectory(@TempDir Path tempDir) throws Exception {
-        Path file = tempDir.resolve(".git/config");
-        Files.createDirectories(file.getParent());
-        Files.writeString(file, "[core]");
-
-        assertThat(filter.shouldInclude(file)).isFalse();
-    }
-
-    @Test
     void shouldExcludeEnvFile(@TempDir Path tempDir) throws Exception {
         Path file = tempDir.resolve(".env");
         Files.writeString(file, "SECRET=123");

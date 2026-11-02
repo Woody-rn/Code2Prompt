@@ -2,24 +2,28 @@ package ru.npepub.filter.impl;
 
 import ru.npepub.config.FilterConfig;
 import ru.npepub.di.api.C2PComponent;
+import ru.npepub.exception.FilterMisuseException;
 import ru.npepub.filter.ConfigurableFilter;
 import ru.npepub.filter.FileFilter;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.Set;
+import java.util.List;
 
 @C2PComponent
 class PatternFilter implements FileFilter, ConfigurableFilter {
 
-    private Set<String> patterns = Set.of();
+    private List<PathMatcher> matchers = List.of();
 
     @Override
     public boolean shouldInclude(Path filePath) {
         Path fileName = filePath.getFileName();
-        for (String pattern : patterns) {
-            PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+        if (fileName == null) {
+            throw new FilterMisuseException(
+                    "FileFilter called with non-file path: " + filePath);
+        }
+        for (PathMatcher matcher : matchers) {
             if (matcher.matches(fileName)) {
                 return false;
             }
@@ -29,6 +33,8 @@ class PatternFilter implements FileFilter, ConfigurableFilter {
 
     @Override
     public void reloadConfig(FilterConfig config) {
-        this.patterns = config.patterns();
+        this.matchers = config.patterns().stream()
+                .map(p -> FileSystems.getDefault().getPathMatcher("glob:" + p))
+                .toList();
     }
 }

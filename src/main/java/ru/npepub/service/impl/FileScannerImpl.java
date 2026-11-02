@@ -6,48 +6,89 @@ import ru.npepub.config.ConfigPort;
 import ru.npepub.config.FilterConfig;
 import ru.npepub.di.api.C2PComponent;
 import ru.npepub.di.api.C2PInject;
+import ru.npepub.exception.FilterMisuseException;
 import ru.npepub.filter.ConfigurableFilter;
+import ru.npepub.filter.DirectoryFilter;
 import ru.npepub.filter.FileFilter;
 import ru.npepub.model.FileInfo;
 import ru.npepub.service.FileScanner;
 
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @C2PComponent
 class FileScannerImpl implements FileScanner {
 
     private static final Logger log = LoggerFactory.getLogger(FileScannerImpl.class);
 
-    @C2PInject private FileFilter fileFilter;
-    @C2PInject private ConfigPort configPort;
+    @C2PInject
+    private FileFilter fileFilter;
+    @C2PInject
+    private DirectoryFilter directoryFilter;
+    @C2PInject
+    private ConfigPort configPort;
 
     @Override
     public List<FileInfo> scan(Path rootDir) {
         validateDirectory(rootDir);
         log.info("Scanning directory: {}", rootDir);
 
-        if (fileFilter instanceof ConfigurableFilter configurable) {
-            FilterConfig filterConfig = configPort.load().filter();
-            configurable.reloadConfig(filterConfig);
-        }
+        FilterConfig filterConfig = configPort.load().filter();
+        reloadConfig(filterConfig);
 
-        try (Stream<Path> stream = Files.walk(rootDir)) {
-            List<FileInfo> files = stream
-                    .filter(Files::isRegularFile)
-                    .map(filePath -> toFileInfo(rootDir, filePath))
-                    .flatMap(Optional::stream)
-                    .toList();
+        List<FileInfo> files = new ArrayList<>();
 
-            logScanResult(files);
-            return files;
+        try {
+            Files.walkFileTree(rootDir, new SimpleFileVisitor<>() {
+
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    if (dir.equals(rootDir)) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    if (!directoryFilter.shouldEnter(dir)) {
+                        log.debug("Skipping directory: {}", dir);
+                        return FileVisitResult.SKIP_SUBTREE;
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    if (attrs.isRegularFile()) {
+                        toFileInfo(rootDir, file).ifPresent(files::add);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                    log.warn("Failed to visit: {}", file, exc);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         } catch (IOException e) {
             log.error("Failed to scan directory: {}", rootDir, e);
             throw new RuntimeException("Directory scan failed: " + rootDir, e);
+        }
+
+        logScanResult(files);
+        return files;
+    }
+
+    private void reloadConfig(FilterConfig config) {
+        if (fileFilter instanceof ConfigurableFilter c) {
+            c.reloadConfig(config);
+        }
+        if (directoryFilter instanceof ConfigurableFilter c) {
+            c.reloadConfig(config);
         }
     }
 
@@ -58,7 +99,15 @@ class FileScannerImpl implements FileScanner {
     }
 
     private Optional<FileInfo> toFileInfo(Path rootDir, Path filePath) {
-        if (!fileFilter.shouldInclude(filePath)) {
+        try {
+            if (!fileFilter.shouldInclude(filePath)) {
+                return Optional.empty();
+            }
+        } catch (FilterMisuseException e) {
+            // A filter was called with a path it can't handle (e.g. root).
+            // This is a bug in the filter, not a data error — log it
+            // and skip the file so one bad entry doesn't abort the scan.
+            log.warn("Filter misuse for {}: {}", filePath, e.getMessage());
             return Optional.empty();
         }
         try {
