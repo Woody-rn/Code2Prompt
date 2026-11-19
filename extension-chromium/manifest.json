@@ -1,17 +1,27 @@
 {
   "manifest_version": 3,
   "name": "Code2Prompt",
-  "version": "1.0",
-  "description": "Добавляет контекст проекта в чат DeepSeek",
-  "permissions": ["activeTab"],
+  "version": "1.2",
+  "description": "Добавляет контекст проекта в чаты DeepSeek, Gemini и Google AI Mode",
+  "permissions": [
+    "activeTab"
+  ],
   "host_permissions": [
     "https://chat.deepseek.com/*",
+    "https://gemini.google.com/*",
+    "https://www.google.com/*",
     "https://localhost:9090/*"
   ],
   "content_scripts": [
     {
-      "matches": ["https://chat.deepseek.com/*"],
-      "js": ["content.js"]
+      "matches": [
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*",
+        "https://www.google.com/search*"
+      ],
+      "js": [
+        "content.js"
+      ]
     }
   ]
 }
